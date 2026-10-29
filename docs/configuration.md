@@ -12,10 +12,22 @@ command-line flags. Flags win over environment variables.
 | `YTDLPZ_CONFIG_DIR`           | your user data folder¹      | `/config`        | Database and secret key                                                                         |
 | `YTDLPZ_DEFAULT_DOWNLOAD_DIR` | `~/Downloads/yt-dlp-z`      | `/downloads`     | Suggested download folder in first-run setup                                                    |
 | `YTDLPZ_AUTH_MODE`            | `password`                  | `password`       | `password`, or `none` to turn off login. **Only use `none` behind a proxy that handles login.** |
+| `YTDLPZ_ADMIN_PASSWORD`       | unset                       | unset            | Sets the admin password up front (see below)                                                    |
 | `YTDLPZ_SESSION_DAYS`         | `30`                        | `30`             | How long a sign-in lasts                                                                        |
 | `YTDLPZ_FRONTEND_DIST`        | `frontend/dist` in the repo | `/app/frontend`  | Folder with the built web UI                                                                    |
 
 ¹ e.g. `~/.local/share/yt-dlp-z` on Linux.
+
+### Setting the admin password up front
+
+By default the first person to open a fresh install chooses the admin
+password. On a server reachable by others, set `YTDLPZ_ADMIN_PASSWORD`
+instead: setup then asks for that password rather than creating one, so nobody
+else can claim the install.
+
+The variable is applied at every start. Changing it and restarting replaces
+the password and signs out every session. While it is set, `reset-password`
+only lasts until the next restart.
 
 `YTDLPZ_TEST_MODE` exists for the automated test suite only. Never set it on a
 real install: it exposes an endpoint that wipes all data.

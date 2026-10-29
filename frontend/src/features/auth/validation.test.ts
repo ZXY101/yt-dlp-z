@@ -4,7 +4,7 @@ const valid = {
   password: "long-enough",
   confirmPassword: "long-enough",
   downloadDir: "/downloads",
-  needsPassword: true,
+  passwordMode: "create" as const,
 };
 
 describe("validateSetup", () => {
@@ -21,7 +21,13 @@ describe("validateSetup", () => {
   });
 
   it("skips password checks when no password is needed", () => {
-    expect(validateSetup({ ...valid, password: "", needsPassword: false })).toEqual({});
+    expect(validateSetup({ ...valid, password: "", passwordMode: "none" })).toEqual({});
+  });
+
+  it("only requires a non-empty password when verifying the env password", () => {
+    const verify = { ...valid, confirmPassword: "", passwordMode: "verify" as const };
+    expect(validateSetup({ ...verify, password: "x" })).toEqual({});
+    expect(validateSetup({ ...verify, password: "" }).password).toMatch(/Enter/);
   });
 
   it.each([

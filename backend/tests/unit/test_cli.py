@@ -11,7 +11,7 @@ from yt_dlp_z.core.config import get_settings
 
 @pytest.fixture(autouse=True)
 def isolated_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    for name in ("YTDLPZ_HOST", "YTDLPZ_PORT", "YTDLPZ_CONFIG_DIR"):
+    for name in ("YTDLPZ_HOST", "YTDLPZ_PORT", "YTDLPZ_CONFIG_DIR", "YTDLPZ_ADMIN_PASSWORD"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("YTDLPZ_CONFIG_DIR", str(tmp_path / "config"))
     get_settings.cache_clear()
@@ -33,12 +33,26 @@ def test_main_starts_uvicorn(monkeypatch: pytest.MonkeyPatch) -> None:
     assert calls[0]["factory"] is True
 
 
-def test_reset_password_command(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_reset_password_command(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     entered = iter(["new-password-1", "new-password-1"])
     monkeypatch.setattr("yt_dlp_z.cli.getpass.getpass", lambda _prompt: next(entered))
     monkeypatch.setattr("sys.argv", ["yt-dlp-z", "reset-password"])
     cli.main()
     assert get_settings().database_path.exists()
+    assert "YTDLPZ_ADMIN_PASSWORD" not in capsys.readouterr().out
+
+
+def test_reset_password_warns_when_env_password_is_set(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("YTDLPZ_ADMIN_PASSWORD", "from-env")
+    entered = iter(["new-password-1", "new-password-1"])
+    monkeypatch.setattr("yt_dlp_z.cli.getpass.getpass", lambda _prompt: next(entered))
+    monkeypatch.setattr("sys.argv", ["yt-dlp-z", "reset-password"])
+    cli.main()
+    assert "YTDLPZ_ADMIN_PASSWORD" in capsys.readouterr().out
 
 
 @pytest.mark.parametrize(

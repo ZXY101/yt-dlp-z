@@ -11,6 +11,8 @@ services:
       PUID: 1000
       PGID: 1000
       TZ: Etc/UTC
+      # Recommended if others can reach the server: setup will ask for this password.
+      # YTDLPZ_ADMIN_PASSWORD: change-me
       # Uncomment only if a reverse proxy in front of the app handles login.
       # YTDLPZ_AUTH_MODE: none
     volumes:

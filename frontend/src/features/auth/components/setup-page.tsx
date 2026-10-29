@@ -29,7 +29,7 @@ function SetupForm({ status }: { status: AuthStatus }) {
     <AuthCard title="Welcome to yt-dlp-z" description="A couple of things before you start.">
       <form className="space-y-4" onSubmit={handleSubmit} noValidate>
         <FormError message={form.setup.isError ? describeError(form.setup.error) : null} />
-        {form.needsPassword && <PasswordFields form={form} />}
+        {form.passwordMode !== "none" && <PasswordFields form={form} />}
         <FormField
           label="Download folder"
           hint="Where downloads go by default. You can pick another folder per download."

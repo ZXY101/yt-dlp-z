@@ -135,6 +135,12 @@ and `src/test/render.tsx` (`renderApp(path)`).
 
 - **Vitest** for frontend units/hooks, **pytest** for backend logic,
   **Playwright** for every user-facing flow.
+- **E2E covers all main flows:** every page, and for every form or action its
+  success path and its main error states. A new flow isn't done until it has
+  a Playwright test.
+- **Every bug fix gets a regression test** in the same commit, at the level
+  that reproduces it (unit, integration or E2E). Write the test first and see
+  it fail.
 - Coverage must stay ≥ 80% (lines and branches) for frontend and backend; CI
   enforces it. New code comes with tests in the same commit.
 - No real network in tests: use the fake yt-dlp stub. Only the opt-in `live`

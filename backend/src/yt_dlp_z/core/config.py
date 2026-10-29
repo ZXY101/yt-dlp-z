@@ -3,6 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from platformdirs import user_data_dir, user_downloads_dir
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PACKAGE_DIR = Path(__file__).resolve().parent.parent
@@ -25,6 +26,9 @@ class Settings(BaseSettings):
     default_download_dir: Path = Path(user_downloads_dir()) / "yt-dlp-z"
     frontend_dist: Path = REPO_FRONTEND_DIST
     auth_mode: AuthMode = AuthMode.PASSWORD
+    # When set, this is the admin password and setup asks for it instead of creating one.
+    # It is re-applied at every start, so changing it rotates the password.
+    admin_password: SecretStr | None = None
     session_days: int = 30
     # Enables /api/test/* endpoints used by the E2E suite. Never set in production.
     test_mode: bool = False

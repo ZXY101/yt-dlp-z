@@ -6,10 +6,11 @@ from fastapi import FastAPI
 
 from yt_dlp_z.api.routes import auth, health, testing
 from yt_dlp_z.api.state import AppState
-from yt_dlp_z.core.config import Settings, get_settings
+from yt_dlp_z.core.config import AuthMode, Settings, get_settings
 from yt_dlp_z.core.security import SessionSigner, load_or_create_secret_key
 from yt_dlp_z.db.engine import create_engine, create_session_factory
 from yt_dlp_z.db.migrate import upgrade_to_head
+from yt_dlp_z.services.auth_service import sync_admin_password
 from yt_dlp_z.web import mount_spa
 
 SECONDS_PER_DAY = 86_400
@@ -23,12 +24,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         await asyncio.to_thread(upgrade_to_head, settings.database_path)
         engine = create_engine(settings.database_path)
         secret_key = load_or_create_secret_key(settings.secret_key_path)
+        session_factory = create_session_factory(engine)
         app.state.app_state = AppState(
             settings=settings,
             engine=engine,
-            session_factory=create_session_factory(engine),
+            session_factory=session_factory,
             signer=SessionSigner(secret_key, settings.session_days * SECONDS_PER_DAY),
         )
+        if settings.admin_password and settings.auth_mode is AuthMode.PASSWORD:
+            async with session_factory() as session:
+                await sync_admin_password(session, settings.admin_password.get_secret_value())
         yield
         await engine.dispose()
 

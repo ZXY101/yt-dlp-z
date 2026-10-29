@@ -4,7 +4,7 @@ set -euo pipefail
 
 E2E_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 REPO_DIR="$(dirname "$E2E_DIR")"
-STATE_DIR="$E2E_DIR/.state"
+STATE_DIR="$E2E_DIR/.state/${PORT:-8765}"
 
 rm -rf "$STATE_DIR"
 mkdir -p "$STATE_DIR/downloads"

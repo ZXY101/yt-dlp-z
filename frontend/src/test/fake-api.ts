@@ -24,7 +24,10 @@ function noContent() {
 
 const handlers: Record<string, Handler> = {
   "GET /api/auth/status": (server) => json(server.status),
-  "POST /api/auth/setup": (server) => {
+  "POST /api/auth/setup": (server, body) => {
+    if (server.status.password_from_env && body.password !== FAKE_PASSWORD) {
+      return json({ detail: "Incorrect password" }, 401);
+    }
     server.status = { ...server.status, setup_required: false, authenticated: true };
     return noContent();
   },
@@ -47,6 +50,7 @@ export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
       setup_required: false,
       authenticated: true,
       auth_mode: "password",
+      password_from_env: false,
       default_download_dir: "/downloads",
       ...status,
     },

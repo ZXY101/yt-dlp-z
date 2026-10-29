@@ -6,7 +6,25 @@ interface PasswordFieldsProps {
   form: ReturnType<typeof useSetupForm>;
 }
 
+function EnvPasswordField({ form }: PasswordFieldsProps) {
+  return (
+    <FormField
+      label="Admin password"
+      type="password"
+      autoComplete="current-password"
+      hint="The password set in YTDLPZ_ADMIN_PASSWORD on the server."
+      required
+      value={form.fields.password}
+      error={form.errors.password}
+      onChange={(event) => form.setters.setPassword(event.target.value)}
+    />
+  );
+}
+
 export function PasswordFields({ form }: PasswordFieldsProps) {
+  if (form.passwordMode === "verify") {
+    return <EnvPasswordField form={form} />;
+  }
   return (
     <>
       <FormField

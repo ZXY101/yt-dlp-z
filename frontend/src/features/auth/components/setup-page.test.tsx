@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 
-import { createFakeServer, installFakeApi } from "@/test/fake-api";
+import { FAKE_PASSWORD, createFakeServer, installFakeApi } from "@/test/fake-api";
 import { renderApp } from "@/test/render";
 
 describe("SetupPage", () => {
@@ -54,5 +54,24 @@ describe("SetupPage", () => {
     await user.click(screen.getByRole("button", { name: "Finish setup" }));
 
     expect(await screen.findByText("Server error")).toBeInTheDocument();
+  });
+
+  it("asks for the env-configured password instead of creating one", async () => {
+    const server = createFakeServer({ setup_required: true, password_from_env: true });
+    installFakeApi(server);
+    const { user } = renderApp("/setup");
+
+    const password = await screen.findByLabelText("Admin password");
+    expect(screen.queryByLabelText("Repeat password")).not.toBeInTheDocument();
+    expect(screen.getByText(/YTDLPZ_ADMIN_PASSWORD/)).toBeInTheDocument();
+
+    await user.type(password, "wrong");
+    await user.click(screen.getByRole("button", { name: "Finish setup" }));
+    expect(await screen.findByText("Incorrect password")).toBeInTheDocument();
+
+    await user.clear(password);
+    await user.type(password, FAKE_PASSWORD);
+    await user.click(screen.getByRole("button", { name: "Finish setup" }));
+    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
   });
 });
