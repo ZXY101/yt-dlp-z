@@ -21,18 +21,53 @@
     "react/exhaustive-deps": "error",
     "react/jsx-key": "error",
     "react/react-in-jsx-scope": "off",
-    "no-console": ["error", { "allow": ["warn", "error"] }],
-    "max-lines": ["error", { "max": 200, "skipBlankLines": true, "skipComments": true }],
-    "import/no-cycle": "error"
+    "no-console": [
+      "error",
+      {
+        "allow": ["warn", "error"]
+      }
+    ],
+    "max-lines": [
+      "error",
+      {
+        "max": 200,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ],
+    "import/no-cycle": "error",
+    "no-nested-ternary": "error",
+    "func-style": ["error", "declaration"],
+    "prefer-arrow-callback": "error",
+    "max-lines-per-function": [
+      "error",
+      {
+        "max": 50,
+        "skipBlankLines": true,
+        "skipComments": true
+      }
+    ],
+    "complexity": ["error", 10],
+    "max-depth": ["error", 3],
+    "max-params": ["error", 4],
+    "max-nested-callbacks": ["error", 3]
   },
   "overrides": [
     {
       "files": ["frontend/src/components/ui/**"],
-      "rules": { "max-lines": "off", "react-perf/jsx-no-new-object-as-prop": "off" }
+      "rules": {
+        "max-lines": "off",
+        "react-perf/jsx-no-new-object-as-prop": "off",
+        "max-lines-per-function": "off"
+      }
     },
     {
       "files": ["**/*.test.{ts,tsx}", "e2e/**"],
-      "rules": { "max-lines": "off" }
+      "rules": {
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-nested-callbacks": "off"
+      }
     }
   ],
   "ignorePatterns": [
