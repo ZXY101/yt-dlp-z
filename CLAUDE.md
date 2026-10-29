@@ -35,6 +35,24 @@ Node comes from nvm (`. ~/.nvm/nvm.sh`); default is v26.13.0.
 
 ## Code style
 
+**Readability comes first.** Write code a newcomer can follow top to bottom
+without a debugger. Clear names and simple control flow beat clever or terse code.
+
+- **Functions:** use named `function` declarations for functions, components
+  and hooks (`function DownloadCard()`, `function useJobProgress()`, inner
+  handlers like `function handleSubmit()`). Use arrow functions only inline,
+  e.g. callbacks passed directly (`items.map((item) => …)`, `onClick={() => …}`).
+  Enforced by `func-style: declaration` + `prefer-arrow-callback`.
+- **No nested ternaries.** Use early returns, `if`/`else`, a lookup object, or
+  a small helper/sub-component instead.
+- **Small functions:** ≤ 50 lines per function, complexity ≤ 10, nesting depth
+  ≤ 3, ≤ 4 parameters (pass an options object beyond that). Extract helpers,
+  sub-components or hooks when you get close.
+- **Short lines:** Prettier wraps at 100 characters (ruff matches for Python).
+  Don't build long one-liners. Break long expressions and chains into named
+  intermediate variables.
+- Python follows the same spirit: early returns, small functions, no nested
+  conditional expressions.
 - **Comments:** don't explain what readable code already says. Comment only
   for non-obvious behaviour that could be misread, and to record _why_ a
   decision was made (trade-offs, workarounds, links to upstream issues).
