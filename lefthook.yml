@@ -1,5 +1,5 @@
 # Git hooks. Installed by `npm install` at the repo root (runs `lefthook install`).
-# Backend (ruff, mypy, pytest) and frontend (tsc, vitest) commands are added with milestone 1.
+# CI runs the same checks plus the E2E suite and a Docker build.
 pre-commit:
   parallel: true
   commands:
@@ -11,6 +11,32 @@ pre-commit:
     oxlint:
       glob: "*.{ts,tsx,js,mjs,cjs}"
       run: npx --no -- oxlint --deny-warnings {staged_files}
+    ruff:
+      root: "backend/"
+      glob: "*.py"
+      run: uv run ruff format --check {staged_files} && uv run ruff check {staged_files}
+    mypy:
+      root: "backend/"
+      glob: "*.py"
+      run: uv run mypy
+    frontend-types:
+      root: "frontend/"
+      glob: "*.{ts,tsx}"
+      run: npx --no -- tsc -b
+    e2e-types:
+      root: "e2e/"
+      glob: "*.ts"
+      run: npx --no -- tsc -p .
+
+pre-push:
+  parallel: true
+  commands:
+    backend-tests:
+      root: "backend/"
+      run: uv run pytest -q
+    frontend-tests:
+      root: "frontend/"
+      run: npm run test:coverage
 
 commit-msg:
   commands:
