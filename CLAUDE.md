@@ -11,16 +11,22 @@ table, next steps, new decisions, and a log line.
 
 ## Commands
 
-<!-- TODO: fill in once milestone 1 scaffolding lands -->
+Run from the repo root unless noted. Node comes from nvm (`. ~/.nvm/nvm.sh`, version in `.nvmrc`).
 
-- Repo checks (format, lint, dead code): `npm run check`
-- Backend dev: `cd backend && uv run yt-dlp-z --reload`
-- Frontend dev: `cd frontend && npm run dev`
-- Unit tests: `cd backend && uv run pytest` · `cd frontend && npm run test`
-- E2E: `npx playwright test`
-- Docker: `docker compose up --build`
+| What                              | Command                                                              |
+| --------------------------------- | -------------------------------------------------------------------- |
+| Format, lint, dead code           | `npm run check`                                                      |
+| Backend dev server (port 8080)    | `cd backend && uv run yt-dlp-z --reload`                             |
+| Frontend dev server (proxies API) | `npm run dev -w frontend`                                            |
+| Backend lint / types / tests      | `cd backend && uv run ruff check . && uv run mypy && uv run pytest`  |
+| Frontend types / tests            | `npm run typecheck -w frontend && npm run test:coverage -w frontend` |
+| E2E (builds frontend, own server) | `npm test -w e2e`                                                    |
+| Regenerate API types              | `npm run gen:api -w frontend`                                        |
+| New DB migration                  | `cd backend && uv run alembic revision --autogenerate -m "…"`        |
+| Docker                            | `docker compose up --build`                                          |
 
-Node comes from nvm (`. ~/.nvm/nvm.sh`); default is v26.13.0.
+lefthook runs format/lint/type checks on commit and unit tests on push. CI
+additionally runs E2E, checks the generated API types and builds the image.
 
 ## Security (highest priority)
 
@@ -98,14 +104,17 @@ api/generated/       OpenAPI client (generated, never edit)
 - Features never import from another feature's internals. Shared code moves to
   `components/`, `hooks/` or `lib/`.
 
-### Backend (`backend/app/`)
+### Backend (`backend/src/yt_dlp_z/`)
 
 ```
 api/routes/<resource>.py   FastAPI routers, thin: validate → call service → respond
+api/deps.py, state.py      dependencies (DB session, auth) and shared app state
 schemas/<resource>.py      Pydantic request/response models (the API contract)
-db/models/<entity>.py      SQLAlchemy models
-services/<domain>/         business logic (runner, watcher, scheduler, notifier, ytdlp)
-core/                      config, auth, security, logging
+db/models/<entity>.py      SQLAlchemy models (register new ones in migrations/env.py)
+migrations/versions/       Alembic migrations, applied automatically at startup
+services/<domain>          business logic (auth_service, paths, later runner, watcher…)
+core/                      config (env vars), security, rate limiting
+main.py, cli.py, web.py    app factory, `yt-dlp-z` command, SPA serving
 ```
 
 - snake_case modules and functions, PascalCase classes, type hints everywhere
@@ -114,7 +123,13 @@ core/                      config, auth, security, logging
 
 ### E2E (`e2e/`)
 
-`tests/<area>.spec.ts`, `stub/` (fake yt-dlp), `fixtures/`.
+`tests/<area>.spec.ts`, `fixtures/app.ts` (shared helpers; an auto fixture
+resets the server before every test), `scripts/start-server.sh`, and from
+milestone 2 `stub/` (fake yt-dlp). The server runs with `YTDLPZ_TEST_MODE=1`,
+which mounts `POST /api/test/reset`. Never enable test mode anywhere else.
+
+Frontend unit tests use `src/test/fake-api.ts` (an in-memory fake of the API)
+and `src/test/render.tsx` (`renderApp(path)`).
 
 ## Testing
 
@@ -150,7 +165,10 @@ core/                      config, auth, security, logging
   pipeline fails, fix the cause before moving on, even if you didn't cause it.
 - Tooling: Prettier (format), oxlint (lint, React/hooks/a11y/import/vitest
   plugins), knip (dead code), gitleaks (secrets), commitlint, lefthook (hooks);
-  ruff + mypy for Python.
+  ruff + mypy strict for Python. pytest treats warnings as errors.
+- Deliberate lint exceptions: `react-perf/jsx-no-new-function-as-prop` is off
+  (it flags the handler style above); generated folders (`components/ui/`,
+  `api/generated/`) are exempt from knip's unused-export check.
 - **Commits:** Conventional Commits, `type(scope): summary`. Scopes: backend,
   frontend, docker, e2e, ci, deps, docs, release. One logical change per
   commit. See the `commit` skill.
