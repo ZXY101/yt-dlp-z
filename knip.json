@@ -1,1 +1,8 @@
-{ "$schema": "https://unpkg.com/knip@6/schema.json" }
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreBinaries": ["uv"],
+  "ignoreIssues": {
+    "frontend/src/components/ui/**": ["exports", "types"],
+    "frontend/src/api/generated/**": ["exports", "types"]
+  }
+}
