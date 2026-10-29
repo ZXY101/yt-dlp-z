@@ -1,0 +1,13 @@
+{
+  "name": "yt-dlp-z-root",
+  "private": true,
+  "description": "Repo-level dev tooling (git hooks, commit linting). App code lives in backend/ and frontend/.",
+  "scripts": {
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.4",
+    "@commitlint/config-conventional": "^21.2.4",
+    "lefthook": "^2.2.2"
+  }
+}

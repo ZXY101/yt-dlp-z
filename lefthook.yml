@@ -1,0 +1,6 @@
+# Git hooks. Install with `npm install` at the repo root (runs `lefthook install`).
+# Pre-commit lint/format/type checks for backend/ and frontend/ are added in milestone 1.
+commit-msg:
+  commands:
+    commitlint:
+      run: npx --no -- commitlint --edit {1}
