@@ -56,9 +56,10 @@ image; CI for all of it.
   TypeScript 5, so `gen:api` runs it through `npx` with a pinned TS 5 and the
   generated types are committed.
 - `shadcn` is a dev dependency: only its CSS file is imported, at build time.
-- The first visitor to a fresh install sets the admin password (same as other
-  self-hosted apps). Docs should tell people to finish setup right after
-  starting the container.
+- The first visitor to a fresh install sets the admin password, unless
+  `YTDLPZ_ADMIN_PASSWORD` is set; then setup must enter that password (it is
+  verified and rate-limited), so setup can't be used to bypass it.
+- Default port is 9742 (8080 clashes with qBittorrent and others).
 
 ## Open items
 
@@ -68,8 +69,6 @@ image; CI for all of it.
   updates.
 - E2E coverage is not collected yet (unit coverage is gated at 80% on both
   sides). Consider Istanbul instrumentation of the E2E build later.
-- No pre-seeded admin password via env var yet (would avoid the
-  first-visitor window on exposed servers).
 
 ## Log
 

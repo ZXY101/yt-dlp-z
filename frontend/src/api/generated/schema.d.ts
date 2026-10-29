@@ -105,6 +105,8 @@ export interface components {
             /** Authenticated */
             authenticated: boolean;
             auth_mode: components["schemas"]["AuthMode"];
+            /** Password From Env */
+            password_from_env: boolean;
             /** Default Download Dir */
             default_download_dir: string;
         };

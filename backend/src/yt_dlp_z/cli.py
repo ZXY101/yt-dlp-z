@@ -66,6 +66,8 @@ def main() -> None:
     if args.command == "reset-password":
         asyncio.run(reset_password(prompt_password()))
         print("Password changed. All existing sessions were logged out.")
+        if get_settings().admin_password is not None:
+            print("Note: YTDLPZ_ADMIN_PASSWORD is set and will replace this password on restart.")
         return
     settings = get_settings()
     uvicorn.run(

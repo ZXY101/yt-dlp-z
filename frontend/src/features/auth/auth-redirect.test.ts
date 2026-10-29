@@ -6,6 +6,7 @@ function status(overrides: Partial<AuthStatus>): AuthStatus {
     setup_required: false,
     authenticated: true,
     auth_mode: "password",
+    password_from_env: false,
     default_download_dir: "/downloads",
     ...overrides,
   };

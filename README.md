@@ -19,8 +19,10 @@ git clone https://github.com/ZXY101/yt-dlp-z.git && cd yt-dlp-z
 docker compose up -d --build
 ```
 
-Open http://localhost:9742 and finish the first-run setup straight away: the
-first visitor chooses the admin password and the default download folder.
+Open http://localhost:9742 and finish the first-run setup: choose the admin
+password and the default download folder. The first visitor gets to choose,
+so if others can reach the server, set `YTDLPZ_ADMIN_PASSWORD` in
+`docker-compose.yml` first (see [configuration](docs/configuration.md)).
 
 Files land in `./downloads`, and settings live in `./config`. Set `PUID`/`PGID`
 in `docker-compose.yml` to the user that should own them.

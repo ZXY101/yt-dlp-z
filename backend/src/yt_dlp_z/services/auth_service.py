@@ -16,7 +16,7 @@ async def is_setup_complete(session: AsyncSession) -> bool:
 
 
 async def complete_setup(session: AsyncSession, password: str | None, download_dir: Path) -> None:
-    values = {SETUP_COMPLETE: "true", DOWNLOAD_DIR: str(download_dir), SESSION_VERSION: "1"}
+    values = {SETUP_COMPLETE: "true", DOWNLOAD_DIR: str(download_dir)}
     if password is not None:
         values[ADMIN_PASSWORD_HASH] = hash_password(password)
     await set_values(session, values)
@@ -40,3 +40,14 @@ async def change_password(session: AsyncSession, new_password: str) -> None:
         session,
         {ADMIN_PASSWORD_HASH: hash_password(new_password), SESSION_VERSION: str(next_version)},
     )
+
+
+async def sync_admin_password(session: AsyncSession, password: str) -> None:
+    """Makes the stored password match YTDLPZ_ADMIN_PASSWORD. A changed value
+    signs out existing sessions; an unchanged one leaves them alone."""
+    if await check_password(session, password):
+        return
+    if await get_value(session, ADMIN_PASSWORD_HASH) is None:
+        await set_values(session, {ADMIN_PASSWORD_HASH: hash_password(password)})
+        return
+    await change_password(session, password)
