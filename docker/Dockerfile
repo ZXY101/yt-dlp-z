@@ -31,15 +31,15 @@ COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 ENV PATH="/app/.venv/bin:$PATH" \
     YTDLPZ_HOST=0.0.0.0 \
-    YTDLPZ_PORT=8080 \
+    YTDLPZ_PORT=9742 \
     YTDLPZ_CONFIG_DIR=/config \
     YTDLPZ_DEFAULT_DOWNLOAD_DIR=/downloads \
     YTDLPZ_FRONTEND_DIST=/app/frontend
 
-EXPOSE 8080
+EXPOSE 9742
 VOLUME ["/config", "/downloads"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/api/health')"
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9742/api/health')"
 
 ENTRYPOINT ["entrypoint.sh"]
 CMD ["yt-dlp-z"]

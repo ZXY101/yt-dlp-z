@@ -19,7 +19,7 @@ git clone https://github.com/ZXY101/yt-dlp-z.git && cd yt-dlp-z
 docker compose up -d --build
 ```
 
-Open http://localhost:8080 and finish the first-run setup straight away: the
+Open http://localhost:9742 and finish the first-run setup straight away: the
 first visitor chooses the admin password and the default download folder.
 
 Files land in `./downloads`, and settings live in `./config`. Set `PUID`/`PGID`
@@ -34,7 +34,7 @@ npm install && npm run build -w frontend
 cd backend && uv run yt-dlp-z
 ```
 
-Then open http://127.0.0.1:8080.
+Then open http://127.0.0.1:9742.
 
 ## Documentation
 

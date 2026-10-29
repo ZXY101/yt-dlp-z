@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="YTDLPZ_")
 
     host: str = "127.0.0.1"
-    port: int = 8080
+    port: int = 9742
     config_dir: Path = Path(user_data_dir("yt-dlp-z", appauthor=False))
     # Pre-filled suggestion in first-run setup; the user picks the real folder there.
     default_download_dir: Path = Path(user_downloads_dir()) / "yt-dlp-z"

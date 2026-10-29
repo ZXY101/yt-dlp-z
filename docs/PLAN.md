@@ -181,7 +181,7 @@ broken (repeated failures).
 ## Container
 
 ```
-docker run -d --name yt-dlp-z -p 8080:8080 \
+docker run -d --name yt-dlp-z -p 9742:9742 \
   -e PUID=1000 -e PGID=1000 -e TZ=Etc/UTC \
   -v ./config:/config -v ./downloads:/downloads \
   ghcr.io/<owner>/yt-dlp-z:latest

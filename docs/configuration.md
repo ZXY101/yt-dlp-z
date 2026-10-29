@@ -8,7 +8,7 @@ command-line flags. Flags win over environment variables.
 | Variable                      | Default (native)            | Default (Docker) | Purpose                                                                                         |
 | ----------------------------- | --------------------------- | ---------------- | ----------------------------------------------------------------------------------------------- |
 | `YTDLPZ_HOST`                 | `127.0.0.1`                 | `0.0.0.0`        | Address to listen on                                                                            |
-| `YTDLPZ_PORT`                 | `8080`                      | `8080`           | Port to listen on                                                                               |
+| `YTDLPZ_PORT`                 | `9742`                      | `9742`           | Port to listen on                                                                               |
 | `YTDLPZ_CONFIG_DIR`           | your user data folder¹      | `/config`        | Database and secret key                                                                         |
 | `YTDLPZ_DEFAULT_DOWNLOAD_DIR` | `~/Downloads/yt-dlp-z`      | `/downloads`     | Suggested download folder in first-run setup                                                    |
 | `YTDLPZ_AUTH_MODE`            | `password`                  | `password`       | `password`, or `none` to turn off login. **Only use `none` behind a proxy that handles login.** |
