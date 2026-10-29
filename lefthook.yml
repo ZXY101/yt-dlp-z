@@ -1,5 +1,17 @@
-# Git hooks. Install with `npm install` at the repo root (runs `lefthook install`).
-# Pre-commit lint/format/type checks for backend/ and frontend/ are added in milestone 1.
+# Git hooks. Installed by `npm install` at the repo root (runs `lefthook install`).
+# Backend (ruff, mypy, pytest) and frontend (tsc, vitest) commands are added with milestone 1.
+pre-commit:
+  parallel: true
+  commands:
+    gitleaks:
+      run: gitleaks git --staged --redact --no-banner
+    prettier:
+      glob: "*.{ts,tsx,js,mjs,cjs,json,md,yml,yaml,css,html}"
+      run: npx --no -- prettier --check {staged_files}
+    oxlint:
+      glob: "*.{ts,tsx,js,mjs,cjs}"
+      run: npx --no -- oxlint --deny-warnings {staged_files}
+
 commit-msg:
   commands:
     commitlint:
