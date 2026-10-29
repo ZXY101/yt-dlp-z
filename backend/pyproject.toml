@@ -1,0 +1,71 @@
+[project]
+name = "yt-dlp-z"
+version = "0.1.0"
+description = "Self-hosted web dashboard for yt-dlp with channel watching and live recording"
+license = "Unlicense"
+authors = [
+    { name = "ZXY101", email = "xzxy101x@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "alembic>=1.20.1",
+    "argon2-cffi>=25.1.0",
+    "fastapi>=0.162.0",
+    "itsdangerous>=2.2.0",
+    "platformdirs>=4.14.0",
+    "pydantic-settings>=2.16.2",
+    "sqlalchemy[asyncio]>=2.1.6",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+yt-dlp-z = "yt_dlp_z.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.13.6,<0.14.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.16.0",
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.3",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "S", "SIM", "C90", "PL", "RUF", "ASYNC", "PT"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.pylint]
+max-args = 4
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004"]
+"src/yt_dlp_z/migrations/**" = ["N999"]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["src", "tests"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+filterwarnings = ["error"]
+addopts = "--cov=yt_dlp_z --cov-branch --cov-report=term-missing --cov-fail-under=80"
+
+[tool.coverage.run]
+# SQLAlchemy async runs DB calls in greenlets; without this coverage misses code after awaits.
+concurrency = ["greenlet", "thread"]
+omit = ["src/yt_dlp_z/migrations/*"]
