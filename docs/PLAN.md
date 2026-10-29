@@ -32,16 +32,16 @@ users, WebSub push, a built-in media player, a Google login flow (see Cookies).
 
 ## Stack
 
-| Layer | Choice | Why |
-|---|---|---|
-| Backend | Python 3.12, FastAPI, Pydantic v2 | yt-dlp is Python, so we can read its option parser directly |
-| DB | SQLite + SQLAlchemy 2 + Alembic | Zero setup, a single file in `/config` |
-| Jobs | asyncio tasks inside the app (no Redis/Celery) | Keeps it to one process and one container |
-| Downloads | `yt-dlp` run as a **subprocess** per job | Clean cancel, crash isolation, update without restart |
-| Realtime | One WebSocket (`/api/ws`) for progress/events | |
-| Frontend | Vite + React + TypeScript, TanStack Query, React Router, shadcn/ui + Tailwind | |
-| API types | OpenAPI → generated TS client (`openapi-typescript`) | FE and BE stay in sync |
-| Image | Multi-stage: Node build → `python:3.12-slim` + ffmpeg + Deno | |
+| Layer     | Choice                                                                        | Why                                                         |
+| --------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Backend   | Python 3.12, FastAPI, Pydantic v2                                             | yt-dlp is Python, so we can read its option parser directly |
+| DB        | SQLite + SQLAlchemy 2 + Alembic                                               | Zero setup, a single file in `/config`                      |
+| Jobs      | asyncio tasks inside the app (no Redis/Celery)                                | Keeps it to one process and one container                   |
+| Downloads | `yt-dlp` run as a **subprocess** per job                                      | Clean cancel, crash isolation, update without restart       |
+| Realtime  | One WebSocket (`/api/ws`) for progress/events                                 |                                                             |
+| Frontend  | Vite + React + TypeScript, TanStack Query, React Router, shadcn/ui + Tailwind |                                                             |
+| API types | OpenAPI → generated TS client (`openapi-typescript`)                          | FE and BE stay in sync                                      |
+| Image     | Multi-stage: Node build → `python:3.12-slim` + ffmpeg + Deno                  |                                                             |
 
 ## Architecture
 
@@ -59,6 +59,7 @@ Browser (React) ──HTTP/WS──▶ FastAPI (uvicorn, single process)
 ## Key designs
 
 ### 1. "Every yt-dlp option" from yt-dlp itself
+
 - At startup (and after each yt-dlp update) a small helper script, run with the
   installed yt-dlp, calls `yt_dlp.options.create_parser()` and walks its option
   groups. It outputs JSON: flags, dest, type (bool / string / int / choice /
@@ -76,8 +77,9 @@ Browser (React) ──HTTP/WS──▶ FastAPI (uvicorn, single process)
   `yt-dlp --help`.
 
 ### 2. Download runner
+
 - Job = URL + preset + overrides → args → `python -m yt_dlp ... --newline
-  --progress-template` (JSON lines) → parsed progress pushed over the WebSocket.
+--progress-template` (JSON lines) → parsed progress pushed over the WebSocket.
 - Global concurrency limit (default 3), plus a **separate live-recording limit**
   (default 3), so recordings never wait behind a VOD queue.
 - Each job keeps a log file. States: queued → waiting (live) → running →
@@ -86,6 +88,7 @@ Browser (React) ──HTTP/WS──▶ FastAPI (uvicorn, single process)
   subscription, plus a `videos` table.
 
 ### 3. YouTube channel watching
+
 - Add by channel URL / @handle → resolve the channel ID (yt-dlp `--flat-playlist -J`).
 - **Polling:** the channel RSS feed (`/feeds/videos.xml?channel_id=…`), default
   every 10 min, with jitter. It is cheap and needs no API key.
@@ -101,11 +104,13 @@ Browser (React) ──HTTP/WS──▶ FastAPI (uvicorn, single process)
 - ytarchive as an alternative live recorder: phase 2 (optional binary in the image).
 
 ### 4. Subscription filters
+
 Content type (videos / streams / premieres / Shorts), title include/exclude
 (regex), min/max duration, only after a date, members-only on/off, and a
 max-age backfill on first add (e.g. "last 5 videos" or "nothing, only new").
 
 ### 5. Cookies
+
 - Upload a Netscape `cookies.txt`, stored in `/config/cookies/`. Multiple named
   cookie files; a preset or subscription picks one.
 - A "Test" button runs a quick authenticated probe and reports whether it worked.
@@ -115,6 +120,7 @@ max-age backfill on first add (e.g. "last 5 videos" or "nothing, only new").
   logins, and it risks the account being flagged. We can revisit it later.
 
 ### 6. Auth
+
 - First run: a setup screen to create the admin password (argon2 hash),
   stored in the DB. A signed session cookie protects the API and WebSocket.
 - `AUTH_MODE=none` env var for people running behind a reverse proxy that
@@ -122,20 +128,23 @@ max-age backfill on first add (e.g. "last 5 videos" or "nothing, only new").
 - A password-reset CLI command inside the container.
 
 ### 7. yt-dlp management
+
 - The image ships with `yt-dlp[default]` (includes yt-dlp-ejs) and Deno, which
   yt-dlp now needs to solve YouTube's JS challenges.
 - **Update** button + optional daily auto-update: `pip install --target
-  /config/ytdlp -U "yt-dlp[default]"`. Subprocesses put `/config/ytdlp` first
+/config/ytdlp -U "yt-dlp[default]"`. Subprocesses put `/config/ytdlp` first
   on `PYTHONPATH`, so updates survive a container rebuild without needing one.
 - Choose a channel (stable / nightly). The current version is shown in the UI.
 - The options schema is regenerated after an update.
 
 ### 8. Media-server output (optional, per preset)
+
 Folder layout `Channel/Season YYYY/` or flat, `--write-thumbnail`,
 `--embed-metadata`, and an NFO writer (tvshow.nfo + episode .nfo) as a
 post-download hook.
 
 ### 9. Proxy pool / VPN rotation (optional)
+
 - yt-dlp already takes `--proxy` (HTTP/SOCKS) per run, so every job can go out
   through a different IP without touching the host network.
 - Settings → **Proxies**: a list of endpoints (e.g. `socks5://gluetun-1:1080`,
@@ -147,11 +156,12 @@ post-download hook.
   put that proxy on cooldown and retry the job on another.
 - Docs recipe: several gluetun containers, one per VPN server, each exposing its
   HTTP/SOCKS proxy (the app never needs NET_ADMIN or to own the VPN itself).
-- Caveat to document: YouTube often treats VPN/datacenter IPs as *more*
+- Caveat to document: YouTube often treats VPN/datacenter IPs as _more_
   suspicious, and rotating IPs while using one account's cookies can flag
   the account. Offer "don't send cookies through the proxy pool" as an option.
 
 ### 10. Notifications
+
 ntfy server URL + topic + optional token. Events (each can be toggled):
 recording started, download finished, failed, cookies expired / yt-dlp
 broken (repeated failures).
@@ -176,6 +186,7 @@ docker run -d --name yt-dlp-z -p 8080:8080 \
   -v ./config:/config -v ./downloads:/downloads \
   ghcr.io/<owner>/yt-dlp-z:latest
 ```
+
 - Entrypoint drops to PUID/PGID (gosu) so files are owned correctly.
 - Healthcheck at `/api/health`. A `docker-compose.yml` example ships in the repo.
 - Multi-arch (amd64 + arm64) via buildx in GitHub Actions. The registry is

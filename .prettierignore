@@ -1,0 +1,12 @@
+node_modules/
+**/dist/
+**/coverage/
+playwright-report/
+test-results/
+package-lock.json
+CHANGELOG.md
+.claude/skills/vercel-*/
+.claude/skills/web-design-guidelines/
+.claude/skills/writing-guidelines/
+frontend/src/api/generated/
+backend/
