@@ -13,5 +13,7 @@ description: Add or update Playwright end-to-end tests for yt-dlp-z features. Us
   emits scripted progress/output. Never hit YouTube outside the `live` project.
 - Prefer role/label locators (`getByRole`, `getByLabel`) over CSS selectors.
   Add `data-testid` only when there's no accessible handle.
+- Every spec runs in both the `desktop` and `mobile` projects. Assert
+  layout-sensitive things (menus, tables → cards) at both sizes.
 - Cover the happy path, the main error state, and persistence (reload the page).
 - Check coverage didn't drop: `npm run test:e2e:coverage`.
