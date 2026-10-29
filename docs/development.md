@@ -24,12 +24,12 @@ npm install                                  # all JS workspaces; installs git h
 Two terminals:
 
 ```sh
-cd backend && uv run yt-dlp-z --reload    # API on http://127.0.0.1:8080
+cd backend && uv run yt-dlp-z --reload    # API on http://127.0.0.1:9742
 npm run dev -w frontend                   # UI on http://localhost:5173, proxies /api
 ```
 
 To try the production setup without Docker, run `npm run build -w frontend`,
-then `cd backend && uv run yt-dlp-z`, and open http://127.0.0.1:8080.
+then `cd backend && uv run yt-dlp-z`, and open http://127.0.0.1:9742.
 
 Local data lives in your user data folder (see [configuration](configuration.md)).
 Pass `--config-dir ./tmp-config` to keep a throwaway instance separate.

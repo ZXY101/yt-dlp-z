@@ -16,7 +16,7 @@ Run from the repo root unless noted. Node comes from nvm (`. ~/.nvm/nvm.sh`, ver
 | What                              | Command                                                              |
 | --------------------------------- | -------------------------------------------------------------------- |
 | Format, lint, dead code           | `npm run check`                                                      |
-| Backend dev server (port 8080)    | `cd backend && uv run yt-dlp-z --reload`                             |
+| Backend dev server (port 9742)    | `cd backend && uv run yt-dlp-z --reload`                             |
 | Frontend dev server (proxies API) | `npm run dev -w frontend`                                            |
 | Backend lint / types / tests      | `cd backend && uv run ruff check . && uv run mypy && uv run pytest`  |
 | Frontend types / tests            | `npm run typecheck -w frontend && npm run test:coverage -w frontend` |

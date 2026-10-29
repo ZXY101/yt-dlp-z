@@ -18,7 +18,7 @@ from yt_dlp_z.services.auth_service import change_password
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="yt-dlp-z")
     parser.add_argument("--host", help="bind address (default 127.0.0.1)")
-    parser.add_argument("--port", type=int, help="port (default 8080)")
+    parser.add_argument("--port", type=int, help="port (default 9742)")
     parser.add_argument("--config-dir", help="where the database and secrets live")
     parser.add_argument("--reload", action="store_true", help="auto-reload (development)")
     commands = parser.add_subparsers(dest="command")
