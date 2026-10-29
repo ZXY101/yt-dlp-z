@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+frontend/dist/
+playwright-report/
+test-results/
+coverage/
+.nyc_output/
+
+# App runtime data
+/config/
+/downloads/
+*.db
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Claude Code local settings
+.claude/settings.local.json
