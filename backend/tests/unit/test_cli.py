@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 from typing import Any
@@ -51,3 +52,12 @@ def test_prompt_password_validates(
     monkeypatch.setattr("yt_dlp_z.cli.getpass.getpass", lambda _prompt: next(entered))
     with pytest.raises(SystemExit, match=message):
         cli.prompt_password()
+
+
+def test_openapi_command_prints_schema(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr("sys.argv", ["yt-dlp-z", "openapi"])
+    cli.main()
+    schema = json.loads(capsys.readouterr().out)
+    assert "/api/auth/status" in schema["paths"]

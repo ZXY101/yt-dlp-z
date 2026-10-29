@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 import getpass
+import json
 import os
 import sys
 
@@ -9,6 +10,7 @@ import uvicorn
 from yt_dlp_z.core.config import get_settings
 from yt_dlp_z.db.engine import create_engine, create_session_factory
 from yt_dlp_z.db.migrate import upgrade_to_head
+from yt_dlp_z.main import create_app
 from yt_dlp_z.schemas.auth import MIN_PASSWORD_LENGTH
 from yt_dlp_z.services.auth_service import change_password
 
@@ -21,6 +23,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--reload", action="store_true", help="auto-reload (development)")
     commands = parser.add_subparsers(dest="command")
     commands.add_parser("reset-password", help="set a new admin password")
+    commands.add_parser("openapi", help="print the OpenAPI schema as JSON")
     return parser
 
 
@@ -57,6 +60,9 @@ def prompt_password() -> str:
 def main() -> None:
     args = build_parser().parse_args()
     apply_overrides(args)
+    if args.command == "openapi":
+        print(json.dumps(create_app().openapi(), indent=2))
+        return
     if args.command == "reset-password":
         asyncio.run(reset_password(prompt_password()))
         print("Password changed. All existing sessions were logged out.")
