@@ -2,7 +2,12 @@
 
 Self-hosted web dashboard for yt-dlp: downloads with every yt-dlp option, presets,
 YouTube channel watching and live-stream recording. One Docker image, also runs
-without Docker. Full design and milestones: `docs/PLAN.md`.
+without Docker.
+
+**Start here:** read `docs/PROGRESS.md` (current status, next steps, decisions)
+and `docs/PLAN.md` (design and milestones). Dev setup: `docs/development.md`.
+**At the end of every working session, update `docs/PROGRESS.md`**: status
+table, next steps, new decisions, and a log line.
 
 ## Commands
 
