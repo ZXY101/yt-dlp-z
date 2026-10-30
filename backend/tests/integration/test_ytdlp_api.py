@@ -131,3 +131,29 @@ def test_update_folder_is_on_pythonpath_while_the_app_runs(
 def test_requires_login(client: TestClient) -> None:
     assert client.get("/api/ytdlp").status_code == 401
     assert client.post("/api/ytdlp/update").status_code == 401
+
+
+def write_dist_info(target: Path, version: str) -> None:
+    dist_info = target / f"yt_dlp-{version}.dist-info"
+    dist_info.mkdir(parents=True)
+    (dist_info / "METADATA").write_text(f"Name: yt-dlp\nVersion: {version}\n")
+
+
+def test_going_back_to_the_bundled_version_keeps_no_copy(
+    make_client: MakeClient, tmp_path: Path
+) -> None:
+    """E.g. switching from nightly back to stable when stable is what the app ships."""
+    version = bundled_version()
+    script = (
+        "import sys, pathlib;"
+        "t = pathlib.Path(sys.argv[sys.argv.index('--target') + 1]);"
+        f"d = t / 'yt_dlp-{version}.dist-info'; d.mkdir(parents=True);"
+        f"(d / 'METADATA').write_text('Name: yt-dlp\\nVersion: {version}\\n')"
+    )
+    client = setup(make_client(ytdlp_pip_command=[sys.executable, "-c", script]), tmp_path)
+    write_dist_info(tmp_path / "config" / "ytdlp", "2099.1.2.dev0")
+    client.post("/api/ytdlp/update")
+    info = wait_for_update(client)
+    assert info["update"]["message"] == f"Updated yt-dlp to {version}."
+    assert info["using_update"] is False
+    assert not (tmp_path / "config" / "ytdlp").exists()

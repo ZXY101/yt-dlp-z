@@ -128,9 +128,14 @@ class YtdlpUpdater:
         staging.parent.mkdir(parents=True, exist_ok=True)
         try:
             await self._pip_install(install_command(self._pip_command, staging, channel))
-            if updated_version(staging) is None:
+            version = updated_version(staging)
+            if version is None:
                 raise UpdateError("pip finished but yt-dlp wasn't installed.")
-            self._swap_in(staging)
+            if version == bundled_version():
+                # Nothing newer than the app's own copy (or back from nightly to stable).
+                shutil.rmtree(self._update_dir, ignore_errors=True)
+            else:
+                self._swap_in(staging)
         finally:
             shutil.rmtree(staging, ignore_errors=True)
 
