@@ -12,7 +12,7 @@ from starlette.websockets import WebSocketDisconnect
 from tests.conftest import TEST_PASSWORD, MakeClient, wait_for_job
 from yt_dlp_z.api.state import AppState
 from yt_dlp_z.core.config import AuthMode, Settings
-from yt_dlp_z.db.models.job import Job, JobStatus
+from yt_dlp_z.db.models.job import Job, JobKind, JobStatus
 from yt_dlp_z.main import create_app
 from yt_dlp_z.services.jobs import manager as manager_module
 from yt_dlp_z.services.ytdlp import schema as schema_module
@@ -55,9 +55,11 @@ def test_jobs_interrupted_by_a_restart(make_client: MakeClient, tmp_path: Path) 
     first.post("/api/auth/setup", json={"password": TEST_PASSWORD, "download_dir": str(tmp_path)})
     state: AppState = first.app.state.app_state  # type: ignore[attr-defined]
 
-    async def insert(status: JobStatus) -> int:
+    async def insert(status: JobStatus, kind: JobKind = JobKind.DOWNLOAD) -> int:
         async with state.session_factory() as session:
-            job = Job(url="https://example.com/r", status=status, output_dir=str(tmp_path))
+            job = Job(
+                url="https://example.com/r", status=status, kind=kind, output_dir=str(tmp_path)
+            )
             session.add(job)
             await session.commit()
             return job.id
@@ -65,6 +67,7 @@ def test_jobs_interrupted_by_a_restart(make_client: MakeClient, tmp_path: Path) 
     # Written behind the manager's back to simulate rows left by a crashed process.
     running_id = asyncio.run(insert(JobStatus.RUNNING))
     queued_id = asyncio.run(insert(JobStatus.QUEUED))
+    recording_id = asyncio.run(insert(JobStatus.RUNNING, JobKind.LIVE))
 
     restarted = make_client()
     restarted.cookies.update(first.cookies)
@@ -72,6 +75,8 @@ def test_jobs_interrupted_by_a_restart(make_client: MakeClient, tmp_path: Path) 
     assert interrupted["status"] == "failed"
     assert "Interrupted" in interrupted["error"]
     assert wait_for_job(restarted, queued_id, FINISHED)["status"] == "completed"
+    # Recordings start again by themselves.
+    assert wait_for_job(restarted, recording_id, FINISHED)["status"] == "completed"
 
 
 def test_crashed_job_is_marked_failed(
