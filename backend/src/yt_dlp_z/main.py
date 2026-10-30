@@ -4,7 +4,17 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from yt_dlp_z.api.routes import auth, health, job_actions, jobs, options, system, testing, ws
+from yt_dlp_z.api.routes import (
+    auth,
+    health,
+    job_actions,
+    jobs,
+    options,
+    presets,
+    system,
+    testing,
+    ws,
+)
 from yt_dlp_z.api.state import AppState
 from yt_dlp_z.core.config import AuthMode, Settings, get_settings
 from yt_dlp_z.core.security import SessionSigner, load_or_create_secret_key
@@ -51,7 +61,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title="yt-dlp-z", lifespan=lifespan)
     app.include_router(health.router)
-    for module in (auth, jobs, job_actions, options, system, ws):
+    for module in (auth, jobs, job_actions, options, presets, system, ws):
         app.include_router(module.router)
     if settings.test_mode:
         app.include_router(testing.router)

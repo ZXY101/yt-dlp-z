@@ -1,10 +1,11 @@
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Literal
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
 from yt_dlp_z.db.models.job import JobStatus
+from yt_dlp_z.schemas.common import as_utc_iso
 
 OptionValue = bool | int | float | str | list[str]
 
@@ -51,10 +52,7 @@ class JobOut(BaseModel):
 
     @field_serializer("created_at", "started_at", "finished_at")
     def as_utc(self, value: datetime | None) -> str | None:
-        # SQLite drops timezone info; stored values are always UTC.
-        if value is None:
-            return None
-        return value.replace(tzinfo=value.tzinfo or UTC).isoformat()
+        return as_utc_iso(value)
 
 
 class JobEvent(BaseModel):

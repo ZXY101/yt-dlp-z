@@ -10,7 +10,8 @@ pre-commit:
       run: npx --no -- prettier --check {staged_files}
     oxlint:
       glob: "*.{ts,tsx,js,mjs,cjs}"
-      run: npx --no -- oxlint --deny-warnings {staged_files}
+      # Staged files may all be lint-ignored (e.g. the generated API types).
+      run: npx --no -- oxlint --deny-warnings --no-error-on-unmatched-pattern {staged_files}
     ruff:
       root: "backend/"
       glob: "*.py"
