@@ -5,6 +5,7 @@ import { FormField, SelectField } from "@/components/form-field";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { useCookieFiles } from "@/features/cookies";
+import { PlaylistChoice } from "@/features/downloads/components/playlist-choice";
 import { type DownloadForm, useDownloadForm } from "@/features/downloads/hooks/use-download-form";
 import { SystemWarnings } from "@/features/system";
 
@@ -52,6 +53,11 @@ export function DownloadPage() {
           value={form.url}
           error={form.urlError}
           onChange={(event) => form.setUrl(event.target.value)}
+        />
+        <PlaylistChoice
+          kind={form.playlistKind}
+          wholePlaylist={form.wholePlaylist}
+          onWholePlaylistChange={form.setWholePlaylist}
         />
         <PresetField choice={form.presetChoice} />
         <DownloadSettingsFields

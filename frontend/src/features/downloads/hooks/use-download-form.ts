@@ -3,8 +3,21 @@ import { useNavigate } from "react-router";
 
 import { useCreateJob } from "@/features/downloads/api";
 import { usePresetChoice } from "@/features/downloads/hooks/use-preset-choice";
+import { playlistLinkKind } from "@/features/downloads/playlist-link";
 import { validateUrl } from "@/features/downloads/validate-url";
-import { DEFAULT_SETTINGS, type DownloadSettings, settingsForApi } from "@/lib/download-options";
+import {
+  DEFAULT_SETTINGS,
+  type DownloadSettings,
+  type OptionValues,
+  setOption,
+  settingsForApi,
+} from "@/lib/download-options";
+
+/** For a video inside a playlist, the radio choice decides; it overrides either flag. */
+function withPlaylistChoice(options: OptionValues, wholePlaylist: boolean) {
+  const withYes = setOption(options, "--yes-playlist", wholePlaylist);
+  return setOption(withYes, "--no-playlist", !wholePlaylist);
+}
 
 export function useDownloadForm() {
   const [url, setUrl] = useState("");
@@ -13,6 +26,8 @@ export function useDownloadForm() {
   // so fields that keep their own text (one value per line) start fresh.
   const [settingsVersion, setSettingsVersion] = useState(0);
   const [urlError, setUrlError] = useState<string>();
+  const [wholePlaylist, setWholePlaylist] = useState(false);
+  const playlistKind = playlistLinkKind(url);
   const createJob = useCreateJob();
   const navigate = useNavigate();
 
@@ -29,7 +44,11 @@ export function useDownloadForm() {
     if (error) {
       return;
     }
-    const body = { url: url.trim(), ...settingsForApi(settings) };
+    const options =
+      playlistKind === "video-in-playlist"
+        ? withPlaylistChoice(settings.options, wholePlaylist)
+        : settings.options;
+    const body = { url: url.trim(), ...settingsForApi({ ...settings, options }) };
     createJob.mutate(body, { onSuccess: () => void navigate("/queue") });
   }
 
@@ -40,6 +59,9 @@ export function useDownloadForm() {
     setSettings,
     settingsVersion,
     presetChoice,
+    playlistKind,
+    wholePlaylist,
+    setWholePlaylist,
     urlError,
     submit,
     createJob,

@@ -99,6 +99,43 @@ test.describe("downloads", () => {
     await expect(page.getByRole("dialog").getByText(/--limit-rate 1M/)).toBeVisible();
   });
 
+  test("a video link from a playlist downloads just that video by default", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Link").fill("https://www.youtube.com/watch?v=inlist&list=PLfake");
+    await expect(page.getByLabel("Just this video")).toBeChecked();
+    await expectNoHorizontalScroll(page);
+    await page.getByRole("button", { name: "Download" }).click();
+
+    const finished = page.getByRole("list", { name: "Finished" });
+    await finished.getByRole("button", { name: "Log" }).click();
+    await expect(page.getByRole("dialog").getByText(/--no-playlist/)).toBeVisible();
+  });
+
+  test("the whole playlist can be chosen instead", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Link").fill("https://youtu.be/inlist?list=PLfake");
+    await page.getByLabel("The whole playlist").check();
+    await page.getByRole("button", { name: "Download" }).click();
+
+    const finished = page.getByRole("list", { name: "Finished" });
+    await finished.getByRole("button", { name: "Log" }).click();
+    const log = page.getByRole("dialog");
+    await expect(log.getByText(/--yes-playlist/)).toBeVisible();
+    await expect(log.getByText(/--no-playlist/)).toHaveCount(0);
+  });
+
+  test("playlist and channel links warn that every video is downloaded", async ({ page }) => {
+    await page.goto("/");
+    const link = page.getByLabel("Link");
+    await link.fill("https://www.youtube.com/playlist?list=PLfake");
+    await expect(page.getByRole("status")).toContainText("every video in it");
+    await link.fill("https://www.youtube.com/@someone/videos");
+    await expect(page.getByRole("status")).toContainText("every video on it");
+    await expectNoHorizontalScroll(page);
+    await link.fill(QUICK_URL);
+    await expect(page.getByRole("status")).toHaveCount(0);
+  });
+
   test("save to suggests folders that already exist", async ({ page }) => {
     await page.goto("/");
     await page.getByLabel("Link").fill(QUICK_URL);
