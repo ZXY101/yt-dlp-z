@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from yt_dlp_z.api.routes import (
+    app_settings,
     auth,
     cookies,
     health,
@@ -21,6 +22,7 @@ from yt_dlp_z.core.config import AuthMode, Settings, get_settings
 from yt_dlp_z.core.security import SessionSigner, load_or_create_secret_key
 from yt_dlp_z.db.engine import create_engine, create_session_factory
 from yt_dlp_z.db.migrate import upgrade_to_head
+from yt_dlp_z.services.app_settings import get_max_concurrent_downloads
 from yt_dlp_z.services.auth_service import sync_admin_password
 from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs.job_run import JobContext
@@ -42,7 +44,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         session_factory = create_session_factory(engine)
         hub = EventHub()
         schemas = OptionSchemaProvider(allow_unsafe=settings.allow_unsafe_options)
-        job_manager = JobManager(JobContext(session_factory, hub, settings, schemas))
+        async with session_factory() as session:
+            limit = await get_max_concurrent_downloads(session, settings.max_concurrent_downloads)
+        job_manager = JobManager(JobContext(session_factory, hub, settings, schemas), limit)
         app.state.app_state = AppState(
             settings=settings,
             engine=engine,
@@ -62,7 +66,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title="yt-dlp-z", lifespan=lifespan)
     app.include_router(health.router)
-    for module in (auth, cookies, jobs, job_actions, options, presets, system, ws):
+    for module in (app_settings, auth, cookies, jobs, job_actions, options, presets, system, ws):
         app.include_router(module.router)
     if settings.test_mode:
         app.include_router(testing.router)
