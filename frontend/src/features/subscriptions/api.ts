@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 
 import { api, unwrap } from "@/api/client";
 import type {
@@ -28,7 +29,7 @@ export function useSubscriptions() {
 }
 
 export function useSubscriptionVideos(subscriptionId: number, checking: boolean) {
-  return useQuery({
+  const videos = useQuery({
     queryKey: [...SUBSCRIPTIONS_KEY, subscriptionId, "videos"],
     queryFn: () =>
       unwrap(
@@ -36,6 +37,19 @@ export function useSubscriptionVideos(subscriptionId: number, checking: boolean)
       ),
     refetchInterval: checking ? CHECKING_POLL_MS : false,
   });
+  useReloadWhenCheckEnds(checking, videos.refetch);
+  return videos;
+}
+
+/** Polling stops when a check ends, so one last load picks up what the check wrote at the end. */
+function useReloadWhenCheckEnds(checking: boolean, reload: () => Promise<unknown>) {
+  const wasChecking = useRef(checking);
+  useEffect(() => {
+    if (wasChecking.current && !checking) {
+      void reload();
+    }
+    wasChecking.current = checking;
+  }, [checking, reload]);
 }
 
 function useSubscriptionMutation<T, R>(send: (input: T) => Promise<R>) {
