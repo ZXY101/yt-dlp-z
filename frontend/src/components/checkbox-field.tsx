@@ -21,10 +21,10 @@ export function CheckboxField({
 }: CheckboxFieldProps) {
   const id = useId();
   return (
-    <div className="flex min-h-10 items-start gap-3 py-1">
+    <div className={cn("flex min-h-10 gap-3 py-1", description ? "items-start" : "items-center")}>
       <Checkbox
         id={id}
-        className="mt-0.5 size-5"
+        className={cn("size-5", description && "mt-0.5")}
         checked={checked}
         disabled={disabled}
         onCheckedChange={(state) => onCheckedChange(state === true)}
