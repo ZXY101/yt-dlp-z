@@ -137,4 +137,10 @@
   input[type="file"]:not(:disabled) {
     cursor: pointer;
   }
+  /* Chrome on Windows draws the option list white whatever the color-scheme, while the
+     options inherit the select's light text in dark mode: unreadable. Colour them explicitly. */
+  option,
+  optgroup {
+    @apply bg-popover text-popover-foreground;
+  }
 }
