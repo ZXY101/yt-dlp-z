@@ -73,6 +73,7 @@ export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
       max_concurrent_downloads: 3,
       max_concurrent_recordings: 2,
       max_subscriptions: 5,
+      recording: { part_hours: 6, max_hours: null, from_start_max_hours: 6 },
     },
     folders: {},
     subscriptions: [],

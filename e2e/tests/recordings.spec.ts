@@ -77,4 +77,20 @@ test.describe("recordings", () => {
     await expect(videos.getByText("Recording", { exact: true })).toBeVisible();
     await expect(videos.getByText("Found on the streams tab after it ended")).toBeVisible();
   });
+
+  test("stopping a recording keeps what it recorded", async ({ page, request }) => {
+    // "slow" makes the fake recording run for a minute.
+    await setFeed(request, DEMO_ID, []);
+    await watchStreams(page);
+    await setFeed(request, DEMO_ID, ["slow-live1"]);
+    await page.getByRole("button", { name: "Check Fake demo now" }).click();
+
+    await page.goto("/queue");
+    const inProgress = page.getByRole("list", { name: "In progress" });
+    await expect(inProgress.getByText("Recording", { exact: true })).toBeVisible();
+    await expect(inProgress.getByText(/^Part 1 · /)).toBeVisible();
+    await inProgress.getByRole("button", { name: "Cancel Fake video slow-live1" }).click();
+    const finished = page.getByRole("list", { name: "Finished" });
+    await expect(finished.getByText(/Saved to .*Fake video slow-live1.*\.mp4/)).toBeVisible();
+  });
 });

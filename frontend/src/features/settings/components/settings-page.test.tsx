@@ -28,6 +28,7 @@ describe("SettingsPage", () => {
       max_concurrent_downloads: 5,
       max_concurrent_recordings: 4,
       max_subscriptions: 5,
+      recording: { part_hours: 6, max_hours: null, from_start_max_hours: 6 },
     });
   });
 
@@ -82,5 +83,33 @@ describe("SettingsPage", () => {
     server.failWith = 500;
     renderApp("/settings");
     expect(await screen.findByText("Server error")).toBeInTheDocument();
+  });
+
+  it("saves how recordings are split and limited; empty turns a limit off", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/settings");
+
+    const part = await screen.findByLabelText("New file every (hours)");
+    expect(part).toHaveValue("6");
+    expect(screen.getByLabelText("Stop after (hours)")).toHaveValue("");
+    await user.clear(part);
+    await user.type(screen.getByLabelText("Stop after (hours)"), "200");
+    await user.click(screen.getByRole("button", { name: "Save settings" }));
+    expect(
+      screen.getByText("Enter a whole number from 1 to 168, or leave it empty."),
+    ).toBeVisible();
+    expect(server.requests).not.toContain("PUT /api/settings");
+
+    const max = screen.getByLabelText("Stop after (hours)");
+    await user.clear(max);
+    await user.type(max, "12");
+    await user.click(screen.getByRole("button", { name: "Save settings" }));
+    expect(await screen.findByText("Settings saved.")).toBeInTheDocument();
+    expect(server.settings.recording).toEqual({
+      part_hours: null,
+      max_hours: 12,
+      from_start_max_hours: 6,
+    });
   });
 });
