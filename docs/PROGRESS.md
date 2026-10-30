@@ -6,8 +6,8 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 6 (ops): in progress.** Step 1 (yt-dlp updater) done; next is
-step 2 (auto-update). Milestone 5 is done (a real scheduled stream starting
+**Milestone 6 (ops): in progress.** Steps 1–2 (yt-dlp updates) done; next is
+step 3 (ntfy notifications). Milestone 5 is done (a real scheduled stream starting
 on time is still unchecked, see below).
 
 | Milestone                 | Status      |
@@ -43,7 +43,15 @@ Vitest, pytest and Playwright suites; Docker image; CI for all of it.
    have none). Verified for real (local server and in the Docker image):
    stable 16 s, nightly gave 2026.10.29.232701dev and `/api/system` (a
    subprocess) reported it. E2E uses `e2e/stub/fake_pip.py`.
-2. Daily auto-update (optional) and "update available" (PyPI JSON).
+2. **Update checks and auto-update: done 2026-10-31.**
+   `services/ytdlp/update_check.py`: `pip install --dry-run --report -`
+   resolves the version an update would install (0.6 s, writes nothing, same
+   index/proxy as the real update; no extra dependency). Runs 1 min after
+   start, then daily; the result is kept in memory. Settings → yt-dlp shows
+   "X is available", has Check for updates, and "Update automatically" (off
+   by default: an update changes what every later download runs). API:
+   `PUT /api/ytdlp/preferences` (channel + auto_update; replaced
+   `/channel`), `POST /api/ytdlp/check`.
 3. ntfy notifications (PLAN.md §10).
 4. Media-server output per preset (PLAN.md §8).
 5. Proxy pool (PLAN.md §9).
@@ -315,5 +323,8 @@ Still open:
 - **2026-10-31 · Deployed 1c92ffc; updater UI.** Settings → yt-dlp section,
   checked against real PyPI (stable and nightly).
 
-**Next session:** M6 step 2 (auto-update), see "Milestone 6 steps". Still unverified: a real scheduled stream starting on time.
+- **2026-10-31 · Update checks.** Daily check, "available" notice, optional
+  auto-update (M6 step 2).
+
+**Next session:** M6 step 3 (ntfy), see "Milestone 6 steps". Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.

@@ -86,7 +86,9 @@ folder comes first on `PYTHONPATH` for every yt-dlp run, so the update survives
 container rebuilds and app updates. Downloads already running keep the version
 they started with. **Use bundled version** deletes the folder. The install goes
 to a staging folder first, so a failed update never breaks the yt-dlp in use.
-Updating needs internet access to PyPI.
+Updating needs internet access to PyPI. The app checks for a newer version a
+minute after it starts and then once a day (Settings shows "X is available");
+turn on **Update automatically** to install it then. It's off by default.
 
 ### Blocked yt-dlp options
 
