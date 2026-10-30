@@ -81,6 +81,24 @@ test.describe("downloads", () => {
     await expect(page).toHaveURL(/:\d+\/$/);
   });
 
+  test("any yt-dlp option can be set from the full list", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Link").fill(QUICK_URL);
+    await page.getByRole("button", { name: "Advanced options" }).click();
+    await page.getByRole("button", { name: "All yt-dlp options" }).click();
+    await page.getByLabel("Search options").fill("limit-rate");
+    await page.getByLabel(/^--limit-rate/).fill("1M");
+    await expect(page.getByLabel("--exec CMD")).toHaveCount(0);
+    await page.getByLabel("Search options").fill("--exec");
+    await expect(page.getByLabel(/^--exec/).first()).toBeDisabled();
+    await expectNoHorizontalScroll(page);
+    await page.getByRole("button", { name: "Download" }).click();
+
+    const finished = page.getByRole("list", { name: "Finished" });
+    await finished.getByRole("button", { name: "Log" }).click();
+    await expect(page.getByRole("dialog").getByText(/--limit-rate 1M/)).toBeVisible();
+  });
+
   test("finished downloads can be removed from the list", async ({ page }) => {
     await startDownload(page, QUICK_URL);
     const finished = page.getByRole("list", { name: "Finished" });
