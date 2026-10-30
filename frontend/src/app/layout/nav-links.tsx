@@ -14,7 +14,7 @@ export function NavLinks({ onNavigate }: NavLinksProps) {
         <NavLink
           key={item.to}
           to={item.to}
-          end
+          end={item.to === "/"}
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(

@@ -2,25 +2,26 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 
 import { useCreateJob } from "@/features/downloads/api";
-import {
-  type CommonChoices,
-  DEFAULT_CHOICES,
-  buildOptions,
-  validateUrl,
-} from "@/features/downloads/options";
+import { usePresetChoice } from "@/features/downloads/hooks/use-preset-choice";
+import { validateUrl } from "@/features/downloads/validate-url";
+import { DEFAULT_SETTINGS, type DownloadSettings, settingsForApi } from "@/lib/download-options";
 
 export function useDownloadForm() {
   const [url, setUrl] = useState("");
-  const [outputDir, setOutputDir] = useState("");
-  const [extraArgs, setExtraArgs] = useState("");
-  const [choices, setChoices] = useState<CommonChoices>(DEFAULT_CHOICES);
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  // Remounts the option fields when a preset replaces the settings wholesale,
+  // so fields that keep their own text (one value per line) start fresh.
+  const [settingsVersion, setSettingsVersion] = useState(0);
   const [urlError, setUrlError] = useState<string>();
   const createJob = useCreateJob();
   const navigate = useNavigate();
 
-  function updateChoices(changes: Partial<CommonChoices>) {
-    setChoices((current) => ({ ...current, ...changes }));
+  function replaceSettings(next: DownloadSettings) {
+    setSettings(next);
+    setSettingsVersion((version) => version + 1);
   }
+
+  const presetChoice = usePresetChoice(replaceSettings);
 
   function submit() {
     const error = validateUrl(url);
@@ -28,20 +29,17 @@ export function useDownloadForm() {
     if (error) {
       return;
     }
-    const body = {
-      url: url.trim(),
-      options: buildOptions(choices),
-      extra_args: extraArgs,
-      output_dir: outputDir.trim() || null,
-    };
+    const body = { url: url.trim(), ...settingsForApi(settings) };
     createJob.mutate(body, { onSuccess: () => void navigate("/queue") });
   }
 
   return {
-    fields: { url, outputDir, extraArgs },
-    setters: { setUrl, setOutputDir, setExtraArgs },
-    choices,
-    updateChoices,
+    url,
+    setUrl,
+    settings,
+    setSettings,
+    settingsVersion,
+    presetChoice,
     urlError,
     submit,
     createJob,

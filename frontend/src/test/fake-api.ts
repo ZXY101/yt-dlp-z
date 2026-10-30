@@ -1,6 +1,7 @@
 import type { AuthStatus } from "@/features/auth/types";
 import { type FakeServer, type Route, json, noContent } from "@/test/fake-http";
 import { jobRoutes } from "@/test/fake-jobs";
+import { libraryRoutes } from "@/test/fake-library";
 import { installFakeSocket } from "@/test/fake-socket";
 
 export type { FakeServer } from "@/test/fake-http";
@@ -41,7 +42,7 @@ const authRoutes: Route[] = [
   },
 ];
 
-const routes = [...authRoutes, ...jobRoutes];
+const routes = [...authRoutes, ...jobRoutes, ...libraryRoutes];
 
 export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
   return {
@@ -64,6 +65,9 @@ export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
       ffmpeg_available: true,
       deno_available: true,
     },
+    presets: [],
+    cookieFiles: [],
+    settings: { download_dir: "/downloads", max_concurrent_downloads: 3 },
   };
 }
 

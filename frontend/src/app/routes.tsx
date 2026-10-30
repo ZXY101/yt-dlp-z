@@ -4,7 +4,10 @@ import { AppLayout } from "@/app/layout/app-layout";
 import { AuthGate } from "@/features/auth/components/auth-gate";
 import { LoginPage } from "@/features/auth/components/login-page";
 import { SetupPage } from "@/features/auth/components/setup-page";
+import { CookiesPage } from "@/features/cookies";
 import { DownloadPage, QueuePage } from "@/features/downloads";
+import { PresetEditorPage, PresetsPage } from "@/features/presets";
+import { SettingsPage } from "@/features/settings";
 
 export const routes: RouteObject[] = [
   {
@@ -17,6 +20,11 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <DownloadPage /> },
           { path: "/queue", element: <QueuePage /> },
+          { path: "/presets", element: <PresetsPage /> },
+          { path: "/presets/new", element: <PresetEditorPage /> },
+          { path: "/presets/:presetId", element: <PresetEditorPage /> },
+          { path: "/cookies", element: <CookiesPage /> },
+          { path: "/settings", element: <SettingsPage /> },
         ],
       },
     ],
