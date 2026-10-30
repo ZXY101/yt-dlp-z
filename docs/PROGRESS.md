@@ -6,7 +6,7 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 3 (presets & cookies): done.** Next up: **Milestone 4 (watching).**
+**Milestone 4 (watching): done.** Next up: **Milestone 5 (live).**
 
 | Milestone                 | Status      |
 | ------------------------- | ----------- |
@@ -14,7 +14,7 @@ Design and milestones: [PLAN.md](PLAN.md).
 | 1. Skeleton               | Done        |
 | 2. Downloads              | Done        |
 | 3. Presets & cookies      | Done        |
-| 4. Watching               | Not started |
+| 4. Watching               | Done        |
 | 5. Live                   | Not started |
 | 6. Ops (incl. proxy pool) | Not started |
 | 7. Release                | Not started |
@@ -23,27 +23,29 @@ What exists: FastAPI backend with first-run setup, login/logout, rate limiting,
 `AUTH_MODE=none` and a `reset-password` command; download jobs (queue, live
 progress over WebSocket, cancel/retry/log); presets; cookies files (upload,
 test, per download/preset); runtime settings (download folder, download
-limit). React frontend: Download (home, with preset/cookies pickers and a
-searchable editor for every yt-dlp option), Queue, Presets, Cookies, Settings.
+limit, channel limit); channel subscriptions (RSS poller, yt-dlp probe, filters,
+backfill, per-video history). React frontend: Download (home, with preset/cookies pickers and a
+searchable editor for every yt-dlp option), Queue, Subscriptions, Presets,
+Cookies, Settings.
 Vitest, pytest and Playwright suites; Docker image; CI for all of it.
 
-## Next steps (Milestone 4)
+## Next steps (Milestone 5)
 
-See PLAN.md "YouTube channel watching" and "Subscription filters".
+See PLAN.md "YouTube channel watching" (the `is_upcoming` / `is_live` paths).
+Subscriptions already record such videos as `upcoming` (with `release_at`) or
+`live` in the `videos` table; nothing records them yet.
 
-1. `subscriptions` table: channel id/name/url, preset_id, filters JSON, poll
-   interval, enabled, last_checked. Add by URL or @handle, resolving the channel
-   id with `yt-dlp --flat-playlist -J` (the stub needs a fake for this).
-2. `videos` table (seen entries, live_status, release_timestamp, state), so a
-   video is only queued once. Jobs get an optional video/subscription link.
-3. Poller: channel RSS feed every 10 min with jitter and a floor; new entry →
-   probe with `yt-dlp -J` → filters → queue a download with the preset. Live and
-   upcoming entries are only recorded as such here (recording is milestone 5).
-4. Filters: content type, title include/exclude regex, duration, after date,
-   members-only; backfill on first add ("last N" or "only new").
-5. Watched-channel limit (default 5, raisable in Settings with a warning).
-6. Subscriptions page (add, filters, check now, enable/disable), E2E for every
-   flow. No real network in tests: fake RSS served by the test server or stub.
+1. Live scheduler: wake a few minutes before `release_at`, then run
+   `yt-dlp --live-from-start --wait-for-video` as a job (jobs need a "live"
+   kind or flag, and the UI a "recording" state).
+2. `live` videos: start recording immediately from the start.
+3. Separate live concurrency limit (recordings shouldn't block downloads).
+4. Backup sweep of the channel's `/streams` tab with `--flat-playlist`
+   (every ~30 min) for streams the RSS feed misses.
+5. Stub: upcoming/live behaviour for recordings; E2E for every flow.
+6. Small follow-ups from M4: the video list shows probe titles only for probed
+   videos (skipped-before-subscribing ones keep the feed title, which is fine);
+   consider a "download anyway" action on skipped videos.
 
 ## Decisions not obvious from the code
 
@@ -76,6 +78,21 @@ See PLAN.md "YouTube channel watching" and "Subscription filters".
 - The download limit set in Settings is stored in the DB and overrides
   `YTDLPZ_MAX_CONCURRENT_DOWNLOADS`. Lowering it lets running downloads finish.
 - Rules for all coding agents live in `AGENTS.md`; `CLAUDE.md` imports it.
+- Watching: feed entries are probed with `yt-dlp -J` one at a time; the poller
+  checks due subscriptions one after another (30 s tick), to keep the request
+  rate low. Content types are video / Short / stream; premieres count as
+  streams because yt-dlp reports both through `live_status`.
+- The first check is the one with `last_checked_at` unset; only successful
+  checks set it. Failed checks are throttled by an in-memory attempt time.
+- Failed probes are retried on every check while the video is in the feed.
+  Members-only videos that yt-dlp can't open without cookies count as
+  "Members-only" (skipped) unless members-only is included.
+- Subscription downloads copy the preset's options at queue time, like the
+  download form. Subscription cookies override the preset's.
+- `max_subscriptions` in `PUT /api/settings` is required, so an old client
+  can't silently reset a raised limit.
+- Tests: pytest points `YTDLPZ_YOUTUBE_FEED_URL` at `file://` feeds; E2E uses
+  the test server's own `/api/test/feeds/{channel_id}`.
 
 ## Open items
 
@@ -150,3 +167,8 @@ See PLAN.md "YouTube channel watching" and "Subscription filters".
   it). "Save to" suggests existing folders (`GET /api/folders`, only inside the
   allowed roots, no files, hidden folders and escaping symlinks skipped) via a
   native datalist, loaded on focus and per typed `/`.
+- **2026-10-30 · Milestone 4 done.** Subscriptions backend (219 backend tests,
+  96%), Subscriptions page + channel limit in Settings (149 unit tests, 98%),
+  63 E2E tests (8 new, desktop + mobile). Fixed a leak found by the new tests:
+  the option-schema reader wasn't killed when the app stopped. Screenshots
+  checked at desktop and mobile. Committed, **not pushed**.
