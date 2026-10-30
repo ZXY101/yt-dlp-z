@@ -85,13 +85,24 @@ test.describe("downloads", () => {
     await page.goto("/");
     await page.getByLabel("Link").fill(QUICK_URL);
     await page.getByRole("button", { name: "Advanced options" }).click();
-    await page.getByRole("button", { name: "All yt-dlp options" }).click();
+    await page.getByRole("button", { name: /All yt-dlp options/ }).click();
+    const dialog = page.getByRole("dialog", { name: "yt-dlp options" });
+    await expect(dialog.getByLabel("Search options")).toBeVisible();
+    // Groups are tabs on wide screens and a picker on phones.
+    if (await dialog.getByRole("tab", { name: "Network" }).isVisible()) {
+      await dialog.getByRole("tab", { name: "Network" }).click();
+    } else {
+      await dialog.getByLabel("Option group", { exact: true }).selectOption("Network Options");
+    }
+    await expect(dialog.getByLabel(/^--proxy/)).toBeVisible();
+    await expectNoHorizontalScroll(page);
     await page.getByLabel("Search options").fill("limit-rate");
     await page.getByLabel(/^--limit-rate/).fill("1M");
     await expect(page.getByLabel("--exec CMD")).toHaveCount(0);
     await page.getByLabel("Search options").fill("--exec");
     await expect(page.getByLabel(/^--exec/).first()).toBeDisabled();
-    await expectNoHorizontalScroll(page);
+    await dialog.getByRole("button", { name: "Done" }).click();
+    await expect(page.getByRole("button", { name: /All yt-dlp options/ })).toContainText("set");
     await page.getByRole("button", { name: "Download" }).click();
 
     const finished = page.getByRole("list", { name: "Finished" });

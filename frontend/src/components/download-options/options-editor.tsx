@@ -3,8 +3,12 @@ import { useState } from "react";
 
 import { describeError } from "@/api/errors";
 import { CheckboxField } from "@/components/checkbox-field";
-import { Disclosure } from "@/components/disclosure";
-import { OptionField } from "@/components/download-options/option-field";
+import { GroupTabs } from "@/components/download-options/group-tabs";
+import {
+  GroupOptions,
+  type OptionsProps,
+  groupLabel,
+} from "@/components/download-options/option-groups";
 import {
   type OptionFilter,
   type OptionGroup,
@@ -13,41 +17,6 @@ import {
 import { FormError } from "@/components/form-error";
 import { Input } from "@/components/ui/input";
 import { useOptionSchema } from "@/hooks/use-option-schema";
-import { type OptionValues, countSet, setOption } from "@/lib/download-options";
-
-interface OptionsEditorProps {
-  options: OptionValues;
-  onChange: (options: OptionValues) => void;
-}
-
-function GroupSection({
-  group,
-  options,
-  onChange,
-  searching,
-}: OptionsEditorProps & { group: OptionGroup; searching: boolean }) {
-  const flags = group.options.map((option) => option.flag);
-  const setCount = countSet(options, flags);
-  return (
-    <Disclosure
-      title={group.title}
-      summary={setCount > 0 ? `${setCount} set` : undefined}
-      forceOpen={searching ? true : undefined}
-      lazy
-    >
-      <div className="space-y-4 border-l pl-4">
-        {group.options.map((option) => (
-          <OptionField
-            key={option.flag}
-            option={option}
-            value={options[option.flag]}
-            onChange={(value) => onChange(setOption(options, option.flag, value))}
-          />
-        ))}
-      </div>
-    </Disclosure>
-  );
-}
 
 function SearchBox({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
@@ -68,39 +37,62 @@ function SearchBox({ value, onChange }: { value: string; onChange: (value: strin
   );
 }
 
+/** Matches from every group at once, so nobody has to guess which tab an option is in. */
+function SearchResults({ groups, options, onChange }: OptionsProps & { groups: OptionGroup[] }) {
+  if (groups.length === 0) {
+    return <p className="p-4 text-sm text-muted-foreground">No options match.</p>;
+  }
+  return (
+    <div className="min-h-0 flex-1 space-y-8 overflow-y-auto p-4">
+      {groups.map((group) => (
+        <section key={group.title} className="space-y-4">
+          <h3 className="text-sm font-medium text-muted-foreground">{groupLabel(group)}</h3>
+          <GroupOptions group={group} options={options} onChange={onChange} />
+        </section>
+      ))}
+    </div>
+  );
+}
+
 /** Every yt-dlp option, generated from the installed version's schema. */
-export function OptionsEditor({ options, onChange }: OptionsEditorProps) {
+export function OptionsEditor({ options, onChange }: OptionsProps) {
   const schema = useOptionSchema();
   const [filter, setFilter] = useState<OptionFilter>({ query: "", onlySet: false });
 
   if (schema.isPending) {
-    return <p className="text-sm text-muted-foreground">Loading yt-dlp options…</p>;
+    return <p className="p-4 text-sm text-muted-foreground">Loading yt-dlp options…</p>;
   }
   if (schema.isError) {
-    return <FormError message={describeError(schema.error)} />;
+    return (
+      <div className="p-4">
+        <FormError message={describeError(schema.error)} />
+      </div>
+    );
   }
-  const groups = filterGroups(schema.data.groups, options, filter);
   const searching = filter.query.trim() !== "" || filter.onlySet;
 
   return (
-    <div className="space-y-3">
-      <SearchBox value={filter.query} onChange={(query) => setFilter({ ...filter, query })} />
-      <CheckboxField
-        label="Only options that are set"
-        checked={filter.onlySet}
-        onCheckedChange={(onlySet) => setFilter({ ...filter, onlySet })}
-      />
-      {groups.length === 0 && <p className="text-sm text-muted-foreground">No options match.</p>}
-      {groups.map((group) => (
-        <GroupSection
-          key={group.title}
-          group={group}
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="space-y-2 border-b px-4 pt-3 pb-2">
+        <SearchBox value={filter.query} onChange={(query) => setFilter({ ...filter, query })} />
+        <div className="flex items-center justify-between gap-3">
+          <CheckboxField
+            label="Only options that are set"
+            checked={filter.onlySet}
+            onCheckedChange={(onlySet) => setFilter({ ...filter, onlySet })}
+          />
+          <span className="text-xs text-muted-foreground">yt-dlp {schema.data.ytdlp_version}</span>
+        </div>
+      </div>
+      {searching ? (
+        <SearchResults
+          groups={filterGroups(schema.data.groups, options, filter)}
           options={options}
           onChange={onChange}
-          searching={searching}
         />
-      ))}
-      <p className="text-xs text-muted-foreground">yt-dlp {schema.data.ytdlp_version}</p>
+      ) : (
+        <GroupTabs groups={schema.data.groups} options={options} onChange={onChange} />
+      )}
     </div>
   );
 }
