@@ -89,6 +89,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cookies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Cookie Files */
+        get: operations["list_cookie_files_api_cookies_get"];
+        put?: never;
+        /** Create Cookie File */
+        post: operations["create_cookie_file_api_cookies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cookies/{cookie_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Cookie File */
+        put: operations["update_cookie_file_api_cookies__cookie_id__put"];
+        post?: never;
+        /** Delete Cookie File */
+        delete: operations["delete_cookie_file_api_cookies__cookie_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cookies/{cookie_id}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Cookie File
+         * @description Opens one page with these cookies, to see whether they still sign in.
+         */
+        post: operations["check_cookie_file_api_cookies__cookie_id__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/jobs": {
         parameters: {
             query?: never;
@@ -274,6 +330,47 @@ export interface components {
             /** Default Download Dir */
             default_download_dir: string;
         };
+        /** CookieCheckRequest */
+        CookieCheckRequest: {
+            /** Url */
+            url: string;
+        };
+        /** CookieCheckResult */
+        CookieCheckResult: {
+            /** Ok */
+            ok: boolean;
+            /** Message */
+            message: string;
+        };
+        /** CookieFileCreate */
+        CookieFileCreate: {
+            /** Name */
+            name: string;
+            /** Content */
+            content: string;
+        };
+        /** CookieFileOut */
+        CookieFileOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Cookie Count */
+            cookie_count: number;
+            /** Domains */
+            domains: string[];
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /** CookieFileUpdate */
+        CookieFileUpdate: {
+            /** Name */
+            name: string;
+            /** Content */
+            content?: string | null;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -304,6 +401,8 @@ export interface components {
             extra_args: string;
             /** Output Dir */
             output_dir?: string | null;
+            /** Cookie Id */
+            cookie_id?: number | null;
         };
         /** JobOut */
         JobOut: {
@@ -320,6 +419,8 @@ export interface components {
             extra_args: string;
             /** Output Dir */
             output_dir: string;
+            /** Cookie Id */
+            cookie_id: number | null;
             /** Title */
             title: string | null;
             /** Progress */
@@ -411,6 +512,8 @@ export interface components {
             extra_args: string;
             /** Output Dir */
             output_dir?: string | null;
+            /** Cookie Id */
+            cookie_id?: number | null;
             /**
              * Is Default
              * @default false
@@ -435,6 +538,8 @@ export interface components {
             extra_args: string;
             /** Output Dir */
             output_dir?: string | null;
+            /** Cookie Id */
+            cookie_id?: number | null;
             /**
              * Is Default
              * @default false
@@ -604,6 +709,158 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    list_cookie_files_api_cookies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CookieFileOut"][];
+                };
+            };
+        };
+    };
+    create_cookie_file_api_cookies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CookieFileCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CookieFileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_cookie_file_api_cookies__cookie_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cookie_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CookieFileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CookieFileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_cookie_file_api_cookies__cookie_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cookie_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_cookie_file_api_cookies__cookie_id__check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                cookie_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CookieCheckRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CookieCheckResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
             };
         };
     };

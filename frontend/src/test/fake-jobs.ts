@@ -10,6 +10,7 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     options: {},
     extra_args: "",
     output_dir: "/downloads",
+    cookie_id: null,
     title: null,
     progress: null,
     downloaded_bytes: null,
@@ -55,6 +56,7 @@ function createJob(server: FakeServer, body: Record<string, unknown>) {
     options: (body.options as JobOptions | undefined) ?? {},
     extra_args: String(body.extra_args ?? ""),
     output_dir: (body.output_dir as string | null) ?? "/downloads",
+    cookie_id: (body.cookie_id as number | null | undefined) ?? null,
   });
   server.nextJobId += 1;
   server.jobs.push(job);

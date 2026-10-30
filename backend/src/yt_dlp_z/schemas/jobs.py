@@ -1,31 +1,23 @@
 from datetime import datetime
 from typing import Literal
-from urllib.parse import urlparse
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from yt_dlp_z.db.models.job import JobStatus
-from yt_dlp_z.schemas.common import as_utc_iso
+from yt_dlp_z.schemas.common import WebUrl, as_utc_iso
 
 OptionValue = bool | int | float | str | list[str]
 
 
 class JobCreate(BaseModel):
-    url: str = Field(max_length=4096)
+    url: WebUrl
     # Keyed by yt-dlp long flag, e.g. {"--format": "bv*+ba", "--embed-subs": true}.
     options: dict[str, OptionValue] = {}
     extra_args: str = Field(default="", max_length=4000)
     # Empty: the default download folder. Relative: inside it. Absolute: inside an allowed root.
     output_dir: str | None = Field(default=None, max_length=4096)
-
-    @field_validator("url")
-    @classmethod
-    def must_be_web_url(cls, url: str) -> str:
-        url = url.strip()
-        parsed = urlparse(url)
-        if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-            raise ValueError("Enter a web address starting with http:// or https://")
-        return url
+    # An uploaded cookies file; yt-dlp-z passes --cookies itself.
+    cookie_id: int | None = None
 
 
 class JobOut(BaseModel):
@@ -37,6 +29,7 @@ class JobOut(BaseModel):
     options: dict[str, OptionValue]
     extra_args: str
     output_dir: str
+    cookie_id: int | None
     title: str | None
     progress: float | None
     downloaded_bytes: int | None

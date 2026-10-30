@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from yt_dlp_z.api.deps import Db, State, require_auth
-from yt_dlp_z.api.validation import check_user_args, output_dir_for_job
+from yt_dlp_z.api.validation import check_cookie_id, check_user_args, output_dir_for_job
 from yt_dlp_z.db.models.job import FINISHED_STATUSES, Job, JobStatus
 from yt_dlp_z.schemas.jobs import JobCreate, JobDeletedEvent, JobOut
 from yt_dlp_z.services.jobs import repository
@@ -20,6 +20,7 @@ async def find_job(db: Db, job_id: int) -> Job:
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_job(body: JobCreate, state: State, db: Db) -> JobOut:
     await check_user_args(state, body.options, body.extra_args)
+    await check_cookie_id(db, body.cookie_id)
     output_dir = await output_dir_for_job(state, db, body.output_dir)
     job = Job(
         url=body.url,
@@ -27,6 +28,7 @@ async def create_job(body: JobCreate, state: State, db: Db) -> JobOut:
         options=body.options,
         extra_args=body.extra_args,
         output_dir=str(output_dir),
+        cookie_id=body.cookie_id,
     )
     db.add(job)
     await db.commit()

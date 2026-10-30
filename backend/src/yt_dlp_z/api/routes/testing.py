@@ -18,7 +18,8 @@ async def reset(state: State, db: Db) -> None:
     for table in reversed(Base.metadata.sorted_tables):
         await db.execute(delete(table))
     await db.commit()
-    shutil.rmtree(state.settings.config_dir / "logs", ignore_errors=True)
+    for folder in ("logs", "cookies"):
+        shutil.rmtree(state.settings.config_dir / folder, ignore_errors=True)
     state.login_limiter.reset()
     # Mirror a fresh start, which applies YTDLPZ_ADMIN_PASSWORD.
     if state.settings.admin_password is not None:
