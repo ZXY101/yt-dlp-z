@@ -27,6 +27,10 @@ async def get_download_dir(session: AsyncSession) -> Path | None:
     return Path(value) if value else None
 
 
+async def set_download_dir(session: AsyncSession, download_dir: Path) -> None:
+    await set_values(session, {DOWNLOAD_DIR: str(download_dir)})
+
+
 async def check_password(session: AsyncSession, password: str) -> bool:
     password_hash = await get_value(session, ADMIN_PASSWORD_HASH)
     if password_hash is None:
