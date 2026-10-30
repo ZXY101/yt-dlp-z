@@ -206,9 +206,11 @@ yt-dlp-z/
 
 ## UI pages
 
-Dashboard (active jobs, upcoming streams, recent) · New download · Queue/History
-(logs, retry) · Subscriptions (add, filters, check now) · Presets (options
-editor) · Cookies · Settings (limits, ntfy, yt-dlp version/update, auth).
+Download (home page, with setup warnings) · Queue/History (logs, retry, cancel) ·
+Subscriptions (add, filters, check now) · Presets (options editor) · Cookies ·
+Settings (limits, ntfy, yt-dlp version/update, auth). A separate dashboard was
+dropped (2026-10-30) because it duplicated the queue; it may come back once
+subscriptions add upcoming streams worth summarising.
 
 ## Milestones
 

@@ -111,3 +111,9 @@ image; CI for all of it.
   Bugs found by the new tests and fixed with regression tests: yt-dlp left
   running on shutdown; stale cancel responses overwriting "cancelled" (jobs now
   carry a `revision`); new jobs inheriting a deleted job's log.
+- **2026-10-30 · Navigation and AGENTS.md.** Dropped the dashboard (it duplicated
+  the queue): Download is now the home page (`/`, shows setup warnings), Queue is
+  the second tab, and the "New download" button is gone. Rules moved from
+  `CLAUDE.md` to `AGENTS.md` for all agents; `CLAUDE.md` imports it and keeps
+  only Claude-specific notes (skills). release-please still needs "Allow GitHub
+  Actions to create and approve pull requests" in the repo settings.
