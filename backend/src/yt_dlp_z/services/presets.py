@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from yt_dlp_z.db.models.preset import Preset
 from yt_dlp_z.schemas.presets import PresetIn
+from yt_dlp_z.services.watch.store import unlink_preset
 
 
 class DuplicatePresetError(ValueError):
@@ -38,5 +39,6 @@ async def save_preset(session: AsyncSession, preset: Preset, values: PresetIn) -
 
 
 async def delete_preset(session: AsyncSession, preset: Preset) -> None:
+    await unlink_preset(session, preset.id)
     await session.delete(preset)
     await session.commit()

@@ -9,6 +9,9 @@ The URL picks the behaviour:
   ...stubborn...  slow, and ignores SIGTERM (for the force-kill fallback)
   anything else   finishes in about a quarter of a second
 With --simulate (the cookies check) it prints the title, or fails for ...fail... URLs.
+With -J it prints metadata instead (see metadata()): a channel for /@handle URLs,
+otherwise a video whose id picks its kind (short, upcoming, live, members, broken, long);
+members-only videos only open with --cookies.
 With --cookies it reports how many cookie lines the file had, so tests can see it was passed.
 """
 
@@ -17,6 +20,7 @@ import signal
 import sys
 import time
 from pathlib import Path
+from urllib.parse import parse_qs, urlparse
 
 PROGRESS = "[ytdlpz:progress]"
 INFO = "[ytdlpz:info]"
@@ -40,6 +44,58 @@ def simulate(url: str, title: str) -> int:
     return 0
 
 
+def fail_json(message: str) -> int:
+    print(f"ERROR: [fake] {message}", file=sys.stderr, flush=True)
+    return 1
+
+
+def channel_metadata(url: str) -> int:
+    handle = urlparse(url).path.strip("/").split("/")[0].removeprefix("@")
+    if "fail" in handle:
+        return fail_json("This channel does not exist")
+    channel_id = f"UC{handle}"
+    channel_url = f"https://www.youtube.com/channel/{channel_id}"
+    data = {"id": channel_id, "channel_id": channel_id, "channel": f"Fake {handle}"}
+    emit(json.dumps({**data, "channel_url": channel_url, "entries": []}))
+    return 0
+
+
+def video_metadata(video_id: str, has_cookies: bool) -> int:
+    if "members" in video_id and not has_cookies:
+        return fail_json("Join this channel to get access to members-only content like this video")
+    if "broken" in video_id:
+        return fail_json("This video is unavailable")
+    data: dict[str, object] = {
+        "id": video_id,
+        "title": f"Fake video {video_id}",
+        "duration": 7200 if "long" in video_id else 300,
+        "live_status": "not_live",
+        "media_type": "short" if "short" in video_id else "video",
+        "webpage_url": f"https://www.youtube.com/watch?v={video_id}",
+    }
+    if "members" in video_id:
+        data["availability"] = "subscriber_only"
+    if "upcoming" in video_id:
+        data.update(live_status="is_upcoming", duration=None, release_timestamp=4_102_444_800)
+    elif "live" in video_id:
+        data.update(live_status="is_live", duration=None)
+    emit(json.dumps(data))
+    return 0
+
+
+def metadata(url: str, args: list[str]) -> int:
+    if "/@" in url:
+        return channel_metadata(url)
+    return video_metadata(video_id_of(url), has_cookies="--cookies" in args)
+
+
+def video_id_of(url: str) -> str:
+    query_id = parse_qs(urlparse(url).query).get("v")
+    if query_id:
+        return query_id[0]
+    return url.rstrip("/").rsplit("/", 1)[-1] or "video"
+
+
 def report_cookies(args: list[str]) -> None:
     for path in values_of(args, "--cookies"):
         lines = Path(path).read_text().splitlines()
@@ -50,7 +106,9 @@ def report_cookies(args: list[str]) -> None:
 def main() -> int:
     args = sys.argv[1:]
     url = args[args.index("--") + 1]
-    video_id = url.rstrip("/").rsplit("/", 1)[-1] or "video"
+    if "-J" in args:
+        return metadata(url, args)
+    video_id = video_id_of(url)
     title = f"Fake video {video_id}"
     if "--simulate" in args:
         return simulate(url, title)

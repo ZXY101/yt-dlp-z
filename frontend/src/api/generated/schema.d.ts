@@ -331,6 +331,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Subscriptions */
+        get: operations["list_subscriptions_api_subscriptions_get"];
+        put?: never;
+        /**
+         * Create Subscription
+         * @description Resolves the channel, saves it and starts the first check right away.
+         */
+        post: operations["create_subscription_api_subscriptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/subscriptions/{subscription_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Subscription */
+        get: operations["get_subscription_api_subscriptions__subscription_id__get"];
+        /** Update Subscription */
+        put: operations["update_subscription_api_subscriptions__subscription_id__put"];
+        post?: never;
+        /** Delete Subscription */
+        delete: operations["delete_subscription_api_subscriptions__subscription_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/subscriptions/{subscription_id}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Subscription
+         * @description Starts a check in the background. Poll the subscription to see when it's done.
+         */
+        post: operations["check_subscription_api_subscriptions__subscription_id__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/subscriptions/{subscription_id}/videos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Videos
+         * @description The 50 most recent videos the subscription has seen, and what happened to each.
+         */
+        get: operations["list_videos_api_subscriptions__subscription_id__videos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system": {
         parameters: {
             query?: never;
@@ -361,6 +441,8 @@ export interface components {
             download_dir: string;
             /** Max Concurrent Downloads */
             max_concurrent_downloads: number;
+            /** Max Subscriptions */
+            max_subscriptions: number;
         };
         /**
          * AuthMode
@@ -379,6 +461,11 @@ export interface components {
             /** Default Download Dir */
             default_download_dir: string;
         };
+        /**
+         * ContentType
+         * @enum {string}
+         */
+        ContentType: "video" | "short" | "stream";
         /** CookieCheckRequest */
         CookieCheckRequest: {
             /** Url */
@@ -475,6 +562,8 @@ export interface components {
             output_dir: string;
             /** Cookie Id */
             cookie_id: number | null;
+            /** Subscription Id */
+            subscription_id: number | null;
             /** Title */
             title: string | null;
             /** Progress */
@@ -613,6 +702,152 @@ export interface components {
             /** Download Dir */
             download_dir: string;
         };
+        /** SubscriptionCreate */
+        SubscriptionCreate: {
+            /** Preset Id */
+            preset_id?: number | null;
+            /** Cookie Id */
+            cookie_id?: number | null;
+            /** Output Dir */
+            output_dir?: string | null;
+            /**
+             * @default {
+             *       "content_types": [
+             *         "video"
+             *       ],
+             *       "include_members_only": false
+             *     }
+             */
+            filters: components["schemas"]["SubscriptionFilters"];
+            /**
+             * Poll Minutes
+             * @default 10
+             */
+            poll_minutes: number;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** Channel */
+            channel: string;
+            /**
+             * Backfill
+             * @default 0
+             */
+            backfill: number;
+        };
+        /**
+         * SubscriptionFilters
+         * @description Which new uploads get downloaded. Empty or unset fields don't filter.
+         */
+        SubscriptionFilters: {
+            /**
+             * Content Types
+             * @default [
+             *       "video"
+             *     ]
+             */
+            content_types: components["schemas"]["ContentType"][];
+            /** Title Include */
+            title_include?: string | null;
+            /** Title Exclude */
+            title_exclude?: string | null;
+            /**
+             * Min Duration
+             * @description Seconds
+             */
+            min_duration?: number | null;
+            /**
+             * Max Duration
+             * @description Seconds
+             */
+            max_duration?: number | null;
+            /** Published After */
+            published_after?: string | null;
+            /**
+             * Include Members Only
+             * @default false
+             */
+            include_members_only: boolean;
+        };
+        /** SubscriptionOut */
+        SubscriptionOut: {
+            /** Preset Id */
+            preset_id?: number | null;
+            /** Cookie Id */
+            cookie_id?: number | null;
+            /** Output Dir */
+            output_dir?: string | null;
+            /**
+             * @default {
+             *       "content_types": [
+             *         "video"
+             *       ],
+             *       "include_members_only": false
+             *     }
+             */
+            filters: components["schemas"]["SubscriptionFilters"];
+            /**
+             * Poll Minutes
+             * @default 10
+             */
+            poll_minutes: number;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** Id */
+            id: number;
+            /** Channel Id */
+            channel_id: string;
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
+            /** Backfill */
+            backfill: number;
+            /** Last Checked At */
+            last_checked_at: string | null;
+            /** Last Error */
+            last_error: string | null;
+            /** Created At */
+            created_at: string | null;
+            /**
+             * Checking
+             * @default false
+             */
+            checking: boolean;
+        };
+        /** SubscriptionUpdate */
+        SubscriptionUpdate: {
+            /** Preset Id */
+            preset_id?: number | null;
+            /** Cookie Id */
+            cookie_id?: number | null;
+            /** Output Dir */
+            output_dir?: string | null;
+            /**
+             * @default {
+             *       "content_types": [
+             *         "video"
+             *       ],
+             *       "include_members_only": false
+             *     }
+             */
+            filters: components["schemas"]["SubscriptionFilters"];
+            /**
+             * Poll Minutes
+             * @default 10
+             */
+            poll_minutes: number;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+        };
         /** SystemInfo */
         SystemInfo: {
             /** Ytdlp Version */
@@ -637,6 +872,33 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** VideoOut */
+        VideoOut: {
+            /** Id */
+            id: number;
+            /** Video Id */
+            video_id: string;
+            /** Title */
+            title: string;
+            /** Published At */
+            published_at: string | null;
+            state: components["schemas"]["VideoState"];
+            /** Reason */
+            reason: string | null;
+            /** Live Status */
+            live_status: string | null;
+            /** Release At */
+            release_at: string | null;
+            /** Job Id */
+            job_id: number | null;
+            /** Updated At */
+            updated_at: string | null;
+        };
+        /**
+         * VideoState
+         * @enum {string}
+         */
+        VideoState: "queued" | "skipped" | "upcoming" | "live" | "failed";
     };
     responses: never;
     parameters: never;
@@ -1375,6 +1637,216 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_subscriptions_api_subscriptions_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"][];
+                };
+            };
+        };
+    };
+    create_subscription_api_subscriptions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_subscription_api_subscriptions__subscription_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_subscription_api_subscriptions__subscription_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_subscription_api_subscriptions__subscription_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_subscription_api_subscriptions__subscription_id__check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubscriptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_videos_api_subscriptions__subscription_id__videos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VideoOut"][];
+                };
             };
             /** @description Validation Error */
             422: {

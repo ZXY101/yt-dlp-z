@@ -5,20 +5,21 @@ command-line flags. Flags win over environment variables.
 
 ## Environment variables
 
-| Variable                          | Default (native)            | Default (Docker)   | Purpose                                                                                         |
-| --------------------------------- | --------------------------- | ------------------ | ----------------------------------------------------------------------------------------------- |
-| `YTDLPZ_HOST`                     | `127.0.0.1`                 | `0.0.0.0`          | Address to listen on                                                                            |
-| `YTDLPZ_PORT`                     | `9742`                      | `9742`             | Port to listen on                                                                               |
-| `YTDLPZ_CONFIG_DIR`               | your user data folder¹      | `/config`          | Database, secret key, job logs and uploaded cookies                                             |
-| `YTDLPZ_DEFAULT_DOWNLOAD_DIR`     | `~/Downloads/yt-dlp-z`      | `/downloads`       | Suggested download folder in first-run setup                                                    |
-| `YTDLPZ_AUTH_MODE`                | `password`                  | `password`         | `password`, or `none` to turn off login. **Only use `none` behind a proxy that handles login.** |
-| `YTDLPZ_ADMIN_PASSWORD`           | unset                       | unset              | Sets the admin password up front (see below)                                                    |
-| `YTDLPZ_SESSION_DAYS`             | `30`                        | `30`               | How long a sign-in lasts                                                                        |
-| `YTDLPZ_MAX_CONCURRENT_DOWNLOADS` | `3`                         | `3`                | How many downloads run at once; the rest wait. Changing it on the Settings page overrides this  |
-| `YTDLPZ_EXTRA_DOWNLOAD_ROOTS`     | `[]`                        | `[]`               | Extra absolute folders downloads may use, as a JSON list, e.g. `["/media/music"]`               |
-| `YTDLPZ_ALLOW_UNSAFE_OPTIONS`     | `false`                     | `false`            | Allows the unsafe yt-dlp options listed below. Only for trusted setups.                         |
-| `YTDLPZ_YTDLP_COMMAND`            | the bundled yt-dlp          | the bundled yt-dlp | Command that runs yt-dlp, as a JSON list (mainly for tests)                                     |
-| `YTDLPZ_FRONTEND_DIST`            | `frontend/dist` in the repo | `/app/frontend`    | Folder with the built web UI                                                                    |
+| Variable                          | Default (native)            | Default (Docker)       | Purpose                                                                                         |
+| --------------------------------- | --------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
+| `YTDLPZ_HOST`                     | `127.0.0.1`                 | `0.0.0.0`              | Address to listen on                                                                            |
+| `YTDLPZ_PORT`                     | `9742`                      | `9742`                 | Port to listen on                                                                               |
+| `YTDLPZ_CONFIG_DIR`               | your user data folder¹      | `/config`              | Database, secret key, job logs and uploaded cookies                                             |
+| `YTDLPZ_DEFAULT_DOWNLOAD_DIR`     | `~/Downloads/yt-dlp-z`      | `/downloads`           | Suggested download folder in first-run setup                                                    |
+| `YTDLPZ_AUTH_MODE`                | `password`                  | `password`             | `password`, or `none` to turn off login. **Only use `none` behind a proxy that handles login.** |
+| `YTDLPZ_ADMIN_PASSWORD`           | unset                       | unset                  | Sets the admin password up front (see below)                                                    |
+| `YTDLPZ_SESSION_DAYS`             | `30`                        | `30`                   | How long a sign-in lasts                                                                        |
+| `YTDLPZ_MAX_CONCURRENT_DOWNLOADS` | `3`                         | `3`                    | How many downloads run at once; the rest wait. Changing it on the Settings page overrides this  |
+| `YTDLPZ_EXTRA_DOWNLOAD_ROOTS`     | `[]`                        | `[]`                   | Extra absolute folders downloads may use, as a JSON list, e.g. `["/media/music"]`               |
+| `YTDLPZ_ALLOW_UNSAFE_OPTIONS`     | `false`                     | `false`                | Allows the unsafe yt-dlp options listed below. Only for trusted setups.                         |
+| `YTDLPZ_YTDLP_COMMAND`            | the bundled yt-dlp          | the bundled yt-dlp     | Command that runs yt-dlp, as a JSON list (mainly for tests)                                     |
+| `YTDLPZ_YOUTUBE_FEED_URL`         | YouTube's channel feed      | YouTube's channel feed | Feed polled for new uploads; `{channel_id}` is filled in (only for tests)                       |
+| `YTDLPZ_FRONTEND_DIST`            | `frontend/dist` in the repo | `/app/frontend`        | Folder with the built web UI                                                                    |
 
 ¹ e.g. `~/.local/share/yt-dlp-z` on Linux.
 
@@ -56,6 +57,23 @@ API, and passes `--cookies` itself (users can't). Each download gets its own
 temporary copy, because yt-dlp writes cookies back when it exits. For YouTube,
 export from a private window you then close, so the browser doesn't rotate the
 session and invalidate the file.
+
+### Watching channels
+
+The Subscriptions page watches YouTube channels (a channel URL or `@handle`).
+Each channel's RSS feed is read every 10 minutes by default (5 at the
+least), plus a little random delay so channels don't all poll at once. A new
+upload is opened with yt-dlp to see what it is (video, Short, live stream or
+premiere), checked against the subscription's filters, and queued with its
+preset. On the first check only the newest "backfill" uploads are downloaded;
+older ones are marked as seen. Each video is handled once; if yt-dlp can't
+open it, it is retried on the next check while it is still in the feed.
+
+Upcoming and live streams are listed but not recorded yet. Members-only
+videos need a member's cookies, set on the subscription or its preset.
+
+The Settings page limits how many channels can be watched (5 by default).
+Many channels polled from one IP can get it rate-limited or flagged by YouTube.
 
 ### Blocked yt-dlp options
 
@@ -97,10 +115,10 @@ In Docker: `docker exec -it yt-dlp-z yt-dlp-z reset-password`.
 
 ## Volumes (Docker)
 
-| Path         | Contents                                                                                                                                                      |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/config`    | `yt-dlp-z.db` (settings, presets, password hash), `secret.key`, `logs/` and `cookies/`. Back this up, and keep it private: `cookies/` holds sign-in sessions. |
-| `/downloads` | Default download location chosen in first-run setup                                                                                                           |
+| Path         | Contents                                                                                                                                                                     |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/config`    | `yt-dlp-z.db` (settings, presets, subscriptions, password hash), `secret.key`, `logs/` and `cookies/`. Back this up, and keep it private: `cookies/` holds sign-in sessions. |
+| `/downloads` | Default download location chosen in first-run setup                                                                                                                          |
 
 ## Security notes
 

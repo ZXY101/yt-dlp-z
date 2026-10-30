@@ -38,6 +38,8 @@ class Settings(BaseSettings):
     allow_unsafe_options: bool = False
     # Command that runs yt-dlp. Defaults to the yt-dlp installed next to this app.
     ytdlp_command: list[str] = [sys.executable, "-m", "yt_dlp"]
+    # Channel feed polled for new uploads. {channel_id} is replaced. Tests point it elsewhere.
+    youtube_feed_url: str = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     # Enables /api/test/* endpoints used by the E2E suite. Never set in production.
     test_mode: bool = False
 

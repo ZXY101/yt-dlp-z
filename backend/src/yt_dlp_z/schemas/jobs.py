@@ -30,6 +30,8 @@ class JobOut(BaseModel):
     extra_args: str
     output_dir: str
     cookie_id: int | None
+    # The channel subscription that queued it, if any.
+    subscription_id: int | None
     title: str | None
     progress: float | None
     downloaded_bytes: int | None

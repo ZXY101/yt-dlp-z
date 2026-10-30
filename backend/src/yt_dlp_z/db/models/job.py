@@ -33,6 +33,8 @@ class Job(Base):
     extra_args: Mapped[str] = mapped_column(Text, default="")
     # No foreign key: a deleted cookies file must not delete history. Checked when used.
     cookie_id: Mapped[int | None] = mapped_column(Integer, default=None)
+    # Set for downloads queued by a channel subscription (no foreign key, like cookie_id).
+    subscription_id: Mapped[int | None] = mapped_column(Integer, default=None, index=True)
     output_dir: Mapped[str] = mapped_column(Text)
     title: Mapped[str | None] = mapped_column(Text, default=None)
     progress: Mapped[float | None] = mapped_column(Float, default=None)

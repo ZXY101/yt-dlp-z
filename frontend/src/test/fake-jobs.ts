@@ -11,6 +11,7 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     extra_args: "",
     output_dir: "/downloads",
     cookie_id: null,
+    subscription_id: null,
     title: null,
     progress: null,
     downloaded_bytes: null,

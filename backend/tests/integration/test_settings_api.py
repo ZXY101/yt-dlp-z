@@ -22,6 +22,7 @@ def test_reads_the_setup_values_and_env_default(setup_client: TestClient, tmp_pa
     assert setup_client.get("/api/settings").json() == {
         "download_dir": str((tmp_path / "downloads").resolve()),
         "max_concurrent_downloads": 3,
+        "max_subscriptions": 5,
     }
 
 
@@ -40,6 +41,8 @@ def test_invalid_values_are_rejected(setup_client: TestClient) -> None:
     assert update(setup_client, download_dir="relative/path").status_code == 422
     assert update(setup_client, max_concurrent_downloads=0).status_code == 422
     assert update(setup_client, max_concurrent_downloads=11).status_code == 422
+    assert update(setup_client, max_subscriptions=0).status_code == 422
+    assert update(setup_client, max_subscriptions=101).status_code == 422
 
 
 def test_settings_need_auth_and_setup(client: TestClient, make_client: MakeClient) -> None:
@@ -70,7 +73,9 @@ def test_the_download_limit_changes_while_running(setup_client: TestClient) -> N
 def test_the_download_limit_survives_a_restart(make_client: MakeClient, tmp_path: Path) -> None:
     first = make_client()
     first.post("/api/auth/setup", json={"password": TEST_PASSWORD, "download_dir": str(tmp_path)})
-    update(first, max_concurrent_downloads=5)
+    update(first, max_concurrent_downloads=5, max_subscriptions=12)
     restarted = make_client()
     restarted.cookies.update(first.cookies)
-    assert restarted.get("/api/settings").json()["max_concurrent_downloads"] == 5
+    settings = restarted.get("/api/settings").json()
+    assert settings["max_concurrent_downloads"] == 5
+    assert settings["max_subscriptions"] == 12

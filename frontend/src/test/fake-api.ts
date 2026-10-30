@@ -67,7 +67,7 @@ export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
     },
     presets: [],
     cookieFiles: [],
-    settings: { download_dir: "/downloads", max_concurrent_downloads: 3 },
+    settings: { download_dir: "/downloads", max_concurrent_downloads: 3, max_subscriptions: 5 },
     folders: {},
   };
 }

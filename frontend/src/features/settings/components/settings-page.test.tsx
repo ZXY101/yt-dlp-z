@@ -19,7 +19,11 @@ describe("SettingsPage", () => {
     await user.click(screen.getByRole("button", { name: "Save settings" }));
 
     expect(await screen.findByText("Settings saved.")).toBeInTheDocument();
-    expect(server.settings).toEqual({ download_dir: "/media/videos", max_concurrent_downloads: 5 });
+    expect(server.settings).toEqual({
+      download_dir: "/media/videos",
+      max_concurrent_downloads: 5,
+      max_subscriptions: 5,
+    });
   });
 
   it.each(["0", "11", "2.5", "lots"])("rejects %s downloads at the same time", async (value) => {
