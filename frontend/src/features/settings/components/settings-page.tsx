@@ -1,3 +1,4 @@
+import { TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
 import { describeError } from "@/api/errors";
@@ -5,35 +6,76 @@ import { FormError } from "@/components/form-error";
 import { FormField } from "@/components/form-field";
 import { PageHeader } from "@/components/page-header";
 import { SuccessMessage } from "@/components/success-message";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useAppSettings, useSaveAppSettings } from "@/features/settings/api";
 import type { AppSettings } from "@/features/settings/types";
 
 const MAX_DOWNLOADS = 10;
+const MAX_CHANNELS = 100;
+// Above this many channels, polling from one IP risks YouTube rate limits.
+const SAFE_CHANNELS = 5;
 
-function validateLimit(text: string) {
+function validateLimit(text: string, max: number) {
   const limit = Number(text);
-  if (!Number.isInteger(limit) || limit < 1 || limit > MAX_DOWNLOADS) {
-    return `Enter a whole number from 1 to ${MAX_DOWNLOADS}.`;
+  if (!Number.isInteger(limit) || limit < 1 || limit > max) {
+    return `Enter a whole number from 1 to ${max}.`;
   }
   return undefined;
+}
+
+interface ChannelLimitFieldProps {
+  value: string;
+  error: string | undefined;
+  onChange: (value: string) => void;
+}
+
+function ChannelLimitField({ value, error, onChange }: ChannelLimitFieldProps) {
+  return (
+    <>
+      <FormField
+        label="Channels to watch"
+        inputMode="numeric"
+        hint="The most subscriptions allowed, paused ones included."
+        value={value}
+        error={error}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      {Number(value) > SAFE_CHANNELS && <ChannelLimitWarning />}
+    </>
+  );
+}
+
+function ChannelLimitWarning() {
+  return (
+    <Alert>
+      <TriangleAlert aria-hidden />
+      <AlertDescription>
+        Watching more than {SAFE_CHANNELS} channels from one IP address can get it rate-limited or
+        flagged by YouTube. Use longer check intervals, or a proxy, when watching many channels.
+      </AlertDescription>
+    </Alert>
+  );
 }
 
 function SettingsForm({ settings }: { settings: AppSettings }) {
   const [downloadDir, setDownloadDir] = useState(settings.download_dir);
   const [limit, setLimit] = useState(String(settings.max_concurrent_downloads));
   const [limitError, setLimitError] = useState<string>();
+  const [channels, setChannels] = useState(String(settings.max_subscriptions));
+  const [channelsError, setChannelsError] = useState<string>();
   const save = useSaveAppSettings();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const error = validateLimit(limit);
-    setLimitError(error);
-    if (!error) {
+    const errors = [validateLimit(limit, MAX_DOWNLOADS), validateLimit(channels, MAX_CHANNELS)];
+    setLimitError(errors[0]);
+    setChannelsError(errors[1]);
+    if (errors.every((error) => error === undefined)) {
       save.mutate({
-        ...settings,
         download_dir: downloadDir.trim(),
         max_concurrent_downloads: Number(limit),
+        max_subscriptions: Number(channels),
       });
     }
   }
@@ -57,6 +99,7 @@ function SettingsForm({ settings }: { settings: AppSettings }) {
         error={limitError}
         onChange={(event) => setLimit(event.target.value)}
       />
+      <ChannelLimitField value={channels} error={channelsError} onChange={setChannels} />
       <Button type="submit" size="lg" className="h-10" disabled={save.isPending}>
         {save.isPending ? "Saving…" : "Save settings"}
       </Button>
