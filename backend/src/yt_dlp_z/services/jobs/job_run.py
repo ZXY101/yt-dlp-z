@@ -21,7 +21,13 @@ from yt_dlp_z.services.jobs.process import ProcessResult, run_ytdlp
 from yt_dlp_z.services.ytdlp.args import build_user_args
 from yt_dlp_z.services.ytdlp.command import build_command
 from yt_dlp_z.services.ytdlp.errors import ArgumentError, SchemaUnavailableError
-from yt_dlp_z.services.ytdlp.output import FileUpdate, InfoUpdate, ProgressUpdate, Update
+from yt_dlp_z.services.ytdlp.output import (
+    FileUpdate,
+    InfoUpdate,
+    ProgressUpdate,
+    Update,
+    combine_parts,
+)
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
 
 PUBLISH_INTERVAL_SECONDS = 0.5
@@ -48,7 +54,9 @@ def job_log_path(settings: Settings, job_id: int) -> Path:
 
 def _changes_for(update: Update) -> dict[str, Any]:
     if isinstance(update, ProgressUpdate):
-        return dataclasses.asdict(update)
+        changes = dataclasses.asdict(update)
+        del changes["part"]
+        return changes
     if isinstance(update, InfoUpdate):
         return {"title": update.title} if update.title else {}
     return {"filepath": update.filepath}
@@ -62,8 +70,13 @@ class ProgressTracker:
         self._session = session
         self._job = job
         self._last_flush = 0.0
+        # Latest progress of each parallel stream (video and audio in recordings).
+        self._parts: dict[int, ProgressUpdate] = {}
 
     async def apply(self, update: Update) -> None:
+        if isinstance(update, ProgressUpdate):
+            self._parts[update.part] = update
+            update = combine_parts(self._parts)
         for name, value in _changes_for(update).items():
             setattr(self._job, name, value)
         due = time.monotonic() - self._last_flush >= PUBLISH_INTERVAL_SECONDS
