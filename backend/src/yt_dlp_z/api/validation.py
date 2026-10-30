@@ -37,7 +37,7 @@ async def check_cookie_id(db: AsyncSession, cookie_id: int | None) -> None:
         )
 
 
-async def _base_dir(db: AsyncSession) -> Path:
+async def base_download_dir(db: AsyncSession) -> Path:
     base_dir = await auth_service.get_download_dir(db)
     if base_dir is None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Finish setup first")
@@ -46,7 +46,7 @@ async def _base_dir(db: AsyncSession) -> Path:
 
 async def output_dir_for_job(state: AppState, db: AsyncSession, requested: str | None) -> Path:
     """The checked download folder for a new job, created if needed."""
-    base_dir = await _base_dir(db)
+    base_dir = await base_download_dir(db)
     try:
         return resolve_job_dir(requested, base_dir, state.settings.extra_download_roots)
     except InvalidPathError as error:
@@ -55,7 +55,7 @@ async def output_dir_for_job(state: AppState, db: AsyncSession, requested: str |
 
 async def check_output_dir(state: AppState, db: AsyncSession, requested: str | None) -> None:
     """Checks a folder that is stored for later use (presets) without creating it."""
-    base_dir = await _base_dir(db)
+    base_dir = await base_download_dir(db)
     try:
         check_job_dir(requested, base_dir, state.settings.extra_download_roots)
     except InvalidPathError as error:

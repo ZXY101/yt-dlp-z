@@ -8,6 +8,7 @@ from yt_dlp_z.api.routes import (
     app_settings,
     auth,
     cookies,
+    folders,
     health,
     job_actions,
     jobs,
@@ -66,7 +67,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title="yt-dlp-z", lifespan=lifespan)
     app.include_router(health.router)
-    for module in (app_settings, auth, cookies, jobs, job_actions, options, presets, system, ws):
+    for module in (
+        app_settings,
+        auth,
+        cookies,
+        folders,
+        jobs,
+        job_actions,
+        options,
+        presets,
+        system,
+        ws,
+    ):
         app.include_router(module.router)
     if settings.test_mode:
         app.include_router(testing.router)

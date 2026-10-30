@@ -146,3 +146,7 @@ See PLAN.md "YouTube channel watching" and "Subscription filters".
   manager now uses a dispatcher with an adjustable limit instead of a fixed
   worker pool. The oxlint hook no longer fails on commits that only stage
   lint-ignored files. Screenshots checked at desktop, mobile and dark mode.
+- **2026-10-30 · Small fixes.** Pointer cursor on buttons (Tailwind v4 dropped
+  it). "Save to" suggests existing folders (`GET /api/folders`, only inside the
+  allowed roots, no files, hidden folders and escaping symlinks skipped) via a
+  native datalist, loaded on focus and per typed `/`.

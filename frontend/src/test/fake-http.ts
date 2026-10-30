@@ -14,12 +14,15 @@ export interface FakeServer {
   presets: components["schemas"]["PresetOut"][];
   cookieFiles: components["schemas"]["CookieFileOut"][];
   settings: components["schemas"]["AppSettings"];
+  /** Folder suggestions by parent path. */
+  folders: Record<string, string[]>;
 }
 
 interface RouteRequest {
   body: Record<string, unknown>;
   /** Captured groups of the route's path pattern. */
   params: string[];
+  query: URLSearchParams;
 }
 
 export interface Route {

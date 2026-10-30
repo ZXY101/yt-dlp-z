@@ -99,6 +99,22 @@ test.describe("downloads", () => {
     await expect(page.getByRole("dialog").getByText(/--limit-rate 1M/)).toBeVisible();
   });
 
+  test("save to suggests folders that already exist", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Link").fill(QUICK_URL);
+    await page.getByLabel("Save to").fill("shows/season 1");
+    await page.getByRole("button", { name: "Download" }).click();
+    await expect(page.getByRole("list", { name: "Finished" }).getByText("Done")).toBeVisible();
+
+    await page.goto("/");
+    const field = page.getByLabel("Save to");
+    await field.click();
+    await field.fill("shows/");
+    const listId = await field.getAttribute("list");
+    const options = page.locator(`datalist[id="${listId}"] option`);
+    await expect(options).toHaveAttribute("value", "shows/season 1");
+  });
+
   test("finished downloads can be removed from the list", async ({ page }) => {
     await startDownload(page, QUICK_URL);
     const finished = page.getByRole("list", { name: "Finished" });
