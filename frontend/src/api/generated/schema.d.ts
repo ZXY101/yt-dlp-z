@@ -4,1889 +4,1911 @@
  */
 
 export interface paths {
-    "/api/health": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Health */
-        get: operations["get_health_api_health_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+  "/api/health": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/settings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Settings */
-        get: operations["get_settings_api_settings_get"];
-        /**
-         * Update Settings
-         * @description A new download folder applies to downloads started from now on.
-         */
-        put: operations["update_settings_api_settings_put"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Health */
+    get: operations["get_health_api_health_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/settings": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Status */
-        get: operations["get_status_api_auth_status_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Settings */
+    get: operations["get_settings_api_settings_get"];
+    /**
+     * Update Settings
+     * @description A new download folder applies to downloads started from now on.
+     */
+    put: operations["update_settings_api_settings_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/setup": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Setup */
-        post: operations["setup_api_auth_setup_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Status */
+    get: operations["get_status_api_auth_status_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/setup": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Login */
-        post: operations["login_api_auth_login_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Setup */
+    post: operations["setup_api_auth_setup_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/login": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/auth/logout": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Logout */
-        post: operations["logout_api_auth_logout_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Login */
+    post: operations["login_api_auth_login_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/auth/logout": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/cookies": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Cookie Files */
-        get: operations["list_cookie_files_api_cookies_get"];
-        put?: never;
-        /** Create Cookie File */
-        post: operations["create_cookie_file_api_cookies_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Logout */
+    post: operations["logout_api_auth_logout_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cookies": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/cookies/{cookie_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /** Update Cookie File */
-        put: operations["update_cookie_file_api_cookies__cookie_id__put"];
-        post?: never;
-        /** Delete Cookie File */
-        delete: operations["delete_cookie_file_api_cookies__cookie_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Cookie Files */
+    get: operations["list_cookie_files_api_cookies_get"];
+    put?: never;
+    /** Create Cookie File */
+    post: operations["create_cookie_file_api_cookies_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cookies/{cookie_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/cookies/{cookie_id}/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Check Cookie File
-         * @description Opens one page with these cookies, to see whether they still sign in.
-         */
-        post: operations["check_cookie_file_api_cookies__cookie_id__check_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    /** Update Cookie File */
+    put: operations["update_cookie_file_api_cookies__cookie_id__put"];
+    post?: never;
+    /** Delete Cookie File */
+    delete: operations["delete_cookie_file_api_cookies__cookie_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/cookies/{cookie_id}/check": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/folders": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List Folders
-         * @description Sub-folders of `parent` (empty: the default download folder), for autocomplete.
-         *     Only folders inside the allowed download roots are listed; files never are.
-         */
-        get: operations["list_folders_api_folders_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Check Cookie File
+     * @description Opens one page with these cookies, to see whether they still sign in.
+     */
+    post: operations["check_cookie_file_api_cookies__cookie_id__check_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/folders": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/jobs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Jobs */
-        get: operations["list_jobs_api_jobs_get"];
-        put?: never;
-        /** Create Job */
-        post: operations["create_job_api_jobs_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * List Folders
+     * @description Sub-folders of `parent` (empty: the default download folder), for autocomplete.
+     *     Only folders inside the allowed download roots are listed; files never are.
+     */
+    get: operations["list_folders_api_folders_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/jobs": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/jobs/{job_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Job */
-        get: operations["get_job_api_jobs__job_id__get"];
-        put?: never;
-        post?: never;
-        /**
-         * Delete Job
-         * @description Removes the job from history. Downloaded files are kept.
-         */
-        delete: operations["delete_job_api_jobs__job_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Jobs */
+    get: operations["list_jobs_api_jobs_get"];
+    put?: never;
+    /** Create Job */
+    post: operations["create_job_api_jobs_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/jobs/{job_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/jobs/{job_id}/cancel": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Cancel Job */
-        post: operations["cancel_job_api_jobs__job_id__cancel_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Job */
+    get: operations["get_job_api_jobs__job_id__get"];
+    put?: never;
+    post?: never;
+    /**
+     * Delete Job
+     * @description Removes the job from history. Downloaded files are kept.
+     */
+    delete: operations["delete_job_api_jobs__job_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/jobs/{job_id}/cancel": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/jobs/{job_id}/retry": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Retry Job */
-        post: operations["retry_job_api_jobs__job_id__retry_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Cancel Job */
+    post: operations["cancel_job_api_jobs__job_id__cancel_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/jobs/{job_id}/retry": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/jobs/{job_id}/log": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Job Log */
-        get: operations["get_job_log_api_jobs__job_id__log_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /** Retry Job */
+    post: operations["retry_job_api_jobs__job_id__retry_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/jobs/{job_id}/log": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/options/schema": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Option Schema */
-        get: operations["get_option_schema_api_options_schema_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Job Log */
+    get: operations["get_job_log_api_jobs__job_id__log_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/options/schema": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/presets": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Presets */
-        get: operations["list_presets_api_presets_get"];
-        put?: never;
-        /** Create Preset */
-        post: operations["create_preset_api_presets_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Option Schema */
+    get: operations["get_option_schema_api_options_schema_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/presets": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/presets/{preset_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Preset */
-        get: operations["get_preset_api_presets__preset_id__get"];
-        /** Update Preset */
-        put: operations["update_preset_api_presets__preset_id__put"];
-        post?: never;
-        /** Delete Preset */
-        delete: operations["delete_preset_api_presets__preset_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Presets */
+    get: operations["list_presets_api_presets_get"];
+    put?: never;
+    /** Create Preset */
+    post: operations["create_preset_api_presets_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/presets/{preset_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/subscriptions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List Subscriptions */
-        get: operations["list_subscriptions_api_subscriptions_get"];
-        put?: never;
-        /**
-         * Create Subscription
-         * @description Resolves the channel, saves it and starts the first check right away.
-         */
-        post: operations["create_subscription_api_subscriptions_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Preset */
+    get: operations["get_preset_api_presets__preset_id__get"];
+    /** Update Preset */
+    put: operations["update_preset_api_presets__preset_id__put"];
+    post?: never;
+    /** Delete Preset */
+    delete: operations["delete_preset_api_presets__preset_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/subscriptions": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/subscriptions/{subscription_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get Subscription */
-        get: operations["get_subscription_api_subscriptions__subscription_id__get"];
-        /** Update Subscription */
-        put: operations["update_subscription_api_subscriptions__subscription_id__put"];
-        post?: never;
-        /** Delete Subscription */
-        delete: operations["delete_subscription_api_subscriptions__subscription_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** List Subscriptions */
+    get: operations["list_subscriptions_api_subscriptions_get"];
+    put?: never;
+    /**
+     * Create Subscription
+     * @description Resolves the channel, saves it and starts the first check right away.
+     */
+    post: operations["create_subscription_api_subscriptions_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/subscriptions/{subscription_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/subscriptions/{subscription_id}/check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Check Subscription
-         * @description Starts a check in the background. Poll the subscription to see when it's done.
-         */
-        post: operations["check_subscription_api_subscriptions__subscription_id__check_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /** Get Subscription */
+    get: operations["get_subscription_api_subscriptions__subscription_id__get"];
+    /** Update Subscription */
+    put: operations["update_subscription_api_subscriptions__subscription_id__put"];
+    post?: never;
+    /** Delete Subscription */
+    delete: operations["delete_subscription_api_subscriptions__subscription_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/subscriptions/{subscription_id}/check": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/subscriptions/{subscription_id}/videos": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * List Videos
-         * @description The 50 most recent videos the subscription has seen, and what happened to each.
-         */
-        get: operations["list_videos_api_subscriptions__subscription_id__videos_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    get?: never;
+    put?: never;
+    /**
+     * Check Subscription
+     * @description Starts a check in the background. Poll the subscription to see when it's done.
+     */
+    post: operations["check_subscription_api_subscriptions__subscription_id__check_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/subscriptions/{subscription_id}/videos": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    "/api/system": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get System Info
-         * @description Reports missing runtime dependencies so the UI can warn about them.
-         */
-        get: operations["get_system_info_api_system_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
+    /**
+     * List Videos
+     * @description The 50 most recent videos the subscription has seen, and what happened to each.
+     */
+    get: operations["list_videos_api_subscriptions__subscription_id__videos_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/system": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
+    /**
+     * Get System Info
+     * @description Reports missing runtime dependencies so the UI can warn about them.
+     */
+    get: operations["get_system_info_api_system_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-    schemas: {
-        /** AppSettings */
-        AppSettings: {
-            /** Download Dir */
-            download_dir: string;
-            /** Max Concurrent Downloads */
-            max_concurrent_downloads: number;
-            /** Max Concurrent Recordings */
-            max_concurrent_recordings: number;
-            /** Max Subscriptions */
-            max_subscriptions: number;
-        };
-        /**
-         * AuthMode
-         * @enum {string}
-         */
-        AuthMode: "password" | "none";
-        /** AuthStatus */
-        AuthStatus: {
-            /** Setup Required */
-            setup_required: boolean;
-            /** Authenticated */
-            authenticated: boolean;
-            auth_mode: components["schemas"]["AuthMode"];
-            /** Password From Env */
-            password_from_env: boolean;
-            /** Default Download Dir */
-            default_download_dir: string;
-        };
-        /**
-         * ContentType
-         * @enum {string}
-         */
-        ContentType: "video" | "short" | "stream";
-        /** CookieCheckRequest */
-        CookieCheckRequest: {
-            /** Url */
-            url: string;
-        };
-        /** CookieCheckResult */
-        CookieCheckResult: {
-            /** Ok */
-            ok: boolean;
-            /** Message */
-            message: string;
-        };
-        /** CookieFileCreate */
-        CookieFileCreate: {
-            /** Name */
-            name: string;
-            /** Content */
-            content: string;
-        };
-        /** CookieFileOut */
-        CookieFileOut: {
-            /** Id */
-            id: number;
-            /** Name */
-            name: string;
-            /** Cookie Count */
-            cookie_count: number;
-            /** Domains */
-            domains: string[];
-            /** Created At */
-            created_at: string;
-            /** Updated At */
-            updated_at: string;
-        };
-        /** CookieFileUpdate */
-        CookieFileUpdate: {
-            /** Name */
-            name: string;
-            /** Content */
-            content?: string | null;
-        };
-        /** FolderSuggestions */
-        FolderSuggestions: {
-            /** Folders */
-            folders: string[];
-        };
-        /** HTTPValidationError */
-        HTTPValidationError: {
-            /** Detail */
-            detail?: components["schemas"]["ValidationError"][];
-        };
-        /** Health */
-        Health: {
-            /** Status */
-            status: string;
-            /** Version */
-            version: string;
-        };
-        /** JobCreate */
-        JobCreate: {
-            /** Url */
-            url: string;
-            /**
-             * Options
-             * @default {}
-             */
-            options: {
-                [key: string]: boolean | number | string | string[];
-            };
-            /**
-             * Extra Args
-             * @default
-             */
-            extra_args: string;
-            /** Output Dir */
-            output_dir?: string | null;
-            /** Cookie Id */
-            cookie_id?: number | null;
-        };
-        /**
-         * JobKind
-         * @enum {string}
-         */
-        JobKind: "download" | "live";
-        /** JobOut */
-        JobOut: {
-            /** Id */
-            id: number;
-            /** Url */
-            url: string;
-            status: components["schemas"]["JobStatus"];
-            kind: components["schemas"]["JobKind"];
-            /** Scheduled At */
-            scheduled_at: string | null;
-            /** Options */
-            options: {
-                [key: string]: boolean | number | string | string[];
-            };
-            /** Extra Args */
-            extra_args: string;
-            /** Output Dir */
-            output_dir: string;
-            /** Cookie Id */
-            cookie_id: number | null;
-            /** Subscription Id */
-            subscription_id: number | null;
-            /** Title */
-            title: string | null;
-            /** Progress */
-            progress: number | null;
-            /** Downloaded Bytes */
-            downloaded_bytes: number | null;
-            /** Total Bytes */
-            total_bytes: number | null;
-            /** Speed */
-            speed: number | null;
-            /** Eta */
-            eta: number | null;
-            /** Filepath */
-            filepath: string | null;
-            /** Error */
-            error: string | null;
-            /** Created At */
-            created_at: string | null;
-            /** Started At */
-            started_at: string | null;
-            /** Finished At */
-            finished_at: string | null;
-            /** Revision */
-            revision: number;
-        };
-        /**
-         * JobStatus
-         * @enum {string}
-         */
-        JobStatus: "scheduled" | "queued" | "running" | "completed" | "failed" | "cancelled";
-        /** LoginRequest */
-        LoginRequest: {
-            /** Password */
-            password: string;
-        };
-        /** OptionGroup */
-        OptionGroup: {
-            /** Title */
-            title: string;
-            /** Options */
-            options: components["schemas"]["OptionSpec"][];
-        };
-        /** OptionSchema */
-        OptionSchema: {
-            /** Ytdlp Version */
-            ytdlp_version: string;
-            /** Groups */
-            groups: components["schemas"]["OptionGroup"][];
-        };
-        /** OptionSpec */
-        OptionSpec: {
-            /** Flag */
-            flag: string;
-            /** Aliases */
-            aliases: string[];
-            /** Short */
-            short: string[];
-            /**
-             * Kind
-             * @enum {string}
-             */
-            kind: "flag" | "string" | "number" | "choice";
-            /** Repeatable */
-            repeatable: boolean;
-            /** Metavar */
-            metavar: string | null;
-            /** Choices */
-            choices: string[] | null;
-            /** Help */
-            help: string;
-            /** Blocked Reason */
-            blocked_reason?: string | null;
-        };
-        /** PresetIn */
-        PresetIn: {
-            /** Name */
-            name: string;
-            /**
-             * Options
-             * @default {}
-             */
-            options: {
-                [key: string]: boolean | number | string | string[];
-            };
-            /**
-             * Extra Args
-             * @default
-             */
-            extra_args: string;
-            /** Output Dir */
-            output_dir?: string | null;
-            /** Cookie Id */
-            cookie_id?: number | null;
-            /**
-             * Is Default
-             * @default false
-             */
-            is_default: boolean;
-        };
-        /** PresetOut */
-        PresetOut: {
-            /** Name */
-            name: string;
-            /**
-             * Options
-             * @default {}
-             */
-            options: {
-                [key: string]: boolean | number | string | string[];
-            };
-            /**
-             * Extra Args
-             * @default
-             */
-            extra_args: string;
-            /** Output Dir */
-            output_dir?: string | null;
-            /** Cookie Id */
-            cookie_id?: number | null;
-            /**
-             * Is Default
-             * @default false
-             */
-            is_default: boolean;
-            /** Id */
-            id: number;
-            /** Created At */
-            created_at: string;
-            /** Updated At */
-            updated_at: string;
-        };
-        /** SetupRequest */
-        SetupRequest: {
-            /** Password */
-            password?: string | null;
-            /** Download Dir */
-            download_dir: string;
-        };
-        /** SubscriptionCreate */
-        SubscriptionCreate: {
-            /** Preset Id */
-            preset_id?: number | null;
-            /** Cookie Id */
-            cookie_id?: number | null;
-            /** Output Dir */
-            output_dir?: string | null;
-            /**
-             * @default {
-             *       "content_types": [
-             *         "video"
-             *       ],
-             *       "include_members_only": false
-             *     }
-             */
-            filters: components["schemas"]["SubscriptionFilters"];
-            /**
-             * Poll Minutes
-             * @default 10
-             */
-            poll_minutes: number;
-            /**
-             * Enabled
-             * @default true
-             */
-            enabled: boolean;
-            /** Channel */
-            channel: string;
-            /**
-             * Backfill
-             * @default 0
-             */
-            backfill: number;
-        };
-        /**
-         * SubscriptionFilters
-         * @description Which new uploads get downloaded. Empty or unset fields don't filter.
-         */
-        SubscriptionFilters: {
-            /**
-             * Content Types
-             * @default [
-             *       "video"
-             *     ]
-             */
-            content_types: components["schemas"]["ContentType"][];
-            /** Title Include */
-            title_include?: string | null;
-            /** Title Exclude */
-            title_exclude?: string | null;
-            /**
-             * Min Duration
-             * @description Seconds
-             */
-            min_duration?: number | null;
-            /**
-             * Max Duration
-             * @description Seconds
-             */
-            max_duration?: number | null;
-            /** Published After */
-            published_after?: string | null;
-            /**
-             * Include Members Only
-             * @default false
-             */
-            include_members_only: boolean;
-        };
-        /** SubscriptionOut */
-        SubscriptionOut: {
-            /** Preset Id */
-            preset_id?: number | null;
-            /** Cookie Id */
-            cookie_id?: number | null;
-            /** Output Dir */
-            output_dir?: string | null;
-            /**
-             * @default {
-             *       "content_types": [
-             *         "video"
-             *       ],
-             *       "include_members_only": false
-             *     }
-             */
-            filters: components["schemas"]["SubscriptionFilters"];
-            /**
-             * Poll Minutes
-             * @default 10
-             */
-            poll_minutes: number;
-            /**
-             * Enabled
-             * @default true
-             */
-            enabled: boolean;
-            /** Id */
-            id: number;
-            /** Channel Id */
-            channel_id: string;
-            /** Name */
-            name: string;
-            /** Url */
-            url: string;
-            /** Backfill */
-            backfill: number;
-            /** Last Checked At */
-            last_checked_at: string | null;
-            /** Last Error */
-            last_error: string | null;
-            /** Created At */
-            created_at: string | null;
-            /**
-             * Checking
-             * @default false
-             */
-            checking: boolean;
-        };
-        /** SubscriptionUpdate */
-        SubscriptionUpdate: {
-            /** Preset Id */
-            preset_id?: number | null;
-            /** Cookie Id */
-            cookie_id?: number | null;
-            /** Output Dir */
-            output_dir?: string | null;
-            /**
-             * @default {
-             *       "content_types": [
-             *         "video"
-             *       ],
-             *       "include_members_only": false
-             *     }
-             */
-            filters: components["schemas"]["SubscriptionFilters"];
-            /**
-             * Poll Minutes
-             * @default 10
-             */
-            poll_minutes: number;
-            /**
-             * Enabled
-             * @default true
-             */
-            enabled: boolean;
-        };
-        /** SystemInfo */
-        SystemInfo: {
-            /** Ytdlp Version */
-            ytdlp_version: string | null;
-            /** Ytdlp Error */
-            ytdlp_error: string | null;
-            /** Ffmpeg Available */
-            ffmpeg_available: boolean;
-            /** Deno Available */
-            deno_available: boolean;
-        };
-        /** ValidationError */
-        ValidationError: {
-            /** Location */
-            loc: (string | number)[];
-            /** Message */
-            msg: string;
-            /** Error Type */
-            type: string;
-            /** Input */
-            input?: unknown;
-            /** Context */
-            ctx?: Record<string, never>;
-        };
-        /** VideoOut */
-        VideoOut: {
-            /** Id */
-            id: number;
-            /** Video Id */
-            video_id: string;
-            /** Title */
-            title: string;
-            /** Published At */
-            published_at: string | null;
-            state: components["schemas"]["VideoState"];
-            /** Reason */
-            reason: string | null;
-            /** Live Status */
-            live_status: string | null;
-            /** Release At */
-            release_at: string | null;
-            /** Job Id */
-            job_id: number | null;
-            /** Updated At */
-            updated_at: string | null;
-        };
-        /**
-         * VideoState
-         * @enum {string}
-         */
-        VideoState: "queued" | "skipped" | "upcoming" | "live" | "failed";
+  schemas: {
+    /** AppSettings */
+    AppSettings: {
+      /** Download Dir */
+      download_dir: string;
+      /** Max Concurrent Downloads */
+      max_concurrent_downloads: number;
+      /** Max Concurrent Recordings */
+      max_concurrent_recordings: number;
+      /** Max Subscriptions */
+      max_subscriptions: number;
+      recording: components["schemas"]["RecordingSettings"];
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    /**
+     * AuthMode
+     * @enum {string}
+     */
+    AuthMode: "password" | "none";
+    /** AuthStatus */
+    AuthStatus: {
+      /** Setup Required */
+      setup_required: boolean;
+      /** Authenticated */
+      authenticated: boolean;
+      auth_mode: components["schemas"]["AuthMode"];
+      /** Password From Env */
+      password_from_env: boolean;
+      /** Default Download Dir */
+      default_download_dir: string;
+    };
+    /**
+     * ContentType
+     * @enum {string}
+     */
+    ContentType: "video" | "short" | "stream";
+    /** CookieCheckRequest */
+    CookieCheckRequest: {
+      /** Url */
+      url: string;
+    };
+    /** CookieCheckResult */
+    CookieCheckResult: {
+      /** Ok */
+      ok: boolean;
+      /** Message */
+      message: string;
+    };
+    /** CookieFileCreate */
+    CookieFileCreate: {
+      /** Name */
+      name: string;
+      /** Content */
+      content: string;
+    };
+    /** CookieFileOut */
+    CookieFileOut: {
+      /** Id */
+      id: number;
+      /** Name */
+      name: string;
+      /** Cookie Count */
+      cookie_count: number;
+      /** Domains */
+      domains: string[];
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+    };
+    /** CookieFileUpdate */
+    CookieFileUpdate: {
+      /** Name */
+      name: string;
+      /** Content */
+      content?: string | null;
+    };
+    /** FolderSuggestions */
+    FolderSuggestions: {
+      /** Folders */
+      folders: string[];
+    };
+    /** HTTPValidationError */
+    HTTPValidationError: {
+      /** Detail */
+      detail?: components["schemas"]["ValidationError"][];
+    };
+    /** Health */
+    Health: {
+      /** Status */
+      status: string;
+      /** Version */
+      version: string;
+    };
+    /** JobCreate */
+    JobCreate: {
+      /** Url */
+      url: string;
+      /**
+       * Options
+       * @default {}
+       */
+      options: {
+        [key: string]: boolean | number | string | string[];
+      };
+      /**
+       * Extra Args
+       * @default
+       */
+      extra_args: string;
+      /** Output Dir */
+      output_dir?: string | null;
+      /** Cookie Id */
+      cookie_id?: number | null;
+    };
+    /**
+     * JobKind
+     * @enum {string}
+     */
+    JobKind: "download" | "live";
+    /** JobOut */
+    JobOut: {
+      /** Id */
+      id: number;
+      /** Url */
+      url: string;
+      status: components["schemas"]["JobStatus"];
+      kind: components["schemas"]["JobKind"];
+      /** Scheduled At */
+      scheduled_at: string | null;
+      /** Record From Start */
+      record_from_start: boolean;
+      /** Part Seconds */
+      part_seconds: number | null;
+      /** Max Seconds */
+      max_seconds: number | null;
+      /** Part */
+      part: number | null;
+      /** Options */
+      options: {
+        [key: string]: boolean | number | string | string[];
+      };
+      /** Extra Args */
+      extra_args: string;
+      /** Output Dir */
+      output_dir: string;
+      /** Cookie Id */
+      cookie_id: number | null;
+      /** Subscription Id */
+      subscription_id: number | null;
+      /** Title */
+      title: string | null;
+      /** Progress */
+      progress: number | null;
+      /** Downloaded Bytes */
+      downloaded_bytes: number | null;
+      /** Total Bytes */
+      total_bytes: number | null;
+      /** Speed */
+      speed: number | null;
+      /** Eta */
+      eta: number | null;
+      /** Filepath */
+      filepath: string | null;
+      /** Error */
+      error: string | null;
+      /** Created At */
+      created_at: string | null;
+      /** Started At */
+      started_at: string | null;
+      /** Finished At */
+      finished_at: string | null;
+      /** Revision */
+      revision: number;
+    };
+    /**
+     * JobStatus
+     * @enum {string}
+     */
+    JobStatus: "scheduled" | "queued" | "running" | "completed" | "failed" | "cancelled";
+    /** LoginRequest */
+    LoginRequest: {
+      /** Password */
+      password: string;
+    };
+    /** OptionGroup */
+    OptionGroup: {
+      /** Title */
+      title: string;
+      /** Options */
+      options: components["schemas"]["OptionSpec"][];
+    };
+    /** OptionSchema */
+    OptionSchema: {
+      /** Ytdlp Version */
+      ytdlp_version: string;
+      /** Groups */
+      groups: components["schemas"]["OptionGroup"][];
+    };
+    /** OptionSpec */
+    OptionSpec: {
+      /** Flag */
+      flag: string;
+      /** Aliases */
+      aliases: string[];
+      /** Short */
+      short: string[];
+      /**
+       * Kind
+       * @enum {string}
+       */
+      kind: "flag" | "string" | "number" | "choice";
+      /** Repeatable */
+      repeatable: boolean;
+      /** Metavar */
+      metavar: string | null;
+      /** Choices */
+      choices: string[] | null;
+      /** Help */
+      help: string;
+      /** Blocked Reason */
+      blocked_reason?: string | null;
+    };
+    /** PresetIn */
+    PresetIn: {
+      /** Name */
+      name: string;
+      /**
+       * Options
+       * @default {}
+       */
+      options: {
+        [key: string]: boolean | number | string | string[];
+      };
+      /**
+       * Extra Args
+       * @default
+       */
+      extra_args: string;
+      /** Output Dir */
+      output_dir?: string | null;
+      /** Cookie Id */
+      cookie_id?: number | null;
+      /**
+       * Is Default
+       * @default false
+       */
+      is_default: boolean;
+    };
+    /** PresetOut */
+    PresetOut: {
+      /** Name */
+      name: string;
+      /**
+       * Options
+       * @default {}
+       */
+      options: {
+        [key: string]: boolean | number | string | string[];
+      };
+      /**
+       * Extra Args
+       * @default
+       */
+      extra_args: string;
+      /** Output Dir */
+      output_dir?: string | null;
+      /** Cookie Id */
+      cookie_id?: number | null;
+      /**
+       * Is Default
+       * @default false
+       */
+      is_default: boolean;
+      /** Id */
+      id: number;
+      /** Created At */
+      created_at: string;
+      /** Updated At */
+      updated_at: string;
+    };
+    /**
+     * RecordingSettings
+     * @description How live streams are recorded. Hours; None turns a setting off. Every recording
+     *     keeps the values it started with.
+     */
+    RecordingSettings: {
+      /** Part Hours */
+      part_hours: number | null;
+      /** Max Hours */
+      max_hours: number | null;
+      /** From Start Max Hours */
+      from_start_max_hours: number | null;
+    };
+    /** SetupRequest */
+    SetupRequest: {
+      /** Password */
+      password?: string | null;
+      /** Download Dir */
+      download_dir: string;
+    };
+    /** SubscriptionCreate */
+    SubscriptionCreate: {
+      /** Preset Id */
+      preset_id?: number | null;
+      /** Cookie Id */
+      cookie_id?: number | null;
+      /** Output Dir */
+      output_dir?: string | null;
+      /**
+       * @default {
+       *       "content_types": [
+       *         "video"
+       *       ],
+       *       "include_members_only": false
+       *     }
+       */
+      filters: components["schemas"]["SubscriptionFilters"];
+      /**
+       * Poll Minutes
+       * @default 10
+       */
+      poll_minutes: number;
+      /**
+       * Enabled
+       * @default true
+       */
+      enabled: boolean;
+      /** Channel */
+      channel: string;
+      /**
+       * Backfill
+       * @default 0
+       */
+      backfill: number;
+    };
+    /**
+     * SubscriptionFilters
+     * @description Which new uploads get downloaded. Empty or unset fields don't filter.
+     */
+    SubscriptionFilters: {
+      /**
+       * Content Types
+       * @default [
+       *       "video"
+       *     ]
+       */
+      content_types: components["schemas"]["ContentType"][];
+      /** Title Include */
+      title_include?: string | null;
+      /** Title Exclude */
+      title_exclude?: string | null;
+      /**
+       * Min Duration
+       * @description Seconds
+       */
+      min_duration?: number | null;
+      /**
+       * Max Duration
+       * @description Seconds
+       */
+      max_duration?: number | null;
+      /** Published After */
+      published_after?: string | null;
+      /**
+       * Include Members Only
+       * @default false
+       */
+      include_members_only: boolean;
+    };
+    /** SubscriptionOut */
+    SubscriptionOut: {
+      /** Preset Id */
+      preset_id?: number | null;
+      /** Cookie Id */
+      cookie_id?: number | null;
+      /** Output Dir */
+      output_dir?: string | null;
+      /**
+       * @default {
+       *       "content_types": [
+       *         "video"
+       *       ],
+       *       "include_members_only": false
+       *     }
+       */
+      filters: components["schemas"]["SubscriptionFilters"];
+      /**
+       * Poll Minutes
+       * @default 10
+       */
+      poll_minutes: number;
+      /**
+       * Enabled
+       * @default true
+       */
+      enabled: boolean;
+      /** Id */
+      id: number;
+      /** Channel Id */
+      channel_id: string;
+      /** Name */
+      name: string;
+      /** Url */
+      url: string;
+      /** Backfill */
+      backfill: number;
+      /** Last Checked At */
+      last_checked_at: string | null;
+      /** Last Error */
+      last_error: string | null;
+      /** Created At */
+      created_at: string | null;
+      /**
+       * Checking
+       * @default false
+       */
+      checking: boolean;
+    };
+    /** SubscriptionUpdate */
+    SubscriptionUpdate: {
+      /** Preset Id */
+      preset_id?: number | null;
+      /** Cookie Id */
+      cookie_id?: number | null;
+      /** Output Dir */
+      output_dir?: string | null;
+      /**
+       * @default {
+       *       "content_types": [
+       *         "video"
+       *       ],
+       *       "include_members_only": false
+       *     }
+       */
+      filters: components["schemas"]["SubscriptionFilters"];
+      /**
+       * Poll Minutes
+       * @default 10
+       */
+      poll_minutes: number;
+      /**
+       * Enabled
+       * @default true
+       */
+      enabled: boolean;
+    };
+    /** SystemInfo */
+    SystemInfo: {
+      /** Ytdlp Version */
+      ytdlp_version: string | null;
+      /** Ytdlp Error */
+      ytdlp_error: string | null;
+      /** Ffmpeg Available */
+      ffmpeg_available: boolean;
+      /** Deno Available */
+      deno_available: boolean;
+    };
+    /** ValidationError */
+    ValidationError: {
+      /** Location */
+      loc: (string | number)[];
+      /** Message */
+      msg: string;
+      /** Error Type */
+      type: string;
+      /** Input */
+      input?: unknown;
+      /** Context */
+      ctx?: Record<string, never>;
+    };
+    /** VideoOut */
+    VideoOut: {
+      /** Id */
+      id: number;
+      /** Video Id */
+      video_id: string;
+      /** Title */
+      title: string;
+      /** Published At */
+      published_at: string | null;
+      state: components["schemas"]["VideoState"];
+      /** Reason */
+      reason: string | null;
+      /** Live Status */
+      live_status: string | null;
+      /** Release At */
+      release_at: string | null;
+      /** Job Id */
+      job_id: number | null;
+      /** Updated At */
+      updated_at: string | null;
+    };
+    /**
+     * VideoState
+     * @enum {string}
+     */
+    VideoState: "queued" | "skipped" | "upcoming" | "live" | "failed";
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    get_health_api_health_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Health"];
-                };
-            };
-        };
+  get_health_api_health_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    get_settings_api_settings_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppSettings"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["Health"];
         };
+      };
     };
-    update_settings_api_settings_put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["AppSettings"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AppSettings"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  get_settings_api_settings_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    get_status_api_auth_status_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthStatus"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["AppSettings"];
         };
+      };
     };
-    setup_api_auth_setup_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SetupRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  update_settings_api_settings_put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    login_api_auth_login_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AppSettings"];
+      };
     };
-    logout_api_auth_logout_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
+        content: {
+          "application/json": components["schemas"]["AppSettings"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    list_cookie_files_api_cookies_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CookieFileOut"][];
-                };
-            };
-        };
+  };
+  get_status_api_auth_status_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    create_cookie_file_api_cookies_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CookieFileCreate"];
-            };
+        content: {
+          "application/json": components["schemas"]["AuthStatus"];
         };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CookieFileOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+      };
     };
-    update_cookie_file_api_cookies__cookie_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                cookie_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CookieFileUpdate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CookieFileOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  setup_api_auth_setup_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    delete_cookie_file_api_cookies__cookie_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                cookie_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SetupRequest"];
+      };
     };
-    check_cookie_file_api_cookies__cookie_id__check_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                cookie_id: number;
-            };
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CookieCheckRequest"];
-            };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CookieCheckResult"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
+      };
     };
-    list_folders_api_folders_get: {
-        parameters: {
-            query?: {
-                parent?: string;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["FolderSuggestions"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  login_api_auth_login_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    list_jobs_api_jobs_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JobOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["LoginRequest"];
+      };
     };
-    create_job_api_jobs_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["JobCreate"];
-            };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JobOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
+      };
     };
-    get_job_api_jobs__job_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                job_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JobOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  logout_api_auth_logout_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    delete_job_api_jobs__job_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                job_id: number;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+        content?: never;
+      };
     };
-    cancel_job_api_jobs__job_id__cancel_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                job_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JobOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  list_cookie_files_api_cookies_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    retry_job_api_jobs__job_id__retry_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                job_id: number;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["JobOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["CookieFileOut"][];
         };
+      };
     };
-    get_job_log_api_jobs__job_id__log_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                job_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "text/plain": string;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  create_cookie_file_api_cookies_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    get_option_schema_api_options_schema_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OptionSchema"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CookieFileCreate"];
+      };
     };
-    list_presets_api_presets_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PresetOut"][];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["CookieFileOut"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    create_preset_api_presets_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PresetIn"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PresetOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  update_cookie_file_api_cookies__cookie_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        cookie_id: number;
+      };
+      cookie?: never;
     };
-    get_preset_api_presets__preset_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                preset_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PresetOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CookieFileUpdate"];
+      };
     };
-    update_preset_api_presets__preset_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                preset_id: number;
-            };
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PresetIn"];
-            };
+        content: {
+          "application/json": components["schemas"]["CookieFileOut"];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PresetOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    delete_preset_api_presets__preset_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                preset_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  delete_cookie_file_api_cookies__cookie_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        cookie_id: number;
+      };
+      cookie?: never;
     };
-    list_subscriptions_api_subscriptions_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionOut"][];
-                };
-            };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    create_subscription_api_subscriptions_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubscriptionCreate"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  check_cookie_file_api_cookies__cookie_id__check_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        cookie_id: number;
+      };
+      cookie?: never;
     };
-    get_subscription_api_subscriptions__subscription_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                subscription_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CookieCheckRequest"];
+      };
     };
-    update_subscription_api_subscriptions__subscription_id__put: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                subscription_id: number;
-            };
-            cookie?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SubscriptionUpdate"];
-            };
+        content: {
+          "application/json": components["schemas"]["CookieCheckResult"];
         };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
         };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    delete_subscription_api_subscriptions__subscription_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                subscription_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  list_folders_api_folders_get: {
+    parameters: {
+      query?: {
+        parent?: string;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    check_subscription_api_subscriptions__subscription_id__check_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                subscription_id: number;
-            };
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SubscriptionOut"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["FolderSuggestions"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
-    list_videos_api_subscriptions__subscription_id__videos_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                subscription_id: number;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["VideoOut"][];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
+  };
+  list_jobs_api_jobs_get: {
+    parameters: {
+      query?: {
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
     };
-    get_system_info_api_system_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SystemInfo"];
-                };
-            };
+        content: {
+          "application/json": components["schemas"]["JobOut"][];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
     };
+  };
+  create_job_api_jobs_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["JobCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["JobOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_job_api_jobs__job_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["JobOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_job_api_jobs__job_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  cancel_job_api_jobs__job_id__cancel_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["JobOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  retry_job_api_jobs__job_id__retry_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["JobOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_job_log_api_jobs__job_id__log_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "text/plain": string;
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_option_schema_api_options_schema_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["OptionSchema"];
+        };
+      };
+    };
+  };
+  list_presets_api_presets_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PresetOut"][];
+        };
+      };
+    };
+  };
+  create_preset_api_presets_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PresetIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PresetOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_preset_api_presets__preset_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        preset_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PresetOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_preset_api_presets__preset_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        preset_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PresetIn"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["PresetOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_preset_api_presets__preset_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        preset_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_subscriptions_api_subscriptions_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SubscriptionOut"][];
+        };
+      };
+    };
+  };
+  create_subscription_api_subscriptions_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SubscriptionCreate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SubscriptionOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_subscription_api_subscriptions__subscription_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        subscription_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SubscriptionOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_subscription_api_subscriptions__subscription_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        subscription_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SubscriptionUpdate"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SubscriptionOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  delete_subscription_api_subscriptions__subscription_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        subscription_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  check_subscription_api_subscriptions__subscription_id__check_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        subscription_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SubscriptionOut"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  list_videos_api_subscriptions__subscription_id__videos_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        subscription_id: number;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["VideoOut"][];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  get_system_info_api_system_get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["SystemInfo"];
+        };
+      };
+    };
+  };
 }

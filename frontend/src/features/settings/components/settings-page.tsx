@@ -9,34 +9,17 @@ import { SuccessMessage } from "@/components/success-message";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useAppSettings, useSaveAppSettings } from "@/features/settings/api";
+import {
+  RecordingFields,
+  useRecordingFields,
+} from "@/features/settings/components/recording-fields";
+import { type LimitField, useLimitField } from "@/features/settings/hooks/use-limit-field";
 import type { AppSettings } from "@/features/settings/types";
 
 const MAX_DOWNLOADS = 10;
 const MAX_CHANNELS = 100;
 // Above this many channels, polling from one IP risks YouTube rate limits.
 const SAFE_CHANNELS = 5;
-
-function validateLimit(text: string, max: number) {
-  const limit = Number(text);
-  if (!Number.isInteger(limit) || limit < 1 || limit > max) {
-    return `Enter a whole number from 1 to ${max}.`;
-  }
-  return undefined;
-}
-
-/** A whole-number field from 1 to `max`; `check()` shows its error and says if it's valid. */
-function useLimitField(initial: number, max: number) {
-  const [value, setValue] = useState(String(initial));
-  const [error, setError] = useState<string>();
-
-  function check() {
-    const problem = validateLimit(value, max);
-    setError(problem);
-    return problem === undefined;
-  }
-
-  return { value, setValue, error, check };
-}
 
 interface ChannelLimitFieldProps {
   value: string;
@@ -72,8 +55,6 @@ function ChannelLimitWarning() {
   );
 }
 
-type LimitField = ReturnType<typeof useLimitField>;
-
 function ConcurrencyFields({
   downloads,
   recordings,
@@ -105,21 +86,23 @@ function ConcurrencyFields({
 
 function SettingsForm({ settings }: { settings: AppSettings }) {
   const [downloadDir, setDownloadDir] = useState(settings.download_dir);
-  const downloads = useLimitField(settings.max_concurrent_downloads, MAX_DOWNLOADS);
-  const recordings = useLimitField(settings.max_concurrent_recordings, MAX_DOWNLOADS);
-  const channels = useLimitField(settings.max_subscriptions, MAX_CHANNELS);
+  const downloads = useLimitField(settings.max_concurrent_downloads, { max: MAX_DOWNLOADS });
+  const recordings = useLimitField(settings.max_concurrent_recordings, { max: MAX_DOWNLOADS });
+  const channels = useLimitField(settings.max_subscriptions, { max: MAX_CHANNELS });
+  const recording = useRecordingFields(settings.recording);
   const save = useSaveAppSettings();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     // Every field is checked, so all errors show at once.
-    const valid = [downloads.check(), recordings.check(), channels.check()];
+    const valid = [downloads.check(), recordings.check(), channels.check(), recording.check()];
     if (valid.every(Boolean)) {
       save.mutate({
         download_dir: downloadDir.trim(),
         max_concurrent_downloads: Number(downloads.value),
         max_concurrent_recordings: Number(recordings.value),
         max_subscriptions: Number(channels.value),
+        recording: recording.values(),
       });
     }
   }
@@ -141,6 +124,7 @@ function SettingsForm({ settings }: { settings: AppSettings }) {
         error={channels.error}
         onChange={channels.setValue}
       />
+      <RecordingFields recording={recording} />
       <Button type="submit" size="lg" className="h-10" disabled={save.isPending}>
         {save.isPending ? "Saving…" : "Save settings"}
       </Button>

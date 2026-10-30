@@ -142,4 +142,35 @@ describe("QueuePage", () => {
     const finished = await screen.findByRole("list", { name: "Finished" });
     expect(within(finished).getByText("Next stream")).toBeInTheDocument();
   });
+
+  it("shows which part a split recording is on, and what a stopped one saved", async () => {
+    const server = createFakeServer();
+    const live = { kind: "live" as const, part_seconds: 21_600 };
+    server.jobs = [
+      makeJob({
+        id: 1,
+        ...live,
+        status: "running",
+        title: "Long stream",
+        part: 2,
+        downloaded_bytes: 1_000_000,
+      }),
+      makeJob({
+        id: 2,
+        ...live,
+        status: "cancelled",
+        title: "Stopped stream",
+        filepath: "/downloads/stopped (part 1).mp4",
+      }),
+    ];
+    installFakeApi(server);
+    renderApp("/queue");
+
+    const inProgress = await screen.findByRole("list", { name: "In progress" });
+    expect(within(inProgress).getByText(/^Part 2 · 1\.0 MB/)).toBeInTheDocument();
+    const finished = screen.getByRole("list", { name: "Finished" });
+    expect(
+      within(finished).getByText("Saved to /downloads/stopped (part 1).mp4"),
+    ).toBeInTheDocument();
+  });
 });

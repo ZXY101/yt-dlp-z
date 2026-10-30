@@ -14,7 +14,11 @@ function RecordingDetails({ job }: { job: Job }) {
   }
   if (job.status === "running") {
     // A live stream has no total size, so there is no progress bar.
-    return <p className="text-xs text-muted-foreground">{describeProgress(job)}</p>;
+    const part = recordingPart(job);
+    const progress = describeProgress(job);
+    return (
+      <p className="text-xs text-muted-foreground">{part ? `${part} · ${progress}` : progress}</p>
+    );
   }
   if (job.status === "queued") {
     return <p className="text-sm text-muted-foreground">Waiting for a free recording slot…</p>;
@@ -22,11 +26,19 @@ function RecordingDetails({ job }: { job: Job }) {
   return <JobOutcome job={job} />;
 }
 
+/** "Part 2" for recordings split into several files, or continued after a restart. */
+function recordingPart(job: Job) {
+  const numbered = job.part_seconds !== null || (job.part ?? 0) > 1;
+  return numbered && job.part ? `Part ${job.part}` : null;
+}
+
 function JobOutcome({ job }: { job: Job }) {
   if (job.status === "failed" && job.error) {
     return <p className="text-sm break-words text-destructive">{job.error}</p>;
   }
-  if (job.status === "completed" && job.filepath) {
+  // A stopped recording keeps what it recorded.
+  const saved = job.status === "completed" || job.status === "cancelled";
+  if (saved && job.filepath) {
     return <p className="text-xs break-all text-muted-foreground">Saved to {job.filepath}</p>;
   }
   return null;
