@@ -14,8 +14,15 @@ function stubMatchMedia(query: string): MediaQueryList {
   };
 }
 
-// jsdom has no matchMedia.
+class StubResizeObserver {
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
+}
+
+// jsdom has neither; Radix components (e.g. Checkbox) need ResizeObserver.
 window.matchMedia = stubMatchMedia;
+globalThis.ResizeObserver = StubResizeObserver;
 
 afterEach(() => {
   cleanup();

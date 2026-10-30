@@ -172,8 +172,9 @@ and `src/test/render.tsx` (`renderApp(path)`).
 - Tooling: Prettier (format), oxlint (lint, React/hooks/a11y/import/vitest
   plugins), knip (dead code), gitleaks (secrets), commitlint, lefthook (hooks);
   ruff + mypy strict for Python. pytest treats warnings as errors.
-- Deliberate lint exceptions: `react-perf/jsx-no-new-function-as-prop` is off
-  (it flags the handler style above); generated folders (`components/ui/`,
+- Deliberate lint exceptions: the oxlint `react-perf` plugin is off. Its rules
+  only pay off with memoized components, and they flag the handler style and
+  JSX composition (`action={<Button />}`) the rules above ask for; generated folders (`components/ui/`,
   `api/generated/`) are exempt from knip's unused-export check.
 - **Commits:** Conventional Commits, `type(scope): summary`. Scopes: backend,
   frontend, docker, e2e, ci, deps, docs, release. One logical change per

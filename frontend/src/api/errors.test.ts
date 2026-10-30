@@ -10,6 +10,11 @@ describe("errorMessage", () => {
     expect(errorMessage(body)).toBe("Too short. Missing.");
   });
 
+  it("drops Pydantic's 'Value error' prefix", () => {
+    const body = { detail: [{ msg: "Value error, Enter a web address." }] };
+    expect(errorMessage(body)).toBe("Enter a web address.");
+  });
+
   it.each([undefined, null, "text", {}, { detail: 42 }, { detail: [{}] }])(
     "falls back for %j",
     (body) => {
