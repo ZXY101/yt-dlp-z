@@ -74,7 +74,10 @@ Still open:
    long streams: "Record their first N hours" (from the start, stopped after
    N hours of the stream). The maximum length counts hours of the stream:
    from the start, yt-dlp downloads faster than real time, so it's worked
-   out from fragment numbers (`services/live/stream_clock.py`).
+   out from fragment numbers (`services/live/stream_clock.py`). Verified on
+   real YouTube 2026-10-30: a 60 s limit on Lofi Girl (live 72 days) finished
+   in ~5 s with a 65 s file. YouTube keeps only the last 120 h, so for older
+   streams "first hours" means the earliest 120 h-old part available.
 3. A stream rescheduled _earlier_ after we scheduled it is only caught if a
    later check re-probes it (it doesn't today: videos with a job are done).
    Later yt-dlp `--wait-for-video` covers streams that start late.
@@ -262,4 +265,5 @@ Still open:
   dialog with group tabs (picker on phones) and search across groups. 247
   backend tests, 179 unit, 76 E2E.
 
-**Next session:** milestone 6 (ops). `cd ~/dev/yt-dlp-z && git pull && npm run check`.
+**Next session:** milestone 6 (ops), plan in PLAN.md. Still unverified: a real
+scheduled stream starting on time. `cd ~/dev/yt-dlp-z && git pull && npm run check`. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
