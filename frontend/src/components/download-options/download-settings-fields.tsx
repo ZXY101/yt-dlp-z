@@ -1,7 +1,7 @@
 import { Disclosure } from "@/components/disclosure";
 import { CommonOptions } from "@/components/download-options/common-options";
 import { FolderField } from "@/components/download-options/folder-field";
-import { OptionsEditor } from "@/components/download-options/options-editor";
+import { OptionsDialog } from "@/components/download-options/options-dialog";
 import { FormField, SelectField, TextareaField } from "@/components/form-field";
 import { type DownloadSettings, setOption } from "@/lib/download-options";
 
@@ -61,9 +61,7 @@ export function DownloadSettingsFields(props: DownloadSettingsFieldsProps) {
           value={template}
           onChange={(event) => setOptions(setOption(options, "--output", event.target.value))}
         />
-        <Disclosure title="All yt-dlp options" lazy>
-          <OptionsEditor options={options} onChange={setOptions} />
-        </Disclosure>
+        <OptionsDialog options={options} onChange={setOptions} />
         <TextareaField
           label="Extra yt-dlp options"
           placeholder="--limit-rate 2M --embed-chapters"

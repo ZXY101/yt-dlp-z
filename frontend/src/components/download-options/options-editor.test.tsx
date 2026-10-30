@@ -8,7 +8,7 @@ async function openEditor() {
   installFakeApi(server);
   const result = renderApp("/");
   await result.user.click(await screen.findByRole("button", { name: "Advanced options" }));
-  await result.user.click(screen.getByRole("button", { name: "All yt-dlp options" }));
+  await result.user.click(screen.getByRole("button", { name: /All yt-dlp options/ }));
   await screen.findByLabelText("Search options");
   return { server, ...result };
 }
@@ -17,17 +17,20 @@ describe("OptionsEditor", () => {
   it("edits options of every kind and sends them with the download", async () => {
     const { server, user } = await openEditor();
 
-    await user.click(screen.getByRole("button", { name: /Network Options/ }));
+    await user.click(screen.getByRole("tab", { name: "Network" }));
     await user.type(screen.getByLabelText("--proxy URL"), "socks5://proxy:1080");
     await user.click(screen.getByLabelText("--force-ipv4"));
-    expect(screen.getByRole("button", { name: /Network Options/ })).toHaveTextContent("2 set");
+    expect(screen.getByRole("tab", { name: "Network, 2 set" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Download Options/ }));
+    await user.click(screen.getByRole("tab", { name: "Download" }));
     await user.type(screen.getByLabelText("--retries RETRIES"), "5");
-    await user.click(screen.getByRole("button", { name: /Post-Processing Options/ }));
+    // Phones pick the group from a list instead of the tabs.
+    await user.selectOptions(screen.getByLabelText("Option group"), "Post-Processing Options");
     await user.selectOptions(screen.getByLabelText("--remux-video"), "mkv");
     const categories = screen.getByLabelText("--sponsorblock-remove");
     await user.type(categories, "sponsor{Enter}{Enter}intro");
+    await user.click(screen.getByRole("button", { name: "Done" }));
+    expect(screen.getByRole("button", { name: /All yt-dlp options/ })).toHaveTextContent("7 set");
 
     await user.type(screen.getByLabelText("Link"), "https://example.com/v");
     await user.click(screen.getByRole("button", { name: "Download" }));
@@ -45,11 +48,14 @@ describe("OptionsEditor", () => {
 
   it("keeps the curated choices and the full list in sync", async () => {
     const { user } = await openEditor();
+    await user.click(screen.getByRole("button", { name: "Done" }));
     await user.click(screen.getByLabelText("Embed subtitles"));
-    await user.click(screen.getByRole("button", { name: /Post-Processing Options/ }));
+    await user.click(screen.getByRole("button", { name: /All yt-dlp options/ }));
+    await user.click(await screen.findByRole("tab", { name: /Post-Processing/ }));
     expect(screen.getByLabelText("--embed-subs")).toBeChecked();
 
     await user.click(screen.getByLabelText("--embed-metadata"));
+    await user.click(screen.getByRole("button", { name: "Done" }));
     expect(screen.getByLabelText("Embed thumbnail and metadata")).not.toBeChecked();
   });
 
@@ -57,6 +63,9 @@ describe("OptionsEditor", () => {
     const { user } = await openEditor();
     await user.type(screen.getByLabelText("Search options"), "proxy");
     expect(screen.getByLabelText("--proxy URL")).toBeVisible();
+    // Results come from every group, under the group's name, instead of the tabs.
+    expect(screen.getByRole("heading", { name: "Network" })).toBeVisible();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("--retries RETRIES")).not.toBeInTheDocument();
 
     await user.clear(screen.getByLabelText("Search options"));
@@ -71,7 +80,7 @@ describe("OptionsEditor", () => {
 
   it("shows blocked options as disabled with the reason", async () => {
     const { user } = await openEditor();
-    await user.click(screen.getByRole("button", { name: /Download Options/ }));
+    await user.click(screen.getByRole("tab", { name: "Download" }));
     const blocked = screen.getByLabelText("--exec");
     expect(blocked).toBeDisabled();
     expect(
@@ -85,7 +94,7 @@ describe("OptionsEditor", () => {
     const { user } = renderApp("/");
     await user.click(await screen.findByRole("button", { name: "Advanced options" }));
     server.failWith = 503;
-    await user.click(screen.getByRole("button", { name: "All yt-dlp options" }));
+    await user.click(screen.getByRole("button", { name: /All yt-dlp options/ }));
     expect(await screen.findByText("Server error")).toBeInTheDocument();
   });
 });
