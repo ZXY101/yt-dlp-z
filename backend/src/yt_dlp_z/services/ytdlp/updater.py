@@ -62,7 +62,7 @@ def install_command(pip_command: list[str], target: Path, channel: YtdlpChannel)
     return [*pip_command, "install", *options, *pre, PACKAGE]
 
 
-def _last_line(output: bytes) -> str:
+def last_line(output: bytes) -> str:
     lines = output.decode(errors="replace").strip().splitlines()
     return lines[-1] if lines else "no output"
 
@@ -73,31 +73,35 @@ class YtdlpUpdater:
     def __init__(
         self, pip_command: list[str], update_dir: Path, on_change: Callable[[], None]
     ) -> None:
-        self._pip_command = pip_command
-        self._update_dir = update_dir
+        self.pip_command = pip_command
+        self.update_dir = update_dir
         self._on_change = on_change
         self._task: asyncio.Task[None] | None = None
         self.status = UpdateStatus(state="idle")
 
     @property
     def active_version(self) -> str:
-        return updated_version(self._update_dir) or bundled_version()
+        return updated_version(self.update_dir) or bundled_version()
+
+    @property
+    def running(self) -> bool:
+        return self.status.state == "running"
 
     @property
     def using_update(self) -> bool:
-        return updated_version(self._update_dir) is not None
+        return updated_version(self.update_dir) is not None
 
     def start(self, channel: YtdlpChannel) -> None:
-        if self.status.state == "running":
+        if self.running:
             raise UpdateRunningError
         self.status = UpdateStatus(state="running")
         self._task = asyncio.create_task(self._run(channel))
 
     def reset(self) -> None:
         """Goes back to the bundled yt-dlp."""
-        if self.status.state == "running":
+        if self.running:
             raise UpdateRunningError
-        shutil.rmtree(self._update_dir, ignore_errors=True)
+        shutil.rmtree(self.update_dir, ignore_errors=True)
         self.status = UpdateStatus(state="idle")
         self._on_change()
 
@@ -123,17 +127,17 @@ class YtdlpUpdater:
     async def _install(self, channel: YtdlpChannel) -> None:
         # Installed next to the live folder, then swapped in, so a failed or half-done
         # install never breaks the yt-dlp in use.
-        staging = self._update_dir.with_name(f"{self._update_dir.name}.new")
+        staging = self.update_dir.with_name(f"{self.update_dir.name}.new")
         shutil.rmtree(staging, ignore_errors=True)
         staging.parent.mkdir(parents=True, exist_ok=True)
         try:
-            await self._pip_install(install_command(self._pip_command, staging, channel))
+            await self._pip_install(install_command(self.pip_command, staging, channel))
             version = updated_version(staging)
             if version is None:
                 raise UpdateError("pip finished but yt-dlp wasn't installed.")
             if version == bundled_version():
                 # Nothing newer than the app's own copy (or back from nightly to stable).
-                shutil.rmtree(self._update_dir, ignore_errors=True)
+                shutil.rmtree(self.update_dir, ignore_errors=True)
             else:
                 self._swap_in(staging)
         finally:
@@ -149,14 +153,14 @@ class YtdlpUpdater:
         except TimeoutError as error:
             raise UpdateError("The update timed out.") from error
         if process.returncode != 0:
-            raise UpdateError(f"The update failed: {_last_line(output)}")
+            raise UpdateError(f"The update failed: {last_line(output)}")
 
     def _swap_in(self, staging: Path) -> None:
-        old = self._update_dir.with_name(f"{self._update_dir.name}.old")
+        old = self.update_dir.with_name(f"{self.update_dir.name}.old")
         shutil.rmtree(old, ignore_errors=True)
-        if self._update_dir.exists():
-            self._update_dir.rename(old)
-        staging.rename(self._update_dir)
+        if self.update_dir.exists():
+            self.update_dir.rename(old)
+        staging.rename(self.update_dir)
         shutil.rmtree(old, ignore_errors=True)
 
     @staticmethod

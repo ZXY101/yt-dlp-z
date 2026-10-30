@@ -3,7 +3,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from yt_dlp_z.schemas.app_settings import DEFAULT_RECORDING, RecordingSettings
-from yt_dlp_z.schemas.ytdlp import YtdlpChannel
+from yt_dlp_z.schemas.ytdlp import YtdlpPreferences
 from yt_dlp_z.services.settings_store import get_value, set_values
 
 MAX_CONCURRENT_DOWNLOADS = "max_concurrent_downloads"
@@ -67,12 +67,19 @@ async def set_recording_settings(session: AsyncSession, recording: RecordingSett
 
 
 YTDLP_CHANNEL = "ytdlp_channel"
+YTDLP_AUTO_UPDATE = "ytdlp_auto_update"
 
 
-async def get_ytdlp_channel(session: AsyncSession) -> YtdlpChannel:
-    value = await get_value(session, YTDLP_CHANNEL)
-    return "nightly" if value == "nightly" else "stable"
+async def get_ytdlp_preferences(session: AsyncSession) -> YtdlpPreferences:
+    channel = await get_value(session, YTDLP_CHANNEL)
+    auto_update = await get_value(session, YTDLP_AUTO_UPDATE)
+    return YtdlpPreferences(
+        channel="nightly" if channel == "nightly" else "stable",
+        # Off unless turned on: an update changes what every later download runs.
+        auto_update=auto_update == "true",
+    )
 
 
-async def set_ytdlp_channel(session: AsyncSession, channel: YtdlpChannel) -> None:
-    await set_values(session, {YTDLP_CHANNEL: channel})
+async def set_ytdlp_preferences(session: AsyncSession, preferences: YtdlpPreferences) -> None:
+    auto_update = "true" if preferences.auto_update else "false"
+    await set_values(session, {YTDLP_CHANNEL: preferences.channel, YTDLP_AUTO_UPDATE: auto_update})

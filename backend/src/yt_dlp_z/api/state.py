@@ -10,6 +10,7 @@ from yt_dlp_z.services.jobs.queues import JobQueues
 from yt_dlp_z.services.live.scheduler import LiveScheduler
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
+from yt_dlp_z.services.ytdlp.update_check import UpdateChecker
 from yt_dlp_z.services.ytdlp.updater import YtdlpUpdater
 
 
@@ -25,4 +26,5 @@ class AppState:
     live: LiveScheduler
     watcher: SubscriptionWatcher
     updater: YtdlpUpdater
+    update_checker: UpdateChecker
     login_limiter: FailureRateLimiter = field(default_factory=FailureRateLimiter)

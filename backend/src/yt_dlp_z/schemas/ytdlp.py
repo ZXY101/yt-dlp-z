@@ -15,14 +15,18 @@ class UpdateStatus(BaseModel):
     finished_at: datetime | None = None
 
 
-class YtdlpInfo(BaseModel):
+class YtdlpPreferences(BaseModel):
+    channel: YtdlpChannel
+    # Install new versions found by the daily check.
+    auto_update: bool
+
+
+class YtdlpInfo(YtdlpPreferences):
     bundled_version: str
     # The version new yt-dlp runs use: an installed update, else the bundled one.
     active_version: str
     using_update: bool
-    channel: YtdlpChannel
     update: UpdateStatus
-
-
-class YtdlpChannelBody(BaseModel):
-    channel: YtdlpChannel
+    # The newest version for the channel, from the last check since the app started.
+    latest_version: str | None
+    checked_at: datetime | None
