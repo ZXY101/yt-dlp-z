@@ -14,7 +14,8 @@ URLs, a playlist of 24 for ?list= URLs (unless --no-playlist), the streams tab f
 an error for "broken"),
 otherwise a video whose id picks its kind (short, upcoming, live, members, broken, long);
 upcoming ones fail without --ignore-no-formats-error, as with real yt-dlp;
-members-only videos only open with --cookies.
+members-only videos only open with --cookies; "fastfail" ids refuse the link check's
+fast path (player_client=android_vr), so the full check has to answer.
 With --cookies it reports how many cookie lines the file had, so tests can see it was passed.
 Recordings (--wait-for-video) have no total size, like a live stream, and stop cleanly on
 SIGINT, saving the file. With --live-from-start progress comes as two numbered streams
@@ -92,6 +93,9 @@ def video_metadata(video_id: str, args: list[str]) -> int:
         return fail_json("Join this channel to get access to members-only content like this video")
     if "broken" in video_id:
         return fail_json("This video is unavailable")
+    if "fastfail" in video_id and "player_client=android_vr" in " ".join(args):
+        # The link check's fast path; real YouTube sometimes refuses that player.
+        return fail_json("The page needs to be reloaded.")
     data: dict[str, object] = {
         "id": video_id,
         "title": f"Fake video {video_id}",

@@ -27,10 +27,13 @@ def probe_args(*, cookies: Path | None, no_playlist: bool) -> list[str]:
     return args
 
 
-async def probe_media(
-    ytdlp_command: list[str], url: str, *, cookies: Path | None, no_playlist: bool
-) -> dict[str, Any]:
-    args = probe_args(cookies=cookies, no_playlist=no_playlist)
+# YouTube only (other sites ignore it): one lightweight player and no JS challenge, about
+# 2 s instead of 6 for a video. That player can't use cookies, and YouTube changes which
+# players work, so anything it can't answer goes through the full check.
+FAST_ARGS = ["--extractor-args", "youtube:player_skip=js;player_client=android_vr"]
+
+
+async def _run_probe(ytdlp_command: list[str], args: list[str], url: str) -> dict[str, Any]:
     try:
         return await run_ytdlp_json(ytdlp_command, args, url)
     except YtdlpJsonError as error:
@@ -40,6 +43,18 @@ async def probe_media(
     # time. Only used for them: it also turns real failures (unavailable videos, ended
     # streams) into empty results that look fine.
     return await run_ytdlp_json(ytdlp_command, [*args, "--ignore-no-formats-error"], url)
+
+
+async def probe_media(
+    ytdlp_command: list[str], url: str, *, cookies: Path | None, no_playlist: bool
+) -> dict[str, Any]:
+    args = probe_args(cookies=cookies, no_playlist=no_playlist)
+    if cookies is None:
+        try:
+            return await _run_probe(ytdlp_command, [*args, *FAST_ARGS], url)
+        except YtdlpJsonError:
+            pass  # The full check below gives the real answer, or the real error.
+    return await _run_probe(ytdlp_command, args, url)
 
 
 def _text(data: dict[str, Any], *keys: str) -> str | None:

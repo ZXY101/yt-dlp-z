@@ -89,3 +89,8 @@ def test_error_prefix_is_dropped() -> None:
     assert ERROR_PREFIX.sub("", "[generic] Unsupported URL: https://x.example") == (
         "Unsupported URL: https://x.example"
     )
+
+
+def test_full_check_answers_when_the_fast_path_fails(setup_client: TestClient) -> None:
+    status, body = probe(setup_client, "https://www.youtube.com/watch?v=fastfail1")
+    assert (status, body["title"]) == (200, "Fake video fastfail1")
