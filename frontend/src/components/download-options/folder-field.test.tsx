@@ -1,28 +1,68 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 
 import { parentOf } from "@/hooks/use-folder-suggestions";
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
 import { renderApp } from "@/test/render";
 
+function folderList() {
+  return within(screen.getByRole("listbox", { name: "Existing folders" }));
+}
+
 function suggestions() {
-  const list = document.getElementById(screen.getByLabelText("Save to").getAttribute("list")!);
-  return [...list!.querySelectorAll("option")].map((option) => option.value);
+  return folderList()
+    .queryAllByRole("option")
+    .map((option) => option.textContent);
 }
 
 describe("FolderField", () => {
   it("suggests existing folders once the field is used", async () => {
     const server = createFakeServer();
-    server.folders = { "": ["Music", "videos"], "Music/": ["Music/Albums"] };
+    server.folders = { "": ["Music", "videos"], "Music/": ["Music/Albums", "Music/Live"] };
     installFakeApi(server);
     const { user } = renderApp("/");
 
-    const field = await screen.findByLabelText("Save to");
+    const field = await screen.findByRole("combobox", { name: "Save to" });
     expect(server.requests).not.toContain("GET /api/folders");
     await user.click(field);
     await waitFor(() => expect(suggestions()).toEqual(["Music", "videos"]));
 
-    await user.type(field, "Music/Al");
-    await waitFor(() => expect(suggestions()).toEqual(["Music/Albums"]));
+    await user.click(folderList().getByRole("option", { name: "Music" }));
+    expect(field).toHaveValue("Music/");
+    await waitFor(() => expect(suggestions()).toEqual(["Music/Albums", "Music/Live"]));
+    await user.type(field, "l");
+    expect(suggestions()).toEqual(["Music/Live"]);
+  });
+
+  it("works with the keyboard", async () => {
+    const server = createFakeServer();
+    server.folders = { "": ["Music", "videos"] };
+    installFakeApi(server);
+    const { user } = renderApp("/");
+
+    const field = await screen.findByRole("combobox", { name: "Save to" });
+    await user.click(field);
+    await waitFor(() => expect(field).toHaveAttribute("aria-expanded", "true"));
+    await user.keyboard("{ArrowDown}{ArrowDown}");
+    expect(folderList().getByRole("option", { name: "videos" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await user.keyboard("{ArrowUp}{ArrowUp}");
+    expect(folderList().getByRole("option", { name: "videos" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await user.keyboard("{Enter}");
+    expect(field).toHaveValue("videos/");
+
+    await user.clear(field);
+    expect(field).toHaveAttribute("aria-expanded", "true");
+    await user.keyboard("{Escape}");
+    expect(field).toHaveAttribute("aria-expanded", "false");
+    await user.keyboard("{ArrowDown}");
+    expect(field).toHaveAttribute("aria-expanded", "true");
+    await user.tab();
+    expect(field).toHaveAttribute("aria-expanded", "false");
   });
 
   it.each([
