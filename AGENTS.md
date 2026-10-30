@@ -153,6 +153,12 @@ and `src/test/render.tsx` (`renderApp(path)`).
 - Always check the layout on **desktop and mobile**. Playwright runs
   `desktop` (1280×800) and `mobile` (Pixel 7) projects. Take screenshots of
   changed pages at both sizes and look at them before calling the work done.
+- Agents with [`playwright-cli`](https://github.com/microsoft/playwright-cli)
+  (`npm i -g @playwright/cli`) should also open the running app
+  (`playwright-cli open http://localhost:9742/`), click through the change and
+  screenshot it in light and dark (`set-color-scheme dark`). Its config
+  (`.playwright/cli.config.json`) and output (`.playwright-cli/`) are
+  gitignored.
 - No horizontal scrolling on mobile; touch targets ≥ 40px; everything
   works with the keyboard and has accessible labels (jsx-a11y is on).
 - Review significant UI changes against the `web-design-guidelines` guide.
