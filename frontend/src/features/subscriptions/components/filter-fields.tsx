@@ -9,7 +9,7 @@ const CONTENT_TYPES: { value: ContentType; label: string; description: string }[
   {
     value: "stream",
     label: "Live streams and premieres",
-    description: "Listed for now; recording them comes in a later version.",
+    description: "Recorded live, scheduled ones when they start.",
   },
 ];
 
