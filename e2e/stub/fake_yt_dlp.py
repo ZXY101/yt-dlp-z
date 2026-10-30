@@ -171,6 +171,11 @@ def emit_progress(downloaded: int, eta: int, args: list[str]) -> None:
         sys.stdout.flush()
     elif parallel:
         # Real recordings fetch video and audio at once, numbering each stream's lines.
+        if "old" in args[-1]:
+            # Catching up on a stream live for hours: yt-dlp reports fragments saved and
+            # the newest fragment's number (each step saves 1% of the stream).
+            step = downloaded * 600 // TOTAL_BYTES
+            progress |= {"fragment_index": step * 10, "fragment_count": 1000}
         audio = {**progress, "downloaded_bytes": downloaded // 10, "progress_idx": 1}
         emit("0: " + PROGRESS + json.dumps({**progress, "progress_idx": 0}))
         emit("1: " + PROGRESS + json.dumps(audio))

@@ -45,6 +45,7 @@ RECORDING_KEYS = {
     "max_hours": "recording_max_hours",
     "from_start_max_hours": "recording_from_start_max_hours",
 }
+LONG_STREAMS = "recording_long_streams"
 
 
 async def get_recording_settings(session: AsyncSession) -> RecordingSettings:
@@ -53,10 +54,12 @@ async def get_recording_settings(session: AsyncSession) -> RecordingSettings:
         stored = await get_value(session, key)
         if stored is not None:
             values[field] = int(stored) if stored else None
+    values["long_streams"] = await get_value(session, LONG_STREAMS) or values["long_streams"]
     return RecordingSettings.model_validate(values)
 
 
 async def set_recording_settings(session: AsyncSession, recording: RecordingSettings) -> None:
     stored = recording.model_dump()
     values = {key: str(stored[field] or "") for field, key in RECORDING_KEYS.items()}
+    values[LONG_STREAMS] = recording.long_streams
     await set_values(session, values)

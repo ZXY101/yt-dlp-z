@@ -19,18 +19,26 @@ def _seconds(hours: int | None) -> int | None:
     return hours * SECONDS_PER_HOUR if hours else None
 
 
+def _live_for(live_since: datetime, now: datetime) -> float:
+    if live_since.tzinfo is None:  # SQLite drops the timezone; stored values are UTC.
+        live_since = live_since.replace(tzinfo=now.tzinfo)
+    return (now - live_since).total_seconds()
+
+
 def plan_recording(
     settings: RecordingSettings, live_since: datetime | None, now: datetime
 ) -> RecordingPlan:
     """`live_since`: when the stream went live, for streams already live when found."""
     from_start = True
+    max_seconds = _seconds(settings.max_hours)
     limit = _seconds(settings.from_start_max_hours)
-    if live_since is not None and limit is not None:
-        if live_since.tzinfo is None:  # SQLite drops the timezone; stored values are UTC.
-            live_since = live_since.replace(tzinfo=now.tzinfo)
-        from_start = (now - live_since).total_seconds() <= limit
+    if live_since is not None and limit is not None and _live_for(live_since, now) > limit:
+        if settings.long_streams == "first_hours":
+            max_seconds = min(max_seconds or limit, limit)
+        else:
+            from_start = False
     return RecordingPlan(
         record_from_start=from_start,
         part_seconds=_seconds(settings.part_hours),
-        max_seconds=_seconds(settings.max_hours),
+        max_seconds=max_seconds,
     )

@@ -17,6 +17,18 @@ def test_streams_live_for_long_are_recorded_from_now() -> None:
     assert plan_recording(DEFAULT_RECORDING, None, NOW).record_from_start
 
 
+def test_long_streams_can_be_recorded_from_the_start_up_to_the_limit() -> None:
+    first_hours = DEFAULT_RECORDING.model_copy(update={"long_streams": "first_hours"})
+    old = NOW - timedelta(hours=20)
+    assert plan_recording(first_hours, old, NOW) == RecordingPlan(
+        record_from_start=True, part_seconds=6 * 3600, max_seconds=6 * 3600
+    )
+    # A shorter maximum still wins; streams under the limit are recorded whole.
+    shorter = first_hours.model_copy(update={"max_hours": 2})
+    assert plan_recording(shorter, old, NOW).max_seconds == 2 * 3600
+    assert plan_recording(first_hours, NOW - timedelta(hours=5), NOW).max_seconds is None
+
+
 def test_turned_off_settings_mean_no_limits() -> None:
     off = RecordingSettings(part_hours=None, max_hours=2, from_start_max_hours=None)
     plan = plan_recording(off, NOW - timedelta(days=3), NOW)

@@ -35,6 +35,8 @@ class ProgressUpdate:
     progress: float | None
     # Which of several parallel streams this is about (yt-dlp's progress_idx).
     part: int = 0
+    # (fragments saved, newest fragment's number) when downloading a stream in fragments.
+    fragments: tuple[int, int] | None = None
 
 
 @dataclass(frozen=True)
@@ -65,6 +67,8 @@ def _progress(data: dict[str, Any]) -> ProgressUpdate:
         percent = min(PERCENT, downloaded / total * PERCENT)
     eta = _number(data, "eta")
     part = data.get("progress_idx")
+    index, count = data.get("fragment_index"), data.get("fragment_count")
+    fragments = (index, count) if isinstance(index, int) and isinstance(count, int) else None
     return ProgressUpdate(
         downloaded_bytes=int(downloaded) if downloaded is not None else None,
         total_bytes=int(total) if total is not None else None,
@@ -72,6 +76,7 @@ def _progress(data: dict[str, Any]) -> ProgressUpdate:
         eta=int(eta) if eta is not None else None,
         progress=percent,
         part=part if isinstance(part, int) else 0,
+        fragments=fragments,
     )
 
 

@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
 import { renderApp } from "@/test/render";
@@ -28,7 +28,12 @@ describe("SettingsPage", () => {
       max_concurrent_downloads: 5,
       max_concurrent_recordings: 4,
       max_subscriptions: 5,
-      recording: { part_hours: 6, max_hours: null, from_start_max_hours: 6 },
+      recording: {
+        part_hours: 6,
+        max_hours: null,
+        from_start_max_hours: 6,
+        long_streams: "from_now",
+      },
     });
   });
 
@@ -110,6 +115,34 @@ describe("SettingsPage", () => {
       part_hours: null,
       max_hours: 12,
       from_start_max_hours: 6,
+      long_streams: "from_now",
     });
+  });
+
+  it("can record the first hours of streams found after running long", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/settings");
+
+    const limit = await screen.findByLabelText(
+      "Record from the start, unless live longer than (hours)",
+    );
+    const choice = screen.getByRole("group", {
+      name: "Streams live longer than 6 hours when found",
+    });
+    expect(within(choice).getByRole("radio", { name: "Record from now" })).toBeChecked();
+    await user.clear(limit);
+    await user.type(limit, "1");
+    await user.click(screen.getByRole("radio", { name: "Record their first 1 hour" }));
+    await user.click(screen.getByRole("button", { name: "Save settings" }));
+    expect(await screen.findByText("Settings saved.")).toBeInTheDocument();
+    expect(server.settings.recording).toMatchObject({
+      from_start_max_hours: 1,
+      long_streams: "first_hours",
+    });
+
+    // Without a limit every stream is recorded from the start, so there's nothing to choose.
+    await user.clear(limit);
+    expect(screen.queryByRole("radio", { name: "Record from now" })).not.toBeInTheDocument();
   });
 });

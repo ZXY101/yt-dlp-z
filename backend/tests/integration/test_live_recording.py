@@ -1,4 +1,5 @@
 import asyncio
+import time
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,7 @@ from tests.integration.watch_helpers import (
 from yt_dlp_z.api.state import AppState
 from yt_dlp_z.db.models.job import Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.db.models.video import Video, VideoState
+from yt_dlp_z.schemas.app_settings import DEFAULT_RECORDING
 
 FINISHED = {"completed", "failed", "cancelled"}
 STREAMS_TOO = {"content_types": ["video", "stream"]}
@@ -216,6 +218,19 @@ def test_a_maximum_length_stops_the_recording(watch_client: TestClient) -> None:
     assert saved_files(watch_client) == ["Fake video slow-live [slow-live].mp4"]
 
 
+def test_a_maximum_length_counts_hours_of_the_stream(watch_client: TestClient) -> None:
+    # Recording a stream live for 10 h from its start, yt-dlp saves an hour of it within
+    # seconds (the stub saves 1% per 0.1 s). The maximum counts that hour, not the seconds.
+    started = time.monotonic()
+    job_id = insert_recording(
+        watch_client, watch_url("slow-old-live"), timedelta(hours=-10), max_seconds=3600
+    )
+    run_scheduler(watch_client)
+    assert wait_for_job(watch_client, job_id, FINISHED)["status"] == "completed"
+    assert time.monotonic() - started < 15
+    assert saved_files(watch_client) == ["Fake video slow-old-live [slow-old-live].mp4"]
+
+
 def test_a_stopped_recording_keeps_what_it_recorded(watch_client: TestClient) -> None:
     job_id = start_recording(watch_client, watch_url("slow-live"))
     wait_for_job(watch_client, job_id, {"running"})
@@ -237,3 +252,19 @@ def test_streams_live_for_hours_are_recorded_from_now(
     assert jobs[watch_url("live-old1")]["record_from_start"] is False
     assert jobs[watch_url("live1")]["record_from_start"] is True
     assert jobs[watch_url("live1")]["part_seconds"] == 6 * 3600
+
+
+def test_long_streams_can_be_recorded_for_their_first_hours(
+    watch_client: TestClient, feeds: Path
+) -> None:
+    settings = watch_client.get("/api/settings").json()
+    settings["recording"] = {**DEFAULT_RECORDING.model_dump(), "long_streams": "first_hours"}
+    assert watch_client.put("/api/settings", json=settings).is_success
+    write_feed(feeds, CHANNEL_ID, [])
+    created = subscribe(watch_client, filters=STREAMS_TOO)
+    wait_for_check(watch_client, created["id"])
+    write_feed(feeds, CHANNEL_ID, ["live-old1"])
+    check(watch_client, created["id"])
+    job = jobs_by_url(watch_client)[watch_url("live-old1")]
+    assert job["record_from_start"] is True
+    assert job["max_seconds"] == 6 * 3600

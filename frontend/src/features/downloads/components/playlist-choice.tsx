@@ -1,5 +1,6 @@
 import { Info } from "lucide-react";
 
+import { RadioOption } from "@/components/radio-option";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { PlaylistLinkKind } from "@/features/downloads/playlist-link";
 
@@ -40,36 +41,17 @@ export function PlaylistChoice({
     <fieldset className="space-y-1">
       <legend className="mb-1 text-sm font-medium">This link is part of a playlist</legend>
       <RadioOption
+        name="playlist-choice"
         label="Just this video"
         checked={!wholePlaylist}
         onSelect={() => onWholePlaylistChange(false)}
       />
       <RadioOption
+        name="playlist-choice"
         label="The whole playlist"
         checked={wholePlaylist}
         onSelect={() => onWholePlaylistChange(true)}
       />
     </fieldset>
-  );
-}
-
-interface RadioOptionProps {
-  label: string;
-  checked: boolean;
-  onSelect: () => void;
-}
-
-function RadioOption({ label, checked, onSelect }: RadioOptionProps) {
-  return (
-    <label className="flex min-h-10 cursor-pointer items-center gap-3 text-sm">
-      <input
-        type="radio"
-        name="playlist-choice"
-        className="size-5 cursor-pointer accent-primary"
-        checked={checked}
-        onChange={onSelect}
-      />
-      {label}
-    </label>
   );
 }
