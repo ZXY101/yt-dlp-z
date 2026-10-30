@@ -10,6 +10,8 @@ from fastapi.testclient import TestClient
 from tests.conftest import TEST_PASSWORD, MakeClient
 from yt_dlp_z.services.ytdlp.updater import bundled_version
 
+NIGHTLY = {"channel": "nightly", "auto_update": False}
+
 
 def wait_for_update(client: TestClient, timeout: float = 15) -> dict[str, Any]:
     deadline = time.monotonic() + timeout
@@ -31,11 +33,14 @@ def setup(client: TestClient, tmp_path: Path) -> TestClient:
 
 def test_reports_the_bundled_version_before_any_update(setup_client: TestClient) -> None:
     assert setup_client.get("/api/ytdlp").json() == {
+        "channel": "stable",
+        "auto_update": False,
         "bundled_version": bundled_version(),
         "active_version": bundled_version(),
         "using_update": False,
-        "channel": "stable",
         "update": {"state": "idle", "message": None, "finished_at": None},
+        "latest_version": None,
+        "checked_at": None,
     }
 
 
@@ -62,14 +67,15 @@ def test_a_second_update_reports_no_newer_version(setup_client: TestClient) -> N
 
 
 def test_nightly_channel_installs_pre_releases(setup_client: TestClient) -> None:
-    response = setup_client.put("/api/ytdlp/channel", json={"channel": "nightly"})
+    response = setup_client.put("/api/ytdlp/preferences", json=NIGHTLY)
     assert response.json()["channel"] == "nightly"
     setup_client.post("/api/ytdlp/update")
     assert wait_for_update(setup_client)["active_version"] == "2099.1.2.dev0"
 
 
 def test_unknown_channel_is_rejected(setup_client: TestClient) -> None:
-    response = setup_client.put("/api/ytdlp/channel", json={"channel": "beta"})
+    body = {"channel": "beta", "auto_update": False}
+    response = setup_client.put("/api/ytdlp/preferences", json=body)
     assert response.status_code == 422
 
 
@@ -79,7 +85,7 @@ def test_failed_update_keeps_the_current_version(
     setup_client.post("/api/ytdlp/update")
     wait_for_update(setup_client)
     monkeypatch.setenv("FAKE_PIP_FAIL", "1")
-    setup_client.put("/api/ytdlp/channel", json={"channel": "nightly"})
+    setup_client.put("/api/ytdlp/preferences", json=NIGHTLY)
     setup_client.post("/api/ytdlp/update")
     info = wait_for_update(setup_client)
     assert info["update"] == {
@@ -157,3 +163,41 @@ def test_going_back_to_the_bundled_version_keeps_no_copy(
     assert info["update"]["message"] == f"Updated yt-dlp to {version}."
     assert info["using_update"] is False
     assert not (tmp_path / "config" / "ytdlp").exists()
+
+
+def test_check_finds_the_newest_version_without_installing(setup_client: TestClient) -> None:
+    info = setup_client.post("/api/ytdlp/check").json()
+    assert info["latest_version"] == "2099.1.1"
+    assert info["checked_at"] is not None
+    assert info["using_update"] is False
+    setup_client.put("/api/ytdlp/preferences", json=NIGHTLY)
+    assert setup_client.post("/api/ytdlp/check").json()["latest_version"] == "2099.1.2.dev0"
+
+
+def test_failed_check_explains_why(
+    setup_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("FAKE_PIP_FAIL", "1")
+    response = setup_client.post("/api/ytdlp/check")
+    assert response.status_code == 502
+    assert response.json()["detail"].startswith("Couldn't check for updates: ERROR:")
+
+
+def run_daily_check(client: TestClient) -> None:
+    state = client.app.state.app_state  # type: ignore[attr-defined]
+    client.portal.call(state.update_checker.check_and_update)  # type: ignore[union-attr]
+
+
+def test_daily_check_installs_only_with_auto_update(setup_client: TestClient) -> None:
+    run_daily_check(setup_client)
+    info = setup_client.get("/api/ytdlp").json()
+    assert (info["latest_version"], info["update"]["state"]) == ("2099.1.1", "idle")
+
+    body = {"channel": "stable", "auto_update": True}
+    assert setup_client.put("/api/ytdlp/preferences", json=body).json()["auto_update"] is True
+    run_daily_check(setup_client)
+    assert wait_for_update(setup_client)["active_version"] == "2099.1.1"
+
+    # Already the newest: nothing to do.
+    run_daily_check(setup_client)
+    assert setup_client.get("/api/ytdlp").json()["update"]["state"] == "succeeded"

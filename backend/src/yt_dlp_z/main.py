@@ -26,9 +26,11 @@ from yt_dlp_z.core.config import AuthMode, Settings, get_settings
 from yt_dlp_z.core.security import SessionSigner, load_or_create_secret_key
 from yt_dlp_z.db.engine import create_engine, create_session_factory
 from yt_dlp_z.db.migrate import upgrade_to_head
+from yt_dlp_z.schemas.ytdlp import YtdlpPreferences
 from yt_dlp_z.services.app_settings import (
     get_max_concurrent_downloads,
     get_max_concurrent_recordings,
+    get_ytdlp_preferences,
 )
 from yt_dlp_z.services.auth_service import sync_admin_password
 from yt_dlp_z.services.events import EventHub
@@ -38,6 +40,7 @@ from yt_dlp_z.services.live.scheduler import LiveScheduler
 from yt_dlp_z.services.watch.enqueue import WatchContext
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
+from yt_dlp_z.services.ytdlp.update_check import UpdateChecker
 from yt_dlp_z.services.ytdlp.updater import YtdlpUpdater, ytdlp_python_path
 from yt_dlp_z.web import mount_spa
 
@@ -69,6 +72,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         updater = YtdlpUpdater(
             settings.ytdlp_pip_command, settings.ytdlp_update_dir, schemas.invalidate
         )
+
+        async def ytdlp_preferences() -> YtdlpPreferences:
+            async with session_factory() as session:
+                return await get_ytdlp_preferences(session)
+
+        update_checker = UpdateChecker(updater, ytdlp_preferences)
         app.state.app_state = AppState(
             settings=settings,
             engine=engine,
@@ -80,6 +89,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             live=live,
             watcher=watcher,
             updater=updater,
+            update_checker=update_checker,
         )
         if settings.admin_password and settings.auth_mode is AuthMode.PASSWORD:
             async with session_factory() as session:
@@ -88,7 +98,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             await job_queues.start()
             live.start()
             watcher.start()
+            update_checker.start()
             yield
+            await update_checker.stop()
             await updater.stop()
             await watcher.stop()
             await live.stop()
