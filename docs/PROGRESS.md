@@ -46,6 +46,10 @@ Subscriptions already record such videos as `upcoming` (with `release_at`) or
 6. Small follow-ups from M4: the video list shows probe titles only for probed
    videos (skipped-before-subscribing ones keep the feed title, which is fine);
    consider a "download anyway" action on skipped videos.
+7. Proposed to the user, not yet approved: a "download the newest N now" action
+   on the edit page (backfill after adding). It would re-run the newest N
+   "Uploaded before you subscribed" videos through probe → filters → queue.
+   The RSS feed caps it at 15; more needs yt-dlp `--flat-playlist` on /videos.
 
 ## Decisions not obvious from the code
 
@@ -171,4 +175,15 @@ Subscriptions already record such videos as `upcoming` (with `release_at`) or
   96%), Subscriptions page + channel limit in Settings (149 unit tests, 98%),
   63 E2E tests (8 new, desktop + mobile). Fixed a leak found by the new tests:
   the option-schema reader wasn't killed when the app stopped. Screenshots
-  checked at desktop and mobile. Committed, **not pushed**.
+  checked at desktop and mobile. Pushed.
+- **2026-10-30 · UI fixes.** Empty states are clickable (open the add page, or
+  focus the cookies upload form). Dark-mode `<select>` options were unreadable
+  on Chrome/Windows (white popup, light text): options now use the popover
+  colours. "Save to" replaced its `<datalist>` (misplaced, unthemeable popup)
+  with an ARIA combobox (`hooks/use-suggestion-list.ts`); picking a folder adds
+  a trailing slash. Pushed (b7a31c5). A Docker "page loads forever" report
+  turned out to be the browser's network path, not the app (no requests reached
+  the container); fixed on the user's side.
+
+**Next session:** ask whether to build backfill-on-edit (step 7), else start
+milestone 5 step 1. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
