@@ -101,6 +101,7 @@ def video_metadata(video_id: str, args: list[str]) -> int:
         "webpage_url": f"https://www.youtube.com/watch?v={video_id}",
         "uploader": "Fake channel",
         "extractor_key": "Youtube",
+        "webpage_url_domain": "youtube.com",
     }
     if "members" in video_id:
         data["availability"] = "subscriber_only"

@@ -19,7 +19,7 @@ def test_video(setup_client: TestClient) -> None:
     assert body["kind"] == "video"
     assert body["title"] == "Fake video abc"
     assert body["uploader"] == "Fake channel"
-    assert body["site"] == "Youtube"
+    assert body["site"] == "youtube.com"
     assert body["duration"] == 300
 
 
