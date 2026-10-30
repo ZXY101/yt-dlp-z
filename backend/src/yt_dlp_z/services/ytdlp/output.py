@@ -11,6 +11,19 @@ PERCENT = 100
 # When yt-dlp downloads several streams at once (live-from-start recordings fetch video and
 # audio in parallel), it prefixes each progress line with the stream's number: "1: …".
 PARALLEL_PREFIX = re.compile(r"^\d+: ")
+# Recordings joined mid-stream are written by ffmpeg, which reports its own progress:
+# "frame=  449 fps=112 q=-1.0 size=     512KiB time=00:00:14.96 bitrate= 280.2kbits/s".
+FFMPEG_PROGRESS = re.compile(r"size=\s*(?P<size>[\d.]+)(?P<unit>[KMG]i?B|kB|B)\s+time=")
+FFMPEG_BITRATE = re.compile(r"bitrate=\s*(?P<kbits>[\d.]+)kbits/s")
+UNIT_BYTES = {
+    "B": 1,
+    "kB": 1000,
+    "KiB": 1024,
+    "MiB": 1024**2,
+    "MB": 1000**2,
+    "GiB": 1024**3,
+    "GB": 1000**3,
+}
 
 
 @dataclass(frozen=True)
@@ -89,8 +102,23 @@ def combine_parts(parts: dict[int, ProgressUpdate]) -> ProgressUpdate:
     )
 
 
+def _ffmpeg_progress(line: str) -> ProgressUpdate | None:
+    """The size written so far, and the stream's data rate as the speed."""
+    size = FFMPEG_PROGRESS.search(line)
+    if size is None or size["unit"] not in UNIT_BYTES:
+        return None
+    bitrate = FFMPEG_BITRATE.search(line)
+    speed = float(bitrate["kbits"]) * 1000 / 8 if bitrate else None
+    downloaded = int(float(size["size"]) * UNIT_BYTES[size["unit"]])
+    return ProgressUpdate(downloaded, None, speed, None, None)
+
+
 def parse_line(line: str) -> Update | None:
     line = PARALLEL_PREFIX.sub("", line, count=1)
+    return _ffmpeg_progress(line) or _marker_update(line)
+
+
+def _marker_update(line: str) -> Update | None:
     try:
         if line.startswith(PROGRESS_MARKER):
             data = json.loads(line.removeprefix(PROGRESS_MARKER))

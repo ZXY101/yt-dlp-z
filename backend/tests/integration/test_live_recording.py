@@ -206,6 +206,8 @@ def test_long_recordings_are_split_into_parts(watch_client: TestClient) -> None:
     log = watch_client.get(f"/api/jobs/{job_id}/log").text
     # Only the first part records from the start; later ones continue from now.
     assert log.count("--live-from-start") == 1
+    # ffmpeg's progress (parts recorded from now) is read, not logged.
+    assert "size=" not in log
 
 
 def test_a_maximum_length_stops_the_recording(watch_client: TestClient) -> None:
