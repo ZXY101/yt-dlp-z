@@ -20,6 +20,15 @@ test.describe("app layout", () => {
     await expectNoHorizontalScroll(page);
   });
 
+  test("dark mode also darkens native controls", async ({ page }) => {
+    // Regression: select popups stayed white with light text in dark mode.
+    await page.emulateMedia({ colorScheme: "dark" });
+    const scheme = await page.evaluate(
+      () => getComputedStyle(document.documentElement).colorScheme,
+    );
+    expect(scheme).toBe("dark");
+  });
+
   test("mobile uses a slide-out menu", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile", "mobile-only layout");
     await expect(page.getByRole("navigation", { name: "Main" })).toBeHidden();
