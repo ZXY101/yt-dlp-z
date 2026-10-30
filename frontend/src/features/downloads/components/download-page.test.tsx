@@ -1,6 +1,7 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
+import { CHECK_TIMEOUT, enterCheckedLink } from "@/test/link-check";
 import { renderApp } from "@/test/render";
 
 describe("DownloadPage", () => {
@@ -9,7 +10,7 @@ describe("DownloadPage", () => {
     installFakeApi(server);
     const { user, router } = renderApp("/");
 
-    await user.type(await screen.findByLabelText("Link"), "https://example.com/watch/abc");
+    await enterCheckedLink(user, "https://example.com/watch/abc");
     await user.type(screen.getByLabelText("Save to"), "music");
     await user.selectOptions(screen.getByLabelText("Quality"), "audio-mp3");
     await user.click(screen.getByLabelText("Remove sponsor segments"));
@@ -19,8 +20,10 @@ describe("DownloadPage", () => {
 
     expect(await screen.findByRole("heading", { name: "Queue" })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/queue");
-    expect(await screen.findByText("https://example.com/watch/abc")).toBeInTheDocument();
+    expect(await screen.findByText("Fake video")).toBeInTheDocument();
     expect(server.jobs[0]).toMatchObject({
+      kind: "download",
+      title: "Fake video",
       output_dir: "music",
       extra_args: "--limit-rate 2M",
       options: {
@@ -31,25 +34,48 @@ describe("DownloadPage", () => {
     });
   });
 
-  it("checks the link before sending anything", async () => {
+  it("can't download until the link has been checked", async () => {
     const server = createFakeServer();
     installFakeApi(server);
     const { user } = renderApp("/");
 
-    await user.click(await screen.findByRole("button", { name: "Download" }));
-    expect(screen.getByText(/Paste a link/)).toBeInTheDocument();
-
+    const download = await screen.findByRole("button", { name: "Download" });
+    expect(download).toBeDisabled();
     await user.type(screen.getByLabelText("Link"), "youtube.com/watch");
-    await user.click(screen.getByRole("button", { name: "Download" }));
-    expect(screen.getByText(/full link/)).toBeInTheDocument();
-    expect(server.requests).not.toContain("POST /api/jobs");
+    expect(await screen.findByText(/full link/, {}, CHECK_TIMEOUT)).toBeInTheDocument();
+    expect(download).toBeDisabled();
+    expect(server.requests).not.toContain("POST /api/media/probe");
+  });
+
+  it("shows the media it found", async () => {
+    installFakeApi(createFakeServer());
+    const { user } = renderApp("/");
+
+    await user.type(await screen.findByLabelText("Link"), "https://example.com/watch/abc");
+    expect(await screen.findByText("Checking link…")).toBeInTheDocument();
+    const details = await screen.findByLabelText("Media details", {}, CHECK_TIMEOUT);
+    expect(details).toHaveTextContent("Fake video");
+    expect(details).toHaveTextContent("Fake channel · youtube.com · 5:00");
+    expect(screen.getByRole("button", { name: "Download" })).toBeEnabled();
+  });
+
+  it("explains links yt-dlp can't open", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/");
+
+    await user.type(await screen.findByLabelText("Link"), "https://example.com/watch/broken");
+    expect(
+      await screen.findByText(/This video is unavailable/, {}, CHECK_TIMEOUT),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Download" })).toBeDisabled();
   });
 
   it("shows options the server refuses", async () => {
     installFakeApi(createFakeServer());
     const { user, router } = renderApp("/");
 
-    await user.type(await screen.findByLabelText("Link"), "https://example.com/v");
+    await enterCheckedLink(user, "https://example.com/v");
     await user.click(screen.getByRole("button", { name: "Advanced options" }));
     await user.type(screen.getByLabelText("Extra yt-dlp options"), "--exec 'rm -rf /'");
     await user.click(screen.getByRole("button", { name: "Download" }));
@@ -74,10 +100,8 @@ describe("DownloadPage", () => {
     installFakeApi(server);
     const { user } = renderApp("/");
 
-    await user.type(
-      await screen.findByLabelText("Link"),
-      "https://www.youtube.com/watch?v=abc&list=PL1",
-    );
+    const details = await enterCheckedLink(user, "https://www.youtube.com/watch?v=abc&list=PL1");
+    expect(details).toHaveTextContent("Fake video");
     expect(screen.getByLabelText("Just this video")).toBeChecked();
     await user.click(screen.getByRole("button", { name: "Download" }));
     await screen.findByRole("heading", { name: "Queue" });
@@ -90,8 +114,10 @@ describe("DownloadPage", () => {
     installFakeApi(server);
     const { user } = renderApp("/");
 
-    await user.type(await screen.findByLabelText("Link"), "https://youtu.be/abc?list=PL1");
+    await enterCheckedLink(user, "https://youtu.be/abc?list=PL1");
     await user.click(screen.getByLabelText("The whole playlist"));
+    const details = await screen.findByLabelText("Media details", {}, CHECK_TIMEOUT);
+    expect(await within(details).findByText(/Playlist · 24 videos/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Download" }));
     await screen.findByRole("heading", { name: "Queue" });
     expect(server.jobs[0]?.options).toMatchObject({ "--yes-playlist": true });
@@ -102,13 +128,52 @@ describe("DownloadPage", () => {
     installFakeApi(createFakeServer());
     const { user } = renderApp("/");
 
-    const link = await screen.findByLabelText("Link");
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
-    await user.type(link, "https://www.youtube.com/playlist?list=PL1");
-    expect(screen.getByRole("status")).toHaveTextContent(/every video in it/);
-    await user.clear(link);
-    await user.type(link, "https://www.youtube.com/@someone/videos");
-    expect(screen.getByRole("status")).toHaveTextContent(/every video on it/);
+    await enterCheckedLink(user, "https://www.youtube.com/playlist?list=PL1");
+    expect(screen.getByText(/all 24 videos in it will be downloaded/)).toBeInTheDocument();
+    await user.clear(screen.getByLabelText("Link"));
+    await enterCheckedLink(user, "https://www.youtube.com/@someone");
+    expect(screen.getByText(/every video, Short and stream/)).toBeInTheDocument();
     expect(screen.queryByLabelText("Just this video")).not.toBeInTheDocument();
+  });
+
+  it("records a live stream, from now when chosen", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/");
+
+    const details = await enterCheckedLink(user, "https://www.youtube.com/watch?v=live1");
+    expect(details).toHaveTextContent("Live now");
+    expect(screen.getByLabelText("From the start")).toBeChecked();
+    await user.click(screen.getByLabelText("From now"));
+    await user.click(screen.getByRole("button", { name: "Record" }));
+
+    await screen.findByRole("heading", { name: "Queue" });
+    expect(server.jobs[0]).toMatchObject({ kind: "live", record_from_start: false });
+  });
+
+  it("suggests recording long-running streams from now", async () => {
+    installFakeApi(createFakeServer());
+    const { user } = renderApp("/");
+
+    await enterCheckedLink(user, "https://www.youtube.com/watch?v=live-old1");
+    expect(screen.getByLabelText("From now")).toBeChecked();
+  });
+
+  it("schedules a recording for an upcoming stream", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/");
+
+    await enterCheckedLink(user, "https://www.youtube.com/watch?v=upcoming1");
+    expect(screen.getByText(/starts when the stream does/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Schedule recording" }));
+
+    await screen.findByRole("heading", { name: "Queue" });
+    expect(server.jobs[0]).toMatchObject({
+      kind: "live",
+      status: "scheduled",
+      scheduled_at: "2100-01-01T00:00:00+00:00",
+      record_from_start: true,
+    });
   });
 });

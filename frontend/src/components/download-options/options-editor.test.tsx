@@ -1,6 +1,7 @@
 import { screen, within } from "@testing-library/react";
 
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
+import { enterCheckedLink } from "@/test/link-check";
 import { renderApp } from "@/test/render";
 
 async function openEditor() {
@@ -32,7 +33,7 @@ describe("OptionsEditor", () => {
     await user.click(screen.getByRole("button", { name: "Done" }));
     expect(screen.getByRole("button", { name: /All yt-dlp options/ })).toHaveTextContent("7 set");
 
-    await user.type(screen.getByLabelText("Link"), "https://example.com/v");
+    await enterCheckedLink(user, "https://example.com/v");
     await user.click(screen.getByRole("button", { name: "Download" }));
     await screen.findByRole("heading", { name: "Queue" });
     expect(server.jobs[0]!.options).toEqual({

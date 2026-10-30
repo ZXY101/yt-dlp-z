@@ -54,7 +54,7 @@ test.describe("downloads", () => {
     await expect(log.getByText(/ERROR: \[fake\] This video is unavailable/)).toBeVisible();
     await page.keyboard.press("Escape");
 
-    await finished.getByRole("button", { name: `Retry ${FAILING_URL}` }).click();
+    await finished.getByRole("button", { name: "Retry Fake video fail" }).click();
     await expect(finished.getByText("Failed")).toBeVisible();
   });
 
@@ -139,12 +139,45 @@ test.describe("downloads", () => {
     await page.goto("/");
     const link = page.getByLabel("Link");
     await link.fill("https://www.youtube.com/playlist?list=PLfake");
-    await expect(page.getByRole("status")).toContainText("every video in it");
+    await expect(page.getByText(/all 24 videos in it/)).toBeVisible();
     await link.fill("https://www.youtube.com/@someone/videos");
-    await expect(page.getByRole("status")).toContainText("every video on it");
+    await expect(page.getByText(/every video, Short and stream/)).toBeVisible();
     await expectNoHorizontalScroll(page);
     await link.fill(QUICK_URL);
-    await expect(page.getByRole("status")).toHaveCount(0);
+    await expect(page.getByLabel("Media details")).toContainText("Fake video quick");
+    await expect(page.getByText(/will be downloaded/)).toHaveCount(0);
+  });
+
+  test("a link yt-dlp can't open is caught before downloading", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Link").fill("https://example.com/watch/broken");
+    await expect(
+      page.getByText(/Can't download this link: This video is unavailable/),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Download" })).toBeDisabled();
+  });
+
+  test("a live stream can be recorded from the download page", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Link").fill("https://www.youtube.com/watch?v=live-e2e");
+    await expect(page.getByLabel("Media details")).toContainText("Live now");
+    await page.getByLabel("From now").check();
+    await expectNoHorizontalScroll(page);
+    await page.getByRole("button", { name: "Record" }).click();
+
+    await expect(page).toHaveURL(/\/queue$/);
+    await expect(page.getByText("Recording", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Cancel Fake video live-e2e" }).click();
+  });
+
+  test("an upcoming stream gets a scheduled recording", async ({ page }) => {
+    await page.goto("/");
+    await page.getByLabel("Link").fill("https://www.youtube.com/watch?v=upcoming-e2e");
+    await expect(page.getByText(/starts when the stream does/)).toBeVisible();
+    await page.getByRole("button", { name: "Schedule recording" }).click();
+
+    const scheduled = page.getByRole("list", { name: "Scheduled" });
+    await expect(scheduled.getByText("Fake video upcoming-e2e")).toBeVisible();
   });
 
   test("save to suggests folders that already exist", async ({ page }) => {

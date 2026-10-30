@@ -1,10 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, unwrap } from "@/api/client";
 import { JOBS_KEY, removeJob, upsertJob } from "@/features/downloads/jobs";
-import type { Job, JobCreate } from "@/features/downloads/types";
+import type { Job, JobCreate, MediaProbeRequest } from "@/features/downloads/types";
 
 const LOG_REFRESH_MS = 2000;
+// A link's answer rarely changes while the form is open; re-checking costs a yt-dlp run.
+const PROBE_STALE_MS = 5 * 60_000;
 
 function jobPath(jobId: number) {
   return { params: { path: { job_id: jobId } } };
@@ -19,6 +21,17 @@ export function useCreateJob() {
   return useMutation({
     mutationFn: (body: JobCreate) => unwrap(api.POST("/api/jobs", { body })),
     onSuccess: (job) => queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs) => upsertJob(jobs, job)),
+  });
+}
+
+/** Asks yt-dlp what a link is. `null` checks nothing. */
+export function useMediaProbe(request: MediaProbeRequest | null) {
+  return useQuery({
+    queryKey: ["media-probe", request],
+    queryFn: request ? () => unwrap(api.POST("/api/media/probe", { body: request })) : skipToken,
+    staleTime: PROBE_STALE_MS,
+    // A failed check is yt-dlp's answer (bad link, private video); retrying won't change it.
+    retry: false,
   });
 }
 

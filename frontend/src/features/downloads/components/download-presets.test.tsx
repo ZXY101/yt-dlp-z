@@ -2,6 +2,7 @@ import { screen } from "@testing-library/react";
 
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
 import { makeCookieFile, makePreset } from "@/test/fake-library";
+import { CHECK_TIMEOUT } from "@/test/link-check";
 import { renderApp } from "@/test/render";
 
 function serverWithPresets() {
@@ -46,7 +47,9 @@ describe("DownloadPage presets and cookies", () => {
     const { user } = renderApp("/");
 
     await user.type(await screen.findByLabelText("Link"), "https://example.com/members");
+    expect(await screen.findByText(/channel members only/, {}, CHECK_TIMEOUT)).toBeInTheDocument();
     await user.selectOptions(await screen.findByLabelText("Cookies"), "7");
+    await screen.findByLabelText("Media details", {}, CHECK_TIMEOUT);
     await user.click(screen.getByRole("button", { name: "Download" }));
 
     await screen.findByRole("heading", { name: "Queue" });

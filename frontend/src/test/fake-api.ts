@@ -2,6 +2,7 @@ import type { AuthStatus } from "@/features/auth/types";
 import { type FakeServer, type Route, json, noContent } from "@/test/fake-http";
 import { jobRoutes } from "@/test/fake-jobs";
 import { libraryRoutes } from "@/test/fake-library";
+import { mediaRoutes } from "@/test/fake-media";
 import { subscriptionRoutes } from "@/test/fake-subscriptions";
 import { installFakeSocket } from "@/test/fake-socket";
 
@@ -43,7 +44,13 @@ const authRoutes: Route[] = [
   },
 ];
 
-const routes = [...authRoutes, ...jobRoutes, ...libraryRoutes, ...subscriptionRoutes];
+const routes = [
+  ...authRoutes,
+  ...jobRoutes,
+  ...mediaRoutes,
+  ...libraryRoutes,
+  ...subscriptionRoutes,
+];
 
 export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
   return {
