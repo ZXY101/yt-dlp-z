@@ -2,6 +2,7 @@ import type { AuthStatus } from "@/features/auth/types";
 import { type FakeServer, type Route, json, noContent } from "@/test/fake-http";
 import { jobRoutes } from "@/test/fake-jobs";
 import { libraryRoutes } from "@/test/fake-library";
+import { subscriptionRoutes } from "@/test/fake-subscriptions";
 import { installFakeSocket } from "@/test/fake-socket";
 
 export type { FakeServer } from "@/test/fake-http";
@@ -42,7 +43,7 @@ const authRoutes: Route[] = [
   },
 ];
 
-const routes = [...authRoutes, ...jobRoutes, ...libraryRoutes];
+const routes = [...authRoutes, ...jobRoutes, ...libraryRoutes, ...subscriptionRoutes];
 
 export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
   return {
@@ -69,6 +70,8 @@ export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
     cookieFiles: [],
     settings: { download_dir: "/downloads", max_concurrent_downloads: 3, max_subscriptions: 5 },
     folders: {},
+    subscriptions: [],
+    videos: {},
   };
 }
 

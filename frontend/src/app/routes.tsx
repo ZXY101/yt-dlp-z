@@ -8,6 +8,7 @@ import { CookiesPage } from "@/features/cookies";
 import { DownloadPage, QueuePage } from "@/features/downloads";
 import { PresetEditorPage, PresetsPage } from "@/features/presets";
 import { SettingsPage } from "@/features/settings";
+import { SubscriptionEditorPage, SubscriptionsPage } from "@/features/subscriptions";
 
 export const routes: RouteObject[] = [
   {
@@ -20,6 +21,9 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <DownloadPage /> },
           { path: "/queue", element: <QueuePage /> },
+          { path: "/subscriptions", element: <SubscriptionsPage /> },
+          { path: "/subscriptions/new", element: <SubscriptionEditorPage /> },
+          { path: "/subscriptions/:subscriptionId", element: <SubscriptionEditorPage /> },
           { path: "/presets", element: <PresetsPage /> },
           { path: "/presets/new", element: <PresetEditorPage /> },
           { path: "/presets/:presetId", element: <PresetEditorPage /> },

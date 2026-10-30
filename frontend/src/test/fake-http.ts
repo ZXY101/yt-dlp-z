@@ -14,6 +14,9 @@ export interface FakeServer {
   presets: components["schemas"]["PresetOut"][];
   cookieFiles: components["schemas"]["CookieFileOut"][];
   settings: components["schemas"]["AppSettings"];
+  subscriptions: components["schemas"]["SubscriptionOut"][];
+  /** Recent videos by subscription id. */
+  videos: Record<number, components["schemas"]["VideoOut"][]>;
   /** Folder suggestions by parent path. */
   folders: Record<string, string[]>;
 }

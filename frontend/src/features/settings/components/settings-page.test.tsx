@@ -26,6 +26,27 @@ describe("SettingsPage", () => {
     });
   });
 
+  it("raises the channel limit behind a rate-limit warning", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/settings");
+
+    const channels = await screen.findByLabelText("Channels to watch");
+    expect(screen.queryByText(/rate-limited or flagged/)).not.toBeInTheDocument();
+    await user.clear(channels);
+    await user.type(channels, "101");
+    expect(screen.getByText(/rate-limited or flagged/)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Save settings" }));
+    expect(screen.getByText("Enter a whole number from 1 to 100.")).toBeVisible();
+    expect(server.requests).not.toContain("PUT /api/settings");
+
+    await user.clear(channels);
+    await user.type(channels, "12");
+    await user.click(screen.getByRole("button", { name: "Save settings" }));
+    expect(await screen.findByText("Settings saved.")).toBeInTheDocument();
+    expect(server.settings.max_subscriptions).toBe(12);
+  });
+
   it.each(["0", "11", "2.5", "lots"])("rejects %s downloads at the same time", async (value) => {
     const server = createFakeServer();
     installFakeApi(server);
