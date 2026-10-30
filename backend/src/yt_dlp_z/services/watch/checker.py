@@ -1,6 +1,7 @@
 """One check of one subscription: read the feed, then probe, filter and queue new videos."""
 
 import contextlib
+from dataclasses import replace
 from pathlib import Path
 
 from sqlalchemy import select
@@ -21,8 +22,10 @@ from yt_dlp_z.services.watch.enqueue import (
 from yt_dlp_z.services.watch.feed import FeedEntry, FeedError, feed_url, fetch_feed
 from yt_dlp_z.services.watch.filters import skip_reason
 from yt_dlp_z.services.watch.probe import ProbeError, VideoInfo, probe_video
+from yt_dlp_z.services.watch.streams import fetch_stream_entries, sweep_due
 
 BEFORE_SUBSCRIBING = "Uploaded before you subscribed"
+ENDED_STREAM = "Found on the streams tab after it ended"
 LIVE_STATES = {"is_upcoming": VideoState.UPCOMING, "is_live": VideoState.LIVE}
 
 
@@ -38,10 +41,25 @@ async def check_subscription(context: WatchContext, subscription_id: int) -> Non
             subscription.last_error = str(error)
             await session.commit()
             return
+        entries += await _sweep_streams(context, subscription, entries)
         await _handle_entries(context, session, subscription, entries)
         subscription.last_checked_at = utcnow()
         subscription.last_error = None
         await session.commit()
+
+
+async def _sweep_streams(
+    context: WatchContext, subscription: Subscription, feed: list[FeedEntry]
+) -> list[FeedEntry]:
+    """Streams-tab entries the feed doesn't have, when a sweep is due."""
+    if not sweep_due(subscription, utcnow()):
+        return []
+    found = await fetch_stream_entries(context.settings.ytdlp_command, subscription.channel_id)
+    subscription.streams_checked_at = utcnow()
+    in_feed = {entry.video_id for entry in feed}
+    return [
+        replace(entry, from_streams_tab=True) for entry in found if entry.video_id not in in_feed
+    ]
 
 
 async def _known_videos(session: AsyncSession, subscription_id: int) -> dict[str, Video]:
@@ -80,7 +98,7 @@ async def _handle_entries(
             if first_check and index >= subscription.backfill:
                 _set_state(video, VideoState.SKIPPED, BEFORE_SUBSCRIBING)
             else:
-                await run.handle(video)
+                await run.handle(video, streams_only=entry.from_streams_tab)
             # Added only now: a half-filled row must not be autoflushed mid-handling.
             session.add(video)
             await session.commit()
@@ -126,7 +144,9 @@ class EntryHandler:
         self._cookies = cookies
         self._filters = SubscriptionFilters.model_validate(subscription.filters)
 
-    async def handle(self, video: Video) -> None:
+    async def handle(self, video: Video, streams_only: bool = False) -> None:
+        """`streams_only`: found only by the streams sweep, which exists to catch streams to
+        record; a past stream found that way is skipped rather than downloaded."""
         ytdlp_command = self._context.settings.ytdlp_command
         try:
             info = await probe_video(ytdlp_command, video.video_id, self._cookies)
@@ -138,6 +158,8 @@ class EntryHandler:
             return
         _record_info(video, info)
         reason = skip_reason(self._filters, info, video.title, video.published_at)
+        if streams_only and info.live_status not in LIVE_STATES:
+            reason = ENDED_STREAM
         if reason is not None:
             _set_state(video, VideoState.SKIPPED, reason)
             return
