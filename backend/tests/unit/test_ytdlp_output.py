@@ -109,3 +109,14 @@ def test_combine_parts_adds_up_the_streams() -> None:
         800, None, 70.0, None, None
     )
     assert combine_parts({0: video}) == video
+
+
+def test_ffmpeg_progress_counts_for_recordings_joined_mid_stream() -> None:
+    """Regression: recordings from "now" are written by ffmpeg, whose progress lines were
+    only logged, so the queue showed no size."""
+    line = "frame=  449 fps=112 q=-1.0 size=     512KiB time=00:00:14.96 bitrate= 280.2kbits/s"
+    assert parse_line(line) == ProgressUpdate(512 * 1024, None, 280.2 * 1000 / 8, None, None)
+    assert parse_line("size=    2.5MiB time=00:01:00.00 bitrate=N/A speed=1x") == ProgressUpdate(
+        int(2.5 * 1024 * 1024), None, None, None, None
+    )
+    assert parse_line("[download] size= unknown") is None

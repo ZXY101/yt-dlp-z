@@ -1,14 +1,18 @@
 import asyncio
 import contextlib
 import os
+import re
 import signal
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from dataclasses import dataclass
 from pathlib import Path
 
 from yt_dlp_z.services.ytdlp.output import Update, error_message, parse_line
 
 KILL_AFTER_SECONDS = 5
+READ_CHUNK_BYTES = 65_536
+# ffmpeg ends its progress updates with \r only; they count as lines too.
+LINE_END = re.compile(rb"\r\n|\r|\n")
 # A recording stopped with SIGINT merges what it has; for hours of video that takes a while.
 GRACEFUL_STOP_SECONDS = 600
 
@@ -50,6 +54,18 @@ async def run_ytdlp(command: list[str], log_path: Path, hooks: ProcessHooks) -> 
     return ProcessResult(returncode=returncode, error=last_error)
 
 
+async def _lines(stdout: asyncio.StreamReader) -> AsyncIterator[bytes]:
+    """Output lines, ended by \n, \r\n or a lone \r."""
+    pending = b""
+    while chunk := await stdout.read(READ_CHUNK_BYTES):
+        *lines, pending = LINE_END.split(pending + chunk)
+        for line in lines:
+            if line:
+                yield line
+    if pending:
+        yield pending
+
+
 async def _stream_output(
     process: asyncio.subprocess.Process,
     log_path: Path,
@@ -61,8 +77,8 @@ async def _stream_output(
     if stdout is None:  # pragma: no cover  (always set with stdout=PIPE)
         raise RuntimeError("yt-dlp output is not available")
     with log_path.open("a", encoding="utf-8") as log:
-        async for raw_line in stdout:
-            line = raw_line.decode(errors="replace").rstrip("\r\n")
+        async for raw_line in _lines(stdout):
+            line = raw_line.decode(errors="replace")
             update = parse_line(line)
             if update is not None:
                 await on_update(update)

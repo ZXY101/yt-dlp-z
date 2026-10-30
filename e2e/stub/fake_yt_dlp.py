@@ -18,7 +18,9 @@ members-only videos only open with --cookies.
 With --cookies it reports how many cookie lines the file had, so tests can see it was passed.
 Recordings (--wait-for-video) have no total size, like a live stream, and stop cleanly on
 SIGINT, saving the file. With --live-from-start progress comes as two numbered streams
-("0: …" video, "1: …" audio at a tenth of the size), like real yt-dlp. --output is honoured
+("0: …" video, "1: …" audio at a tenth of the size); without it (recording from now)
+ffmpeg writes the file and prints its own "size=… time=…" progress ended by \r, like
+real yt-dlp. --output is honoured
 for %(title)s, %(id)s and %(ext)s;
 ...upcoming... URLs first print yt-dlp's wait message.
 """
@@ -152,6 +154,30 @@ class Recording:
         cls.stopped = True
 
 
+def emit_progress(downloaded: int, eta: int, args: list[str]) -> None:
+    live = "--wait-for-video" in args
+    parallel = "--live-from-start" in args
+    progress = {
+        "status": "downloading",
+        "downloaded_bytes": downloaded,
+        "total_bytes": None if live else TOTAL_BYTES,
+        "speed": 250_000.0,
+        "eta": eta,
+    }
+    if live and not parallel:
+        # ffmpeg writes recordings joined mid-stream, ending its updates with \r.
+        kib = downloaded // 1024
+        sys.stdout.write(f"size= {kib}KiB time=00:00:01.00 bitrate= 2000.0kbits/s\r")
+        sys.stdout.flush()
+    elif parallel:
+        # Real recordings fetch video and audio at once, numbering each stream's lines.
+        audio = {**progress, "downloaded_bytes": downloaded // 10, "progress_idx": 1}
+        emit("0: " + PROGRESS + json.dumps({**progress, "progress_idx": 0}))
+        emit("1: " + PROGRESS + json.dumps(audio))
+    else:
+        emit(PROGRESS + json.dumps(progress))
+
+
 def main() -> int:
     args = sys.argv[1:]
     url = args[args.index("--") + 1]
@@ -172,7 +198,6 @@ def main() -> int:
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
     steps, delay = (600, 0.1) if "slow" in url or "stubborn" in url else (5, 0.05)
     live = "--wait-for-video" in args
-    parallel = "--live-from-start" in args
     if live:
         signal.signal(signal.SIGINT, Recording.stop)
     if live and "upcoming" in url:
@@ -182,21 +207,7 @@ def main() -> int:
     for step in range(1, steps + 1):
         if Recording.stopped:
             break
-        downloaded = TOTAL_BYTES * step // steps
-        progress = {
-            "status": "downloading",
-            "downloaded_bytes": downloaded,
-            "total_bytes": None if live else TOTAL_BYTES,
-            "speed": 250_000.0,
-            "eta": steps - step,
-        }
-        if parallel:
-            # Real recordings fetch video and audio at once, numbering each stream's lines.
-            audio = {**progress, "downloaded_bytes": downloaded // 10, "progress_idx": 1}
-            emit("0: " + PROGRESS + json.dumps({**progress, "progress_idx": 0}))
-            emit("1: " + PROGRESS + json.dumps(audio))
-        else:
-            emit(PROGRESS + json.dumps(progress))
+        emit_progress(TOTAL_BYTES * step // steps, steps - step, args)
         time.sleep(delay)
 
     target = home / output_name(args, title, video_id)
