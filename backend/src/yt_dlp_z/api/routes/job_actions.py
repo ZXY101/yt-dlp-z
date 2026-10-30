@@ -18,11 +18,11 @@ async def cancel_job(job_id: int, state: State, db: Db) -> JobOut:
     job = await find_job(db, job_id)
     if job.status in FINISHED_STATUSES:
         raise HTTPException(status.HTTP_409_CONFLICT, "This download has already finished")
-    if job.status == JobStatus.QUEUED:
+    if job.status in {JobStatus.SCHEDULED, JobStatus.QUEUED}:
         await repository.save(db, job, status=JobStatus.CANCELLED, finished_at=utcnow())
         publish_job(state.hub, job)
     else:
-        await state.jobs.cancel(job_id)
+        await state.jobs.cancel(job)
         await db.refresh(job)
     return JobOut.model_validate(job)
 
@@ -36,7 +36,7 @@ async def retry_job(job_id: int, state: State, db: Db) -> JobOut:
         )
     await repository.save(db, job, **repository.retry_changes())
     publish_job(state.hub, job)
-    state.jobs.submit(job_id)
+    state.jobs.submit(job)
     return JobOut.model_validate(job)
 
 

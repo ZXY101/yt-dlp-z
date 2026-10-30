@@ -5,21 +5,22 @@ command-line flags. Flags win over environment variables.
 
 ## Environment variables
 
-| Variable                          | Default (native)            | Default (Docker)       | Purpose                                                                                         |
-| --------------------------------- | --------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
-| `YTDLPZ_HOST`                     | `127.0.0.1`                 | `0.0.0.0`              | Address to listen on                                                                            |
-| `YTDLPZ_PORT`                     | `9742`                      | `9742`                 | Port to listen on                                                                               |
-| `YTDLPZ_CONFIG_DIR`               | your user data folder¹      | `/config`              | Database, secret key, job logs and uploaded cookies                                             |
-| `YTDLPZ_DEFAULT_DOWNLOAD_DIR`     | `~/Downloads/yt-dlp-z`      | `/downloads`           | Suggested download folder in first-run setup                                                    |
-| `YTDLPZ_AUTH_MODE`                | `password`                  | `password`             | `password`, or `none` to turn off login. **Only use `none` behind a proxy that handles login.** |
-| `YTDLPZ_ADMIN_PASSWORD`           | unset                       | unset                  | Sets the admin password up front (see below)                                                    |
-| `YTDLPZ_SESSION_DAYS`             | `30`                        | `30`                   | How long a sign-in lasts                                                                        |
-| `YTDLPZ_MAX_CONCURRENT_DOWNLOADS` | `3`                         | `3`                    | How many downloads run at once; the rest wait. Changing it on the Settings page overrides this  |
-| `YTDLPZ_EXTRA_DOWNLOAD_ROOTS`     | `[]`                        | `[]`                   | Extra absolute folders downloads may use, as a JSON list, e.g. `["/media/music"]`               |
-| `YTDLPZ_ALLOW_UNSAFE_OPTIONS`     | `false`                     | `false`                | Allows the unsafe yt-dlp options listed below. Only for trusted setups.                         |
-| `YTDLPZ_YTDLP_COMMAND`            | the bundled yt-dlp          | the bundled yt-dlp     | Command that runs yt-dlp, as a JSON list (mainly for tests)                                     |
-| `YTDLPZ_YOUTUBE_FEED_URL`         | YouTube's channel feed      | YouTube's channel feed | Feed polled for new uploads; `{channel_id}` is filled in (only for tests)                       |
-| `YTDLPZ_FRONTEND_DIST`            | `frontend/dist` in the repo | `/app/frontend`        | Folder with the built web UI                                                                    |
+| Variable                           | Default (native)            | Default (Docker)       | Purpose                                                                                                             |
+| ---------------------------------- | --------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `YTDLPZ_HOST`                      | `127.0.0.1`                 | `0.0.0.0`              | Address to listen on                                                                                                |
+| `YTDLPZ_PORT`                      | `9742`                      | `9742`                 | Port to listen on                                                                                                   |
+| `YTDLPZ_CONFIG_DIR`                | your user data folder¹      | `/config`              | Database, secret key, job logs and uploaded cookies                                                                 |
+| `YTDLPZ_DEFAULT_DOWNLOAD_DIR`      | `~/Downloads/yt-dlp-z`      | `/downloads`           | Suggested download folder in first-run setup                                                                        |
+| `YTDLPZ_AUTH_MODE`                 | `password`                  | `password`             | `password`, or `none` to turn off login. **Only use `none` behind a proxy that handles login.**                     |
+| `YTDLPZ_ADMIN_PASSWORD`            | unset                       | unset                  | Sets the admin password up front (see below)                                                                        |
+| `YTDLPZ_SESSION_DAYS`              | `30`                        | `30`                   | How long a sign-in lasts                                                                                            |
+| `YTDLPZ_MAX_CONCURRENT_DOWNLOADS`  | `3`                         | `3`                    | How many downloads run at once; the rest wait. Changing it on the Settings page overrides this                      |
+| `YTDLPZ_MAX_CONCURRENT_RECORDINGS` | `2`                         | `2`                    | How many live recordings run at once, counted apart from downloads. Changing it on the Settings page overrides this |
+| `YTDLPZ_EXTRA_DOWNLOAD_ROOTS`      | `[]`                        | `[]`                   | Extra absolute folders downloads may use, as a JSON list, e.g. `["/media/music"]`                                   |
+| `YTDLPZ_ALLOW_UNSAFE_OPTIONS`      | `false`                     | `false`                | Allows the unsafe yt-dlp options listed below. Only for trusted setups.                                             |
+| `YTDLPZ_YTDLP_COMMAND`             | the bundled yt-dlp          | the bundled yt-dlp     | Command that runs yt-dlp, as a JSON list (mainly for tests)                                                         |
+| `YTDLPZ_YOUTUBE_FEED_URL`          | YouTube's channel feed      | YouTube's channel feed | Feed polled for new uploads; `{channel_id}` is filled in (only for tests)                                           |
+| `YTDLPZ_FRONTEND_DIST`             | `frontend/dist` in the repo | `/app/frontend`        | Folder with the built web UI                                                                                        |
 
 ¹ e.g. `~/.local/share/yt-dlp-z` on Linux.
 

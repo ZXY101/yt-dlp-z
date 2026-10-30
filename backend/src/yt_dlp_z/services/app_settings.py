@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from yt_dlp_z.services.settings_store import get_value, set_values
 
 MAX_CONCURRENT_DOWNLOADS = "max_concurrent_downloads"
+MAX_CONCURRENT_RECORDINGS = "max_concurrent_recordings"
 MAX_SUBSCRIPTIONS = "max_subscriptions"
 # Watching more channels than this from one IP risks YouTube rate limits.
 DEFAULT_MAX_SUBSCRIPTIONS = 5
@@ -17,6 +18,15 @@ async def get_max_concurrent_downloads(session: AsyncSession, default: int) -> i
 
 async def set_max_concurrent_downloads(session: AsyncSession, limit: int) -> None:
     await set_values(session, {MAX_CONCURRENT_DOWNLOADS: str(limit)})
+
+
+async def get_max_concurrent_recordings(session: AsyncSession, default: int) -> int:
+    value = await get_value(session, MAX_CONCURRENT_RECORDINGS)
+    return int(value) if value else default
+
+
+async def set_max_concurrent_recordings(session: AsyncSession, limit: int) -> None:
+    await set_values(session, {MAX_CONCURRENT_RECORDINGS: str(limit)})
 
 
 async def get_max_subscriptions(session: AsyncSession) -> int:

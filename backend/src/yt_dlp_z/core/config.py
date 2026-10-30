@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     admin_password: SecretStr | None = None
     session_days: int = 30
     max_concurrent_downloads: int = 3
+    # Recordings have their own limit, so they never wait behind downloads.
+    max_concurrent_recordings: int = 2
     # Absolute folders, besides the setup download folder, that downloads may target.
     extra_download_roots: list[Path] = []
     # Allows yt-dlp options that can run commands or read/write arbitrary files.
