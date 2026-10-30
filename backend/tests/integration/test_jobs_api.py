@@ -146,3 +146,18 @@ def test_requires_setup_and_auth(client: TestClient) -> None:
         assert getattr(client, method)(path).status_code == 401
     no_setup = TestClient(client.app)
     assert no_setup.get("/api/options/schema").status_code == 401
+
+
+def test_new_job_never_inherits_an_old_log(setup_client: TestClient) -> None:
+    """Regression: a job reusing a deleted job's id appended to that job's log."""
+    first = start(setup_client, "https://example.com/watch/first")
+    wait_for_job(setup_client, first["id"], FINISHED)
+    log_path = Path(setup_client.app.state.app_state.settings.config_dir)  # type: ignore[attr-defined]
+    stale = log_path / "logs" / f"job-{first['id'] + 1}.log"
+    stale.write_text("left over from an earlier database\n")
+
+    second = start(setup_client, "https://example.com/watch/second")
+    wait_for_job(setup_client, second["id"], FINISHED)
+    log = setup_client.get(f"/api/jobs/{second['id']}/log").text
+    assert "left over" not in log
+    assert log.count("[fake] args") == 1
