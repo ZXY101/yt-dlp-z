@@ -1,9 +1,8 @@
 from pathlib import Path
 
-import pytest
 from fastapi.testclient import TestClient
 
-from tests.conftest import TEST_PASSWORD, MakeClient, wait_for_job
+from tests.conftest import wait_for_job
 from tests.integration.watch_helpers import (
     CHANNEL_ID,
     check,
@@ -15,22 +14,6 @@ from tests.integration.watch_helpers import (
 
 BEFORE = "Uploaded before you subscribed"
 COOKIES = "# Netscape HTTP Cookie File\n.youtube.com\tTRUE\t/\tTRUE\t0\tFAKE\tnot-a-real-value\n"
-
-
-@pytest.fixture
-def feeds(tmp_path: Path) -> Path:
-    return tmp_path / "feeds"
-
-
-@pytest.fixture
-def watch_client(make_client: MakeClient, tmp_path: Path, feeds: Path) -> TestClient:
-    client = make_client(youtube_feed_url=f"file://{feeds}/{{channel_id}}.xml")
-    response = client.post(
-        "/api/auth/setup",
-        json={"password": TEST_PASSWORD, "download_dir": str(tmp_path / "downloads")},
-    )
-    assert response.status_code == 204
-    return client
 
 
 def test_first_check_downloads_only_the_backfill(watch_client: TestClient, feeds: Path) -> None:

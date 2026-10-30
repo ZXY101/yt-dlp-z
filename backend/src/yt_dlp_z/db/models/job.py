@@ -9,11 +9,18 @@ from yt_dlp_z.db.base import Base
 
 
 class JobStatus(StrEnum):
+    SCHEDULED = "scheduled"  # a recording waiting for its stream (see services/live)
     QUEUED = "queued"
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+
+
+class JobKind(StrEnum):
+    DOWNLOAD = "download"
+    # Records a live or upcoming stream from its start. Runs in its own queue.
+    LIVE = "live"
 
 
 FINISHED_STATUSES = {JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED}
@@ -29,6 +36,11 @@ class Job(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     url: Mapped[str] = mapped_column(Text)
     status: Mapped[JobStatus] = mapped_column(String(20), index=True)
+    kind: Mapped[JobKind] = mapped_column(
+        String(20), default=JobKind.DOWNLOAD, server_default=JobKind.DOWNLOAD.value
+    )
+    # When a scheduled recording's stream starts; the live scheduler queues it shortly before.
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     options: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     extra_args: Mapped[str] = mapped_column(Text, default="")
     # No foreign key: a deleted cookies file must not delete history. Checked when used.

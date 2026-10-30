@@ -13,6 +13,8 @@ With -J it prints metadata instead (see metadata()): a channel for /@handle URLs
 otherwise a video whose id picks its kind (short, upcoming, live, members, broken, long);
 members-only videos only open with --cookies.
 With --cookies it reports how many cookie lines the file had, so tests can see it was passed.
+With --live-from-start (recordings) progress has no total size, like a live stream;
+...upcoming... URLs first print yt-dlp's wait message.
 """
 
 import json
@@ -122,6 +124,9 @@ def main() -> int:
     if "stubborn" in url:
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
     steps, delay = (600, 0.1) if "slow" in url or "stubborn" in url else (5, 0.05)
+    live = "--live-from-start" in args
+    if live and "upcoming" in url:
+        emit("[wait] Waiting for the stream to start")
 
     emit(INFO + json.dumps({"id": video_id, "title": title, "webpage_url": url}))
     for step in range(1, steps + 1):
@@ -129,7 +134,7 @@ def main() -> int:
         progress = {
             "status": "downloading",
             "downloaded_bytes": downloaded,
-            "total_bytes": TOTAL_BYTES,
+            "total_bytes": None if live else TOTAL_BYTES,
             "speed": 250_000.0,
             "eta": steps - step,
         }

@@ -12,7 +12,7 @@ from typing import Any
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from yt_dlp_z.core.config import Settings
-from yt_dlp_z.db.models.job import Job, JobStatus, utcnow
+from yt_dlp_z.db.models.job import Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.schemas.jobs import JobEvent, JobOut
 from yt_dlp_z.services.cookies.store import cookie_path, working_copy
 from yt_dlp_z.services.events import EventHub
@@ -25,6 +25,9 @@ from yt_dlp_z.services.ytdlp.output import FileUpdate, InfoUpdate, ProgressUpdat
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
 
 PUBLISH_INTERVAL_SECONDS = 0.5
+# Recordings start from the stream's beginning, and wait (retrying every 30 s to 5 min)
+# when the stream starts later than announced.
+LIVE_ARGS = ["--live-from-start", "--wait-for-video", "30-300"]
 
 
 @dataclass(frozen=True)
@@ -115,6 +118,8 @@ async def _command_for(context: JobContext, job: Job, cookie_args: list[str]) ->
     allow_unsafe = context.settings.allow_unsafe_options
     user_args = build_user_args(index, job.options, job.extra_args, allow_unsafe=allow_unsafe)
     user_args += cookie_args
+    if job.kind == JobKind.LIVE:
+        user_args = [*LIVE_ARGS, *user_args]
     return build_command(context.settings.ytdlp_command, user_args, job.url, Path(job.output_dir))
 
 

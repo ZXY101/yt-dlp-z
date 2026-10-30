@@ -3,7 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
-from yt_dlp_z.db.models.job import JobStatus
+from yt_dlp_z.db.models.job import JobKind, JobStatus
 from yt_dlp_z.schemas.common import WebUrl, as_utc_iso
 
 OptionValue = bool | int | float | str | list[str]
@@ -26,6 +26,9 @@ class JobOut(BaseModel):
     id: int
     url: str
     status: JobStatus
+    kind: JobKind
+    # When a scheduled recording's stream is due to start.
+    scheduled_at: datetime | None
     options: dict[str, OptionValue]
     extra_args: str
     output_dir: str
@@ -45,7 +48,7 @@ class JobOut(BaseModel):
     finished_at: datetime | None
     revision: int
 
-    @field_serializer("created_at", "started_at", "finished_at")
+    @field_serializer("created_at", "scheduled_at", "started_at", "finished_at")
     def as_utc(self, value: datetime | None) -> str | None:
         return as_utc_iso(value)
 

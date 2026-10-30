@@ -1,17 +1,19 @@
-"""Creates the download job for a subscription's new video, using its preset."""
+"""Creates the download or recording job for a subscription's new video, using its preset."""
 
 from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from yt_dlp_z.core.config import Settings
-from yt_dlp_z.db.models.job import Job, JobStatus
+from yt_dlp_z.db.models.job import Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.db.models.preset import Preset
 from yt_dlp_z.db.models.subscription import Subscription
+from yt_dlp_z.db.models.video import Video
 from yt_dlp_z.services import auth_service
 from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs.job_run import job_log_path, publish_job
-from yt_dlp_z.services.jobs.manager import JobManager
+from yt_dlp_z.services.jobs.queues import JobQueues
+from yt_dlp_z.services.live.scheduler import recording_status
 from yt_dlp_z.services.paths import InvalidPathError, resolve_job_dir
 from yt_dlp_z.services.watch.probe import video_url
 
@@ -21,7 +23,7 @@ class WatchContext:
     session_factory: async_sessionmaker[AsyncSession]
     settings: Settings
     hub: EventHub
-    jobs: JobManager
+    jobs: JobQueues
 
 
 class EnqueueError(Exception):
@@ -52,15 +54,31 @@ async def _output_dir(context: WatchContext, session: AsyncSession, requested: s
         raise EnqueueError(str(error)) from error
 
 
+# yt-dlp live_status values of streams that are recorded instead of downloaded.
+STREAM_STATUSES = {"is_upcoming", "is_live"}
+
+
+def _kind_and_status(video: Video) -> tuple[JobKind, JobStatus]:
+    if video.live_status not in STREAM_STATUSES:
+        return JobKind.DOWNLOAD, JobStatus.QUEUED
+    return JobKind.LIVE, recording_status(video.release_at, utcnow())
+
+
 async def enqueue_video(
-    context: WatchContext, session: AsyncSession, subscription: Subscription, video_id: str
+    context: WatchContext, session: AsyncSession, subscription: Subscription, video: Video
 ) -> Job:
-    """Queues the download. Options are copied from the preset, like the download form does."""
+    """Queues the download, or the recording for a stream. Options are copied from the
+    preset, like the download form does."""
     preset = await preset_for(session, subscription)
     requested_dir = subscription.output_dir or (preset.output_dir if preset else None)
+    kind, status = _kind_and_status(video)
     job = Job(
-        url=video_url(video_id),
-        status=JobStatus.QUEUED,
+        url=video_url(video.video_id),
+        # Known from the feed or probe; shown until yt-dlp reports its own.
+        title=video.title,
+        status=status,
+        kind=kind,
+        scheduled_at=video.release_at if kind == JobKind.LIVE else None,
         options=dict(preset.options) if preset else {},
         extra_args=preset.extra_args if preset else "",
         cookie_id=effective_cookie_id(subscription, preset),
@@ -72,5 +90,7 @@ async def enqueue_video(
     # SQLite can reuse the id of a deleted job; a new job must not inherit its log.
     job_log_path(context.settings, job.id).unlink(missing_ok=True)
     publish_job(context.hub, job)
-    context.jobs.submit(job.id)
+    if status == JobStatus.QUEUED:
+        # Scheduled recordings are queued later by the live scheduler.
+        context.jobs.submit(job)
     return job

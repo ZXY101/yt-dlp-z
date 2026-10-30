@@ -50,9 +50,12 @@ async def _known_videos(session: AsyncSession, subscription_id: int) -> dict[str
 
 
 def _needs_work(known: dict[str, Video], entry: FeedEntry) -> bool:
-    """New videos, and ones whose last probe failed (retried on every check)."""
+    """New videos, ones whose last probe failed (retried on every check), and streams
+    seen before recording existed (they have no job yet)."""
     video = known.get(entry.video_id)
-    return video is None or video.state == VideoState.FAILED
+    if video is None or video.state == VideoState.FAILED:
+        return True
+    return video.state in LIVE_STATES.values() and video.job_id is None
 
 
 async def _handle_entries(
@@ -138,22 +141,18 @@ class EntryHandler:
         if reason is not None:
             _set_state(video, VideoState.SKIPPED, reason)
             return
-        live_state = LIVE_STATES.get(info.live_status or "")
-        if live_state is not None:
-            # Recording upcoming and live streams arrives with milestone 5.
-            _set_state(video, live_state)
-            return
-        await self._download(video)
+        await self._queue(video)
 
-    async def _download(self, video: Video) -> None:
+    async def _queue(self, video: Video) -> None:
+        """Downloads it, or records it when it's an upcoming or live stream."""
         context, session, subscription = self._context, self._session, self._subscription
         try:
-            job = await enqueue_video(context, session, subscription, video.video_id)
+            job = await enqueue_video(context, session, subscription, video)
         except EnqueueError as error:
             _set_state(video, VideoState.FAILED, str(error))
             return
         video.job_id = job.id
-        _set_state(video, VideoState.QUEUED)
+        _set_state(video, LIVE_STATES.get(video.live_status or "", VideoState.QUEUED))
 
 
 def _record_info(video: Video, info: VideoInfo) -> None:

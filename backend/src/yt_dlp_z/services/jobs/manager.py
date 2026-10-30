@@ -28,10 +28,7 @@ class JobManager:
         self._cancelled: set[int] = set()
         self._finished: dict[int, asyncio.Event] = {}
 
-    async def start(self) -> None:
-        async with self._context.session_factory() as session:
-            for job_id in await repository.recover_after_restart(session):
-                self.submit(job_id)
+    def start(self) -> None:
         self._dispatcher = asyncio.create_task(self._dispatch())
 
     async def stop(self) -> None:

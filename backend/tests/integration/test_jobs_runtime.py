@@ -132,7 +132,7 @@ def test_shutdown_stops_running_downloads(
         job = client.post("/api/jobs", json={"url": "https://example.com/slow"}).json()
         wait_for_job(client, job["id"], {"running"})
         state: AppState = client.app.state.app_state  # type: ignore[attr-defined]
-        pid = state.jobs._processes[job["id"]].pid
+        pid = state.jobs.downloads._processes[job["id"]].pid
 
     with pytest.raises(ProcessLookupError):
         os.kill(pid, 0)

@@ -24,11 +24,15 @@ from yt_dlp_z.core.config import AuthMode, Settings, get_settings
 from yt_dlp_z.core.security import SessionSigner, load_or_create_secret_key
 from yt_dlp_z.db.engine import create_engine, create_session_factory
 from yt_dlp_z.db.migrate import upgrade_to_head
-from yt_dlp_z.services.app_settings import get_max_concurrent_downloads
+from yt_dlp_z.services.app_settings import (
+    get_max_concurrent_downloads,
+    get_max_concurrent_recordings,
+)
 from yt_dlp_z.services.auth_service import sync_admin_password
 from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs.job_run import JobContext
-from yt_dlp_z.services.jobs.manager import JobManager
+from yt_dlp_z.services.jobs.queues import JobQueues
+from yt_dlp_z.services.live.scheduler import LiveScheduler
 from yt_dlp_z.services.watch.enqueue import WatchContext
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
@@ -49,9 +53,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         hub = EventHub()
         schemas = OptionSchemaProvider(allow_unsafe=settings.allow_unsafe_options)
         async with session_factory() as session:
-            limit = await get_max_concurrent_downloads(session, settings.max_concurrent_downloads)
-        job_manager = JobManager(JobContext(session_factory, hub, settings, schemas), limit)
-        watcher = SubscriptionWatcher(WatchContext(session_factory, settings, hub, job_manager))
+            download_limit = await get_max_concurrent_downloads(
+                session, settings.max_concurrent_downloads
+            )
+            recording_limit = await get_max_concurrent_recordings(
+                session, settings.max_concurrent_recordings
+            )
+        job_context = JobContext(session_factory, hub, settings, schemas)
+        job_queues = JobQueues(job_context, download_limit, recording_limit)
+        live = LiveScheduler(job_context, job_queues)
+        watcher = SubscriptionWatcher(WatchContext(session_factory, settings, hub, job_queues))
         app.state.app_state = AppState(
             settings=settings,
             engine=engine,
@@ -59,17 +70,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             signer=SessionSigner(secret_key, settings.session_days * SECONDS_PER_DAY),
             hub=hub,
             schemas=schemas,
-            jobs=job_manager,
+            jobs=job_queues,
+            live=live,
             watcher=watcher,
         )
         if settings.admin_password and settings.auth_mode is AuthMode.PASSWORD:
             async with session_factory() as session:
                 await sync_admin_password(session, settings.admin_password.get_secret_value())
-        await job_manager.start()
+        await job_queues.start()
+        live.start()
         watcher.start()
         yield
         await watcher.stop()
-        await job_manager.stop()
+        await live.stop()
+        await job_queues.stop()
         await engine.dispose()
 
     app = FastAPI(title="yt-dlp-z", lifespan=lifespan)

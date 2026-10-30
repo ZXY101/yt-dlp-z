@@ -60,7 +60,8 @@ async def reset(state: State, db: Db) -> None:
     for folder in ("logs", "cookies"):
         shutil.rmtree(state.settings.config_dir / folder, ignore_errors=True)
     state.login_limiter.reset()
-    state.jobs.set_limit(state.settings.max_concurrent_downloads)
+    state.jobs.downloads.set_limit(state.settings.max_concurrent_downloads)
+    state.jobs.recordings.set_limit(state.settings.max_concurrent_recordings)
     # Mirror a fresh start, which applies YTDLPZ_ADMIN_PASSWORD.
     if state.settings.admin_password is not None:
         await sync_admin_password(db, state.settings.admin_password.get_secret_value())

@@ -1,10 +1,11 @@
 from collections.abc import Sequence
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from yt_dlp_z.db.models.job import Job, JobStatus, utcnow
+from yt_dlp_z.db.models.job import Job, JobKind, JobStatus, utcnow
 
 INTERRUPTED_MESSAGE = "Interrupted because yt-dlp-z stopped. Retry to start again."
 
@@ -26,8 +27,8 @@ async def save(session: AsyncSession, job: Job, **changes: Any) -> Job:
     return job
 
 
-async def recover_after_restart(session: AsyncSession) -> list[int]:
-    """Fails jobs that were mid-download when the app stopped; returns queued job ids."""
+async def recover_after_restart(session: AsyncSession) -> list[tuple[int, JobKind]]:
+    """Fails jobs that were mid-download when the app stopped; returns the queued jobs."""
     await session.execute(
         update(Job)
         .where(Job.status == JobStatus.RUNNING)
@@ -40,9 +41,19 @@ async def recover_after_restart(session: AsyncSession) -> list[int]:
     )
     await session.commit()
     result = await session.execute(
-        select(Job.id).where(Job.status == JobStatus.QUEUED).order_by(Job.id)
+        select(Job.id, Job.kind).where(Job.status == JobStatus.QUEUED).order_by(Job.id)
     )
-    return list(result.scalars().all())
+    return [(job_id, JobKind(kind)) for job_id, kind in result.all()]
+
+
+async def due_recordings(session: AsyncSession, before: datetime) -> Sequence[Job]:
+    """Scheduled recordings whose stream starts before the given time."""
+    result = await session.execute(
+        select(Job)
+        .where(Job.status == JobStatus.SCHEDULED, Job.scheduled_at <= before)
+        .order_by(Job.scheduled_at)
+    )
+    return result.scalars().all()
 
 
 def retry_changes() -> dict[str, Any]:
