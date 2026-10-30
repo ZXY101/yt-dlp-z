@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from yt_dlp_z.api.state import AppState
 from yt_dlp_z.schemas.jobs import OptionValue
 from yt_dlp_z.services import auth_service
+from yt_dlp_z.services.cookies.files import get_cookie_file
 from yt_dlp_z.services.paths import InvalidPathError, check_job_dir, resolve_job_dir
 from yt_dlp_z.services.ytdlp.args import build_user_args
 from yt_dlp_z.services.ytdlp.errors import ArgumentError, SchemaUnavailableError
@@ -27,6 +28,13 @@ async def check_user_args(
         build_user_args(index, options, extra_args, allow_unsafe=allow_unsafe)
     except ArgumentError as error:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, str(error)) from error
+
+
+async def check_cookie_id(db: AsyncSession, cookie_id: int | None) -> None:
+    if cookie_id is not None and await get_cookie_file(db, cookie_id) is None:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "That cookies file doesn't exist"
+        )
 
 
 async def _base_dir(db: AsyncSession) -> Path:

@@ -8,6 +8,8 @@ The URL picks the behaviour:
   ...slow...      downloads for about a minute (for cancel tests)
   ...stubborn...  slow, and ignores SIGTERM (for the force-kill fallback)
   anything else   finishes in about a quarter of a second
+With --simulate (the cookies check) it prints the title, or fails for ...fail... URLs.
+With --cookies it reports how many cookie lines the file had, so tests can see it was passed.
 """
 
 import json
@@ -30,13 +32,31 @@ def emit(line: str) -> None:
     print(line, flush=True)
 
 
+def simulate(url: str, title: str) -> int:
+    if "fail" in url:
+        emit("ERROR: [fake] Sign in to confirm you're not a bot")
+        return 1
+    emit(title)
+    return 0
+
+
+def report_cookies(args: list[str]) -> None:
+    for path in values_of(args, "--cookies"):
+        lines = Path(path).read_text().splitlines()
+        cookies = [line for line in lines if line and not line.startswith("# ")]
+        emit(f"[fake] cookies: {len(cookies)}")
+
+
 def main() -> int:
     args = sys.argv[1:]
     url = args[args.index("--") + 1]
-    home = Path(next(v for v in values_of(args, "--paths") if v.startswith("home:"))[5:])
     video_id = url.rstrip("/").rsplit("/", 1)[-1] or "video"
     title = f"Fake video {video_id}"
+    if "--simulate" in args:
+        return simulate(url, title)
     emit("[fake] args: " + " ".join(args[: args.index("--")]))
+    report_cookies(args)
+    home = Path(next(v for v in values_of(args, "--paths") if v.startswith("home:"))[5:])
 
     if "fail" in url:
         emit("ERROR: [fake] This video is unavailable")

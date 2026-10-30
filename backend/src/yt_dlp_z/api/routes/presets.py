@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from yt_dlp_z.api.deps import Db, State, require_auth
-from yt_dlp_z.api.validation import check_output_dir, check_user_args
+from yt_dlp_z.api.validation import check_cookie_id, check_output_dir, check_user_args
 from yt_dlp_z.db.models.preset import Preset
 from yt_dlp_z.schemas.presets import PresetIn, PresetOut
 from yt_dlp_z.services import presets
@@ -19,6 +19,7 @@ async def find_preset(db: Db, preset_id: int) -> Preset:
 async def _save(state: State, db: Db, preset: Preset, body: PresetIn) -> PresetOut:
     await check_user_args(state, body.options, body.extra_args)
     await check_output_dir(state, db, body.output_dir)
+    await check_cookie_id(db, body.cookie_id)
     try:
         saved = await presets.save_preset(db, preset, body)
     except presets.DuplicatePresetError as error:

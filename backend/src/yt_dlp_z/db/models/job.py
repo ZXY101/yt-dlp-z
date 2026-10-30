@@ -31,6 +31,8 @@ class Job(Base):
     status: Mapped[JobStatus] = mapped_column(String(20), index=True)
     options: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     extra_args: Mapped[str] = mapped_column(Text, default="")
+    # No foreign key: a deleted cookies file must not delete history. Checked when used.
+    cookie_id: Mapped[int | None] = mapped_column(Integer, default=None)
     output_dir: Mapped[str] = mapped_column(Text)
     title: Mapped[str | None] = mapped_column(Text, default=None)
     progress: Mapped[float | None] = mapped_column(Float, default=None)

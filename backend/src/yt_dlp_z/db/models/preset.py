@@ -18,6 +18,8 @@ class Preset(Base):
     # Same format as Job.options: keyed by yt-dlp long flag.
     options: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     extra_args: Mapped[str] = mapped_column(Text, default="")
+    # Cleared when that cookies file is deleted.
+    cookie_id: Mapped[int | None] = mapped_column(Integer, default=None)
     # Stored as entered (relative or absolute) and resolved when a job starts.
     output_dir: Mapped[str | None] = mapped_column(Text, default=None)
     is_default: Mapped[bool] = mapped_column(Boolean, default=False)

@@ -1,9 +1,10 @@
 """Runs a single download job: builds the command and streams progress to the DB and clients."""
 
 import asyncio
+import contextlib
 import dataclasses
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -13,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from yt_dlp_z.core.config import Settings
 from yt_dlp_z.db.models.job import Job, JobStatus, utcnow
 from yt_dlp_z.schemas.jobs import JobEvent, JobOut
+from yt_dlp_z.services.cookies.store import cookie_path, working_copy
 from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs import repository
 from yt_dlp_z.services.jobs.process import ProcessResult, run_ytdlp
@@ -91,10 +93,28 @@ async def _finish(context: JobContext, session: AsyncSession, job: Job, outcome:
     publish_job(context.hub, job)
 
 
-async def _command_for(context: JobContext, job: Job) -> list[str]:
+class MissingCookiesError(Exception):
+    pass
+
+
+@contextlib.contextmanager
+def _cookie_args(settings: Settings, job: Job) -> Iterator[list[str]]:
+    if job.cookie_id is None:
+        yield []
+        return
+    if not cookie_path(settings.config_dir, job.cookie_id).exists():
+        raise MissingCookiesError(
+            "The cookies file for this download was deleted. Start it again with another one."
+        )
+    with working_copy(settings.config_dir, job.cookie_id, f"job-{job.id}") as path:
+        yield ["--cookies", str(path)]
+
+
+async def _command_for(context: JobContext, job: Job, cookie_args: list[str]) -> list[str]:
     _, index = await context.schemas.get()
     allow_unsafe = context.settings.allow_unsafe_options
     user_args = build_user_args(index, job.options, job.extra_args, allow_unsafe=allow_unsafe)
+    user_args += cookie_args
     return build_command(context.settings.ytdlp_command, user_args, job.url, Path(job.output_dir))
 
 
@@ -108,15 +128,18 @@ async def execute_job(
         job = await repository.get_job(session, job_id)
         if job is None or job.status != JobStatus.QUEUED:
             return
-        try:
-            command = await _command_for(context, job)
-        except (ArgumentError, SchemaUnavailableError) as error:
-            await _finish(context, session, job, (JobStatus.FAILED, str(error)))
-            return
-        await repository.save(session, job, status=JobStatus.RUNNING, started_at=utcnow())
-        publish_job(context.hub, job)
+        # Holds the job's temporary cookies copy until yt-dlp exits.
+        with contextlib.ExitStack() as cleanup:
+            try:
+                cookie_args = cleanup.enter_context(_cookie_args(context.settings, job))
+                command = await _command_for(context, job, cookie_args)
+            except (ArgumentError, SchemaUnavailableError, MissingCookiesError) as error:
+                await _finish(context, session, job, (JobStatus.FAILED, str(error)))
+                return
+            await repository.save(session, job, status=JobStatus.RUNNING, started_at=utcnow())
+            publish_job(context.hub, job)
 
-        tracker = ProgressTracker(context, session, job)
-        log_path = job_log_path(context.settings, job_id)
-        result = await run_ytdlp(command, log_path, tracker.apply, on_start)
-        await _finish(context, session, job, _outcome(result, is_cancelled()))
+            tracker = ProgressTracker(context, session, job)
+            log_path = job_log_path(context.settings, job_id)
+            result = await run_ytdlp(command, log_path, tracker.apply, on_start)
+            await _finish(context, session, job, _outcome(result, is_cancelled()))
