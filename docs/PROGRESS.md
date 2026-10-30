@@ -6,8 +6,8 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 6 (ops): in progress.** Step 1 (yt-dlp updater) has its backend;
-the Settings UI is next. Milestone 5 is done (a real scheduled stream starting
+**Milestone 6 (ops): in progress.** Step 1 (yt-dlp updater) done; next is
+step 2 (auto-update). Milestone 5 is done (a real scheduled stream starting
 on time is still unchecked, see below).
 
 | Milestone                 | Status      |
@@ -34,14 +34,15 @@ Vitest, pytest and Playwright suites; Docker image; CI for all of it.
 
 ## Milestone 6 steps
 
-1. **yt-dlp updater.** Backend done 2026-10-31 (`services/ytdlp/updater.py`,
-   `/api/ytdlp`): pip installs `yt-dlp[default]` (with `--pre` on the nightly
-   channel) into `<config>/ytdlp` via a staging folder, which is first on
-   PYTHONPATH for every yt-dlp subprocess; `DELETE /api/ytdlp/update` goes back
-   to the bundled version. `pip` is now a dependency (uv venvs have none).
-   Next: Settings → yt-dlp section (version, channel, Update, Use bundled),
-   E2E with `e2e/stub/fake_pip.py` (`YTDLPZ_YTDLP_PIP_COMMAND` in
-   `start-server.sh`), docs.
+1. **yt-dlp updater: done 2026-10-31.** `services/ytdlp/updater.py`,
+   `/api/ytdlp`, Settings → yt-dlp (version, Stable/Nightly, Update now, Use
+   bundled version). pip installs `yt-dlp[default]` (`--pre` for nightly) into
+   `<config>/ytdlp` via a staging folder; that folder is first on PYTHONPATH for
+   every yt-dlp subprocess. An install equal to the bundled version deletes the
+   folder instead (back from nightly to stable). `pip` is a dependency (uv venvs
+   have none). Verified for real (local server and in the Docker image):
+   stable 16 s, nightly gave 2026.10.29.232701dev and `/api/system` (a
+   subprocess) reported it. E2E uses `e2e/stub/fake_pip.py`.
 2. Daily auto-update (optional) and "update available" (PyPI JSON).
 3. ntfy notifications (PLAN.md §10).
 4. Media-server output per preset (PLAN.md §8).
@@ -311,6 +312,8 @@ Still open:
   check"). yt-dlp updater backend (M6 step 1). Fixed a race the updater tests
   found: `GET /api/ytdlp` read the version before the status.
 
-**Next session:** M6 step 1 frontend (Settings → yt-dlp), see "Milestone 6
-steps". Still unverified: a real scheduled stream starting on time.
+- **2026-10-31 · Deployed 1c92ffc; updater UI.** Settings → yt-dlp section,
+  checked against real PyPI (stable and nightly).
+
+**Next session:** M6 step 2 (auto-update), see "Milestone 6 steps". Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.
