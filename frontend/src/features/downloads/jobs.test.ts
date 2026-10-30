@@ -20,6 +20,14 @@ describe("job cache helpers", () => {
     expect(upsertJob([newer, older], updated)).toEqual([newer, updated]);
   });
 
+  it("ignores updates older than the cached copy", () => {
+    // Regression: a slow "running" cancel response used to overwrite "cancelled".
+    const cancelled = makeJob({ id: 1, status: "cancelled", revision: 5 });
+    const stale = makeJob({ id: 1, status: "running", revision: 4 });
+    expect(upsertJob([cancelled], stale)).toEqual([cancelled]);
+    expect(upsertJob([stale], cancelled)).toEqual([cancelled]);
+  });
+
   it("leaves a list that hasn't loaded yet alone", () => {
     expect(upsertJob(undefined, newer)).toBeUndefined();
     expect(removeJob(undefined, 1)).toBeUndefined();

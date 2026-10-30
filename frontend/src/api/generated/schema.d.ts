@@ -305,6 +305,8 @@ export interface components {
             started_at: string | null;
             /** Finished At */
             finished_at: string | null;
+            /** Revision */
+            revision: number;
         };
         /**
          * JobStatus

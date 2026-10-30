@@ -10,6 +10,8 @@ from yt_dlp_z.services.jobs.process import stop_process
 
 logger = logging.getLogger(__name__)
 
+FINISH_TIMEOUT_SECONDS = 15
+
 
 class JobManager:
     """Queue of download jobs worked on by a fixed number of concurrent workers."""
@@ -20,6 +22,7 @@ class JobManager:
         self._workers: list[asyncio.Task[None]] = []
         self._processes: dict[int, asyncio.subprocess.Process] = {}
         self._cancelled: set[int] = set()
+        self._finished: dict[int, asyncio.Event] = {}
 
     async def start(self) -> None:
         async with self._context.session_factory() as session:
@@ -41,11 +44,15 @@ class JobManager:
         self._queue.put_nowait(job_id)
 
     async def cancel(self, job_id: int) -> None:
-        """Stops a running job. Queued jobs only need their DB status changed."""
+        """Stops a running job and waits until its final status is saved.
+        Queued jobs only need their DB status changed."""
         self._cancelled.add(job_id)
+        finished = self._finished.get(job_id)
         process = self._processes.get(job_id)
         if process is not None:
             await stop_process(process)
+        if finished is not None:
+            await asyncio.wait_for(finished.wait(), FINISH_TIMEOUT_SECONDS)
 
     async def stop_all(self) -> None:
         """Cancels every running job and empties the queue (used by the test reset)."""
@@ -58,6 +65,7 @@ class JobManager:
     async def _work(self) -> None:
         while True:
             job_id = await self._queue.get()
+            finished = self._finished[job_id] = asyncio.Event()
             try:
                 await execute_job(
                     self._context,
@@ -71,6 +79,8 @@ class JobManager:
             finally:
                 self._processes.pop(job_id, None)
                 self._cancelled.discard(job_id)
+                self._finished.pop(job_id, None)
+                finished.set()
                 self._queue.task_done()
 
     def _is_cancelled(self, job_id: int) -> bool:

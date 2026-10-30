@@ -45,8 +45,9 @@ def test_cancel_running_and_retry(setup_client: TestClient) -> None:
     job = start(setup_client, "https://example.com/slow")
     wait_for_job(setup_client, job["id"], {"running"})
     response = setup_client.post(f"/api/jobs/{job['id']}/cancel")
-    assert response.status_code == 200
-    assert wait_for_job(setup_client, job["id"], FINISHED)["status"] == "cancelled"
+    # Regression: the response used to race the worker and could still say "running".
+    assert response.json()["status"] == "cancelled"
+    assert response.json()["revision"] > job["revision"]
     assert setup_client.post(f"/api/jobs/{job['id']}/cancel").status_code == 409
 
     retried = setup_client.post(f"/api/jobs/{job['id']}/retry").json()
@@ -63,8 +64,8 @@ def test_stubborn_process_is_force_killed(
     monkeypatch.setattr(process, "KILL_AFTER_SECONDS", 0.3)
     job = start(setup_client, "https://example.com/stubborn")
     wait_for_job(setup_client, job["id"], {"running"})
-    setup_client.post(f"/api/jobs/{job['id']}/cancel")
-    assert wait_for_job(setup_client, job["id"], FINISHED, timeout=5)["status"] == "cancelled"
+    response = setup_client.post(f"/api/jobs/{job['id']}/cancel")
+    assert response.json()["status"] == "cancelled"
 
 
 def test_queued_job_can_be_cancelled(make_client: MakeClient, tmp_path: Path) -> None:
