@@ -16,6 +16,13 @@ export async function completeSetupViaApi(request: APIRequestContext) {
   expect(response.status()).toBe(204);
 }
 
+/** Serves a fake YouTube feed for a channel, newest entry first. */
+export async function setFeed(request: APIRequestContext, channelId: string, videoIds: string[]) {
+  const entries = videoIds.map((id) => ({ video_id: id, title: `Feed ${id}` }));
+  const response = await request.put(`/api/test/feeds/${channelId}`, { data: entries });
+  expect(response.status()).toBe(204);
+}
+
 export async function signIn(page: Page, password = ADMIN_PASSWORD) {
   await page.goto("/login");
   await page.getByLabel("Password").fill(password);
