@@ -15,6 +15,17 @@ export function formatBytes(bytes: number) {
   return `${value.toFixed(digits)} ${UNITS[unit] ?? "B"}`;
 }
 
+/** e.g. "Sat 1 Nov, 14:00" in the viewer's time zone. */
+export function formatStartTime(iso: string) {
+  return new Date(iso).toLocaleString(undefined, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function formatDuration(totalSeconds: number) {
   const seconds = Math.max(0, Math.round(totalSeconds));
   const hours = Math.floor(seconds / SECONDS_PER_HOUR);

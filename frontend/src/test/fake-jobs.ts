@@ -7,6 +7,8 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     id: 1,
     url: "https://example.com/watch/abc",
     status: "queued",
+    kind: "download",
+    scheduled_at: null,
     options: {},
     extra_args: "",
     output_dir: "/downloads",

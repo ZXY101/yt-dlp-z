@@ -8,6 +8,16 @@ export function isActiveJob(job: Job) {
   return job.status === "queued" || job.status === "running";
 }
 
+export function isFinishedJob(job: Job) {
+  return job.status === "completed" || job.status === "failed" || job.status === "cancelled";
+}
+
+/** Scheduled recordings, the soonest first. */
+export function scheduledJobs(jobs: Job[]) {
+  const scheduled = jobs.filter((job) => job.status === "scheduled");
+  return scheduled.toSorted((a, b) => (a.scheduled_at ?? "").localeCompare(b.scheduled_at ?? ""));
+}
+
 /** Inserts or replaces a job, keeping the list newest first. Leaves an unloaded list alone.
  * HTTP responses and WebSocket events can arrive out of order, so an update older than
  * the cached copy (lower revision) is ignored. */

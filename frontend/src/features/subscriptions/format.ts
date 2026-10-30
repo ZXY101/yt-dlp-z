@@ -33,7 +33,7 @@ export function describeCheck(subscription: Subscription, now = Date.now()) {
 export const VIDEO_STATE_LABELS: Record<VideoState, string> = {
   queued: "Downloading",
   skipped: "Skipped",
-  upcoming: "Upcoming",
-  live: "Live now",
+  upcoming: "Recording scheduled",
+  live: "Recording",
   failed: "Failed",
 };

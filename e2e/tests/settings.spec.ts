@@ -19,6 +19,7 @@ test.describe("settings", () => {
     const newFolder = `${await folder.inputValue()}/moved`;
     await folder.fill(newFolder);
     await page.getByLabel("Downloads at the same time").fill("1");
+    await page.getByLabel("Recordings at the same time").fill("3");
     await page.getByRole("button", { name: "Save settings" }).click();
     await expect(page.getByText("Settings saved.")).toBeVisible();
     await expectNoHorizontalScroll(page);
@@ -26,6 +27,7 @@ test.describe("settings", () => {
     await page.reload();
     await expect(page.getByLabel("Download folder")).toHaveValue(newFolder);
     await expect(page.getByLabel("Downloads at the same time")).toHaveValue("1");
+    await expect(page.getByLabel("Recordings at the same time")).toHaveValue("3");
 
     await page.goto("/");
     await page.getByLabel("Link").fill("https://example.com/watch/moved");

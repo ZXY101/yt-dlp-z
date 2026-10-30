@@ -441,6 +441,8 @@ export interface components {
             download_dir: string;
             /** Max Concurrent Downloads */
             max_concurrent_downloads: number;
+            /** Max Concurrent Recordings */
+            max_concurrent_recordings: number;
             /** Max Subscriptions */
             max_subscriptions: number;
         };
@@ -545,6 +547,11 @@ export interface components {
             /** Cookie Id */
             cookie_id?: number | null;
         };
+        /**
+         * JobKind
+         * @enum {string}
+         */
+        JobKind: "download" | "live";
         /** JobOut */
         JobOut: {
             /** Id */
@@ -552,6 +559,9 @@ export interface components {
             /** Url */
             url: string;
             status: components["schemas"]["JobStatus"];
+            kind: components["schemas"]["JobKind"];
+            /** Scheduled At */
+            scheduled_at: string | null;
             /** Options */
             options: {
                 [key: string]: boolean | number | string | string[];
@@ -593,7 +603,7 @@ export interface components {
          * JobStatus
          * @enum {string}
          */
-        JobStatus: "queued" | "running" | "completed" | "failed" | "cancelled";
+        JobStatus: "scheduled" | "queued" | "running" | "completed" | "failed" | "cancelled";
         /** LoginRequest */
         LoginRequest: {
             /** Password */

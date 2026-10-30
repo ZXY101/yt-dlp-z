@@ -5,7 +5,7 @@ import { describeError } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { useCancelJob, useDeleteJob, useRetryJob } from "@/features/downloads/api";
 import { JobLogDialog } from "@/features/downloads/components/job-log-dialog";
-import { isActiveJob } from "@/features/downloads/jobs";
+import { isFinishedJob } from "@/features/downloads/jobs";
 import type { Job } from "@/features/downloads/types";
 
 interface ActionButtonProps {
@@ -38,7 +38,7 @@ function useJobMutations() {
 export function JobActions({ job }: { job: Job }) {
   const [logOpen, setLogOpen] = useState(false);
   const { cancel, retry, remove, error } = useJobMutations();
-  const active = isActiveJob(job);
+  const finished = isFinishedJob(job);
   const canRetry = job.status === "failed" || job.status === "cancelled";
   const name = job.title ?? job.url;
 
@@ -46,7 +46,7 @@ export function JobActions({ job }: { job: Job }) {
     <div className="space-y-2">
       <div className="flex flex-wrap justify-end gap-2">
         <ActionButton icon={FileText} text="Log" onClick={() => setLogOpen(true)} />
-        {active && (
+        {!finished && (
           <ActionButton
             icon={Square}
             text="Cancel"
@@ -66,7 +66,7 @@ export function JobActions({ job }: { job: Job }) {
             onClick={() => retry.mutate(job.id)}
           />
         )}
-        {!active && (
+        {finished && (
           <ActionButton
             icon={Trash2}
             text="Remove"

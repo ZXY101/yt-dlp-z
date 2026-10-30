@@ -24,6 +24,20 @@ function validateLimit(text: string, max: number) {
   return undefined;
 }
 
+/** A whole-number field from 1 to `max`; `check()` shows its error and says if it's valid. */
+function useLimitField(initial: number, max: number) {
+  const [value, setValue] = useState(String(initial));
+  const [error, setError] = useState<string>();
+
+  function check() {
+    const problem = validateLimit(value, max);
+    setError(problem);
+    return problem === undefined;
+  }
+
+  return { value, setValue, error, check };
+}
+
 interface ChannelLimitFieldProps {
   value: string;
   error: string | undefined;
@@ -58,24 +72,54 @@ function ChannelLimitWarning() {
   );
 }
 
+type LimitField = ReturnType<typeof useLimitField>;
+
+function ConcurrencyFields({
+  downloads,
+  recordings,
+}: {
+  downloads: LimitField;
+  recordings: LimitField;
+}) {
+  return (
+    <>
+      <FormField
+        label="Downloads at the same time"
+        inputMode="numeric"
+        hint="More parallel downloads finish a queue faster but make rate limits more likely."
+        value={downloads.value}
+        error={downloads.error}
+        onChange={(event) => downloads.setValue(event.target.value)}
+      />
+      <FormField
+        label="Recordings at the same time"
+        inputMode="numeric"
+        hint="Live streams being recorded. Counted apart from downloads, so they never wait behind them."
+        value={recordings.value}
+        error={recordings.error}
+        onChange={(event) => recordings.setValue(event.target.value)}
+      />
+    </>
+  );
+}
+
 function SettingsForm({ settings }: { settings: AppSettings }) {
   const [downloadDir, setDownloadDir] = useState(settings.download_dir);
-  const [limit, setLimit] = useState(String(settings.max_concurrent_downloads));
-  const [limitError, setLimitError] = useState<string>();
-  const [channels, setChannels] = useState(String(settings.max_subscriptions));
-  const [channelsError, setChannelsError] = useState<string>();
+  const downloads = useLimitField(settings.max_concurrent_downloads, MAX_DOWNLOADS);
+  const recordings = useLimitField(settings.max_concurrent_recordings, MAX_DOWNLOADS);
+  const channels = useLimitField(settings.max_subscriptions, MAX_CHANNELS);
   const save = useSaveAppSettings();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const errors = [validateLimit(limit, MAX_DOWNLOADS), validateLimit(channels, MAX_CHANNELS)];
-    setLimitError(errors[0]);
-    setChannelsError(errors[1]);
-    if (errors.every((error) => error === undefined)) {
+    // Every field is checked, so all errors show at once.
+    const valid = [downloads.check(), recordings.check(), channels.check()];
+    if (valid.every(Boolean)) {
       save.mutate({
         download_dir: downloadDir.trim(),
-        max_concurrent_downloads: Number(limit),
-        max_subscriptions: Number(channels),
+        max_concurrent_downloads: Number(downloads.value),
+        max_concurrent_recordings: Number(recordings.value),
+        max_subscriptions: Number(channels.value),
       });
     }
   }
@@ -91,15 +135,12 @@ function SettingsForm({ settings }: { settings: AppSettings }) {
         value={downloadDir}
         onChange={(event) => setDownloadDir(event.target.value)}
       />
-      <FormField
-        label="Downloads at the same time"
-        inputMode="numeric"
-        hint="More parallel downloads finish a queue faster but make rate limits more likely."
-        value={limit}
-        error={limitError}
-        onChange={(event) => setLimit(event.target.value)}
+      <ConcurrencyFields downloads={downloads} recordings={recordings} />
+      <ChannelLimitField
+        value={channels.value}
+        error={channels.error}
+        onChange={channels.setValue}
       />
-      <ChannelLimitField value={channels} error={channelsError} onChange={setChannels} />
       <Button type="submit" size="lg" className="h-10" disabled={save.isPending}>
         {save.isPending ? "Saving…" : "Save settings"}
       </Button>

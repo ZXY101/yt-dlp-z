@@ -93,4 +93,53 @@ describe("QueuePage", () => {
     await user.click(cancel);
     expect(await screen.findByText("Download not found")).toBeInTheDocument();
   });
+
+  it("shows recordings: scheduled ones in their own list, soonest first", async () => {
+    const server = createFakeServer();
+    const live = { kind: "live" as const };
+    server.jobs = [
+      makeJob({
+        id: 1,
+        ...live,
+        status: "scheduled",
+        title: "Later stream",
+        scheduled_at: "2100-01-02T12:00:00+00:00",
+      }),
+      makeJob({
+        id: 2,
+        ...live,
+        status: "scheduled",
+        title: "Next stream",
+        scheduled_at: "2100-01-01T12:00:00+00:00",
+      }),
+      makeJob({
+        id: 3,
+        ...live,
+        status: "running",
+        title: "Live now",
+        downloaded_bytes: 5_000_000,
+      }),
+      makeJob({ id: 4, ...live, status: "queued", title: "Waiting stream" }),
+    ];
+    installFakeApi(server);
+    const { user } = renderApp("/queue");
+
+    const scheduled = await screen.findByRole("list", { name: "Scheduled" });
+    const items = within(scheduled).getAllByRole("listitem");
+    expect(items.map((item) => within(item).getAllByText(/stream$/)[0]?.textContent)).toEqual([
+      "Next stream",
+      "Later stream",
+    ]);
+    expect(within(items[0]!).getByText(/^Stream starts/)).toBeInTheDocument();
+
+    const inProgress = screen.getByRole("list", { name: "In progress" });
+    expect(within(inProgress).getByText("Recording")).toBeInTheDocument();
+    expect(within(inProgress).getByText("5.0 MB")).toBeInTheDocument();
+    expect(within(inProgress).queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(within(inProgress).getByText(/free recording slot/)).toBeInTheDocument();
+
+    await user.click(within(scheduled).getByRole("button", { name: "Cancel Next stream" }));
+    const finished = await screen.findByRole("list", { name: "Finished" });
+    expect(within(finished).getByText("Next stream")).toBeInTheDocument();
+  });
 });
