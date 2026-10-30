@@ -22,8 +22,13 @@ def prepare_download_dir(raw_path: str) -> Path:
 
 
 def resolve_job_dir(requested: str | None, base_dir: Path, extra_roots: list[Path]) -> Path:
-    """Folder for one download. Empty means the default folder, a relative path is
-    inside it, and an absolute path must be inside the default folder or an extra root."""
+    """Folder for one download, created if needed. See check_job_dir for the rules."""
+    return prepare_download_dir(str(check_job_dir(requested, base_dir, extra_roots)))
+
+
+def check_job_dir(requested: str | None, base_dir: Path, extra_roots: list[Path]) -> Path:
+    """Empty means the default folder, a relative path is inside it, and an absolute
+    path must be inside the default folder or an extra root. Creates nothing."""
     raw = (requested or "").strip()
     target = Path(raw).expanduser() if raw else base_dir
     if not target.is_absolute():
@@ -34,4 +39,4 @@ def resolve_job_dir(requested: str | None, base_dir: Path, extra_roots: list[Pat
     if not any(target.is_relative_to(root) for root in roots):
         allowed = ", ".join(str(root) for root in roots)
         raise InvalidPathError(f"The folder must be inside: {allowed}.")
-    return prepare_download_dir(str(target))
+    return target

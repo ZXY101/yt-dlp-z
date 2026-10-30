@@ -196,6 +196,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/presets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Presets */
+        get: operations["list_presets_api_presets_get"];
+        put?: never;
+        /** Create Preset */
+        post: operations["create_preset_api_presets_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/presets/{preset_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preset */
+        get: operations["get_preset_api_presets__preset_id__get"];
+        /** Update Preset */
+        put: operations["update_preset_api_presets__preset_id__put"];
+        post?: never;
+        /** Delete Preset */
+        delete: operations["delete_preset_api_presets__preset_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system": {
         parameters: {
             query?: never;
@@ -355,6 +392,60 @@ export interface components {
             help: string;
             /** Blocked Reason */
             blocked_reason?: string | null;
+        };
+        /** PresetIn */
+        PresetIn: {
+            /** Name */
+            name: string;
+            /**
+             * Options
+             * @default {}
+             */
+            options: {
+                [key: string]: boolean | number | string | string[];
+            };
+            /**
+             * Extra Args
+             * @default
+             */
+            extra_args: string;
+            /** Output Dir */
+            output_dir?: string | null;
+            /**
+             * Is Default
+             * @default false
+             */
+            is_default: boolean;
+        };
+        /** PresetOut */
+        PresetOut: {
+            /** Name */
+            name: string;
+            /**
+             * Options
+             * @default {}
+             */
+            options: {
+                [key: string]: boolean | number | string | string[];
+            };
+            /**
+             * Extra Args
+             * @default
+             */
+            extra_args: string;
+            /** Output Dir */
+            output_dir?: string | null;
+            /**
+             * Is Default
+             * @default false
+             */
+            is_default: boolean;
+            /** Id */
+            id: number;
+            /** Created At */
+            created_at: string | null;
+            /** Updated At */
+            updated_at: string | null;
         };
         /** SetupRequest */
         SetupRequest: {
@@ -749,6 +840,154 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OptionSchema"];
+                };
+            };
+        };
+    };
+    list_presets_api_presets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresetOut"][];
+                };
+            };
+        };
+    };
+    create_preset_api_presets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresetIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_preset_api_presets__preset_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                preset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_preset_api_presets__preset_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                preset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PresetIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PresetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_preset_api_presets__preset_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                preset_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
