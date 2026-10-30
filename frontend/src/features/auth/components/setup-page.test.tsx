@@ -4,7 +4,7 @@ import { FAKE_PASSWORD, createFakeServer, installFakeApi } from "@/test/fake-api
 import { renderApp } from "@/test/render";
 
 describe("SetupPage", () => {
-  it("sends a fresh install to setup and finishes into the dashboard", async () => {
+  it("sends a fresh install to setup and finishes on the download page", async () => {
     const server = createFakeServer({ setup_required: true, authenticated: false });
     installFakeApi(server);
     const { user, router } = renderApp("/");
@@ -17,7 +17,7 @@ describe("SetupPage", () => {
     await user.type(screen.getByLabelText("Repeat password"), "long-enough");
     await user.click(screen.getByRole("button", { name: "Finish setup" }));
 
-    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Download" })).toBeInTheDocument();
     expect(server.requests).toContain("POST /api/auth/setup");
   });
 
@@ -72,6 +72,6 @@ describe("SetupPage", () => {
     await user.clear(password);
     await user.type(password, FAKE_PASSWORD);
     await user.click(screen.getByRole("button", { name: "Finish setup" }));
-    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Download" })).toBeInTheDocument();
   });
 });

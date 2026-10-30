@@ -10,16 +10,17 @@ describe("AppLayout", () => {
 
     await user.click(await screen.findByRole("button", { name: "Open menu" }));
     const menu = await screen.findByRole("dialog");
-    await user.click(within(menu).getByRole("link", { name: "Dashboard" }));
+    await user.click(within(menu).getByRole("link", { name: "Queue" }));
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(await screen.findByRole("heading", { name: "Queue" })).toBeInTheDocument();
   });
 
   it("hides sign out when auth is handled by a proxy", async () => {
     installFakeApi(createFakeServer({ auth_mode: "none" }));
     renderApp("/");
 
-    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Download" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Sign out" })).not.toBeInTheDocument();
   });
 });

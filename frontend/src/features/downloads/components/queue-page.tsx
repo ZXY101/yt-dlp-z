@@ -7,7 +7,6 @@ import { FormError } from "@/components/form-error";
 import { PageHeader } from "@/components/page-header";
 import { useJobs } from "@/features/downloads/api";
 import { JobList } from "@/features/downloads/components/job-card";
-import { NewDownloadButton } from "@/features/downloads/components/new-download-button";
 import { isActiveJob } from "@/features/downloads/jobs";
 import type { Job } from "@/features/downloads/types";
 
@@ -51,7 +50,7 @@ export function QueuePage() {
   const jobs = useJobs();
   return (
     <div className="space-y-6">
-      <PageHeader title="Queue" action={<NewDownloadButton />} />
+      <PageHeader title="Queue" />
       <QueueContent jobs={jobs} />
     </div>
   );

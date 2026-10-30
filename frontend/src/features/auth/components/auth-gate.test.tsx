@@ -14,6 +14,6 @@ describe("AuthGate", () => {
 
     server.failWith = null;
     await user.click(screen.getByRole("button", { name: "Try again" }));
-    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Download" })).toBeInTheDocument();
   });
 });

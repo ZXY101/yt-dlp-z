@@ -29,7 +29,7 @@ describe("systemWarnings", () => {
 });
 
 describe("SystemWarnings", () => {
-  it("shows warnings on the dashboard", async () => {
+  it("shows warnings on the download page", async () => {
     const server = createFakeServer();
     server.system = { ...healthy, ffmpeg_available: false };
     installFakeApi(server);

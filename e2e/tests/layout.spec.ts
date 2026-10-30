@@ -10,7 +10,7 @@ test.describe("app layout", () => {
   test.beforeEach(async ({ page, request }) => {
     await completeSetupViaApi(request);
     await signIn(page);
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Download", exact: true })).toBeVisible();
   });
 
   test("desktop shows the sidebar navigation", async ({ page }, testInfo) => {
@@ -27,9 +27,10 @@ test.describe("app layout", () => {
 
     await page.getByRole("button", { name: "Open menu" }).click();
     const menu = page.getByRole("dialog");
-    await expect(menu.getByRole("link", { name: "Dashboard" })).toBeVisible();
+    await expect(menu.getByRole("link", { name: "Download", exact: true })).toBeVisible();
 
-    await menu.getByRole("link", { name: "Dashboard" }).click();
+    await menu.getByRole("link", { name: "Queue" }).click();
     await expect(menu).toBeHidden();
+    await expect(page.getByRole("heading", { name: "Queue" })).toBeVisible();
   });
 });

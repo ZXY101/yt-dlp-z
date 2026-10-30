@@ -14,7 +14,7 @@ const FAILING_URL = "https://example.com/watch/fail";
 const SLOW_URL = "https://example.com/watch/slow";
 
 async function startDownload(page: Page, url: string) {
-  await page.goto("/download");
+  await page.goto("/");
   await page.getByLabel("Link").fill(url);
   await page.getByRole("button", { name: "Download" }).click();
   await expect(page).toHaveURL(/\/queue$/);
@@ -24,11 +24,11 @@ test.describe("downloads", () => {
   test.beforeEach(async ({ page, request }) => {
     await completeSetupViaApi(request);
     await signIn(page);
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Download", exact: true })).toBeVisible();
   });
 
   test("a download runs to completion", async ({ page }) => {
-    await page.goto("/download");
+    await page.goto("/");
     await expectNoHorizontalScroll(page);
     await page.getByLabel("Link").fill(QUICK_URL);
     await page.getByLabel("Save to").fill("e2e");
@@ -58,30 +58,27 @@ test.describe("downloads", () => {
     await expect(finished.getByText("Failed")).toBeVisible();
   });
 
-  test("a running download can be cancelled from the dashboard", async ({ page }) => {
+  test("a running download can be cancelled from the queue", async ({ page }) => {
     await startDownload(page, SLOW_URL);
-    await expect(page.getByText(/% · /)).toBeVisible();
-
-    await page.goto("/");
-    const active = page.getByRole("list", { name: "Active downloads" });
+    const active = page.getByRole("list", { name: "In progress" });
+    await expect(active.getByText(/% · /)).toBeVisible();
     await expect(active.getByText("Downloading")).toBeVisible();
     await expectNoHorizontalScroll(page);
     await active.getByRole("button", { name: "Cancel Fake video slow" }).click();
 
-    await expect(page.getByText("Nothing downloading right now")).toBeVisible();
-    await page.goto("/queue");
+    await expect(active).toBeHidden();
     await expect(page.getByRole("list", { name: "Finished" }).getByText("Cancelled")).toBeVisible();
   });
 
   test("blocked yt-dlp options are refused", async ({ page }) => {
-    await page.goto("/download");
+    await page.goto("/");
     await page.getByLabel("Link").fill(QUICK_URL);
     await page.getByRole("button", { name: "Advanced options" }).click();
     await page.getByLabel("Extra yt-dlp options").fill("--exec 'touch /tmp/pwned'");
     await page.getByRole("button", { name: "Download" }).click();
 
     await expect(page.getByText(/--exec isn't allowed/)).toBeVisible();
-    await expect(page).toHaveURL(/\/download$/);
+    await expect(page).toHaveURL(/:\d+\/$/);
   });
 
   test("finished downloads can be removed from the list", async ({ page }) => {
