@@ -58,6 +58,8 @@ async def create_job(body: JobCreate, state: State, db: Db) -> JobOut:
     )
     db.add(job)
     await db.commit()
+    # SQLite can reuse the id of a deleted job; a new job must not inherit its log.
+    job_log_path(state.settings, job.id).unlink(missing_ok=True)
     publish_job(state.hub, job)
     state.jobs.submit(job.id)
     return JobOut.model_validate(job)

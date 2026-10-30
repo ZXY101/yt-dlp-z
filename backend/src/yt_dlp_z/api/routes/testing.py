@@ -1,5 +1,7 @@
 """Endpoints for the E2E suite. Only mounted when YTDLPZ_TEST_MODE is set."""
 
+import shutil
+
 from fastapi import APIRouter, status
 from sqlalchemy import delete
 
@@ -16,6 +18,7 @@ async def reset(state: State, db: Db) -> None:
     for table in reversed(Base.metadata.sorted_tables):
         await db.execute(delete(table))
     await db.commit()
+    shutil.rmtree(state.settings.config_dir / "logs", ignore_errors=True)
     state.login_limiter.reset()
     # Mirror a fresh start, which applies YTDLPZ_ADMIN_PASSWORD.
     if state.settings.admin_password is not None:

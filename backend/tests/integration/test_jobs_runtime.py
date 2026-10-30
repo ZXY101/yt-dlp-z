@@ -117,6 +117,8 @@ def test_test_reset_stops_running_jobs(setup_client: TestClient) -> None:
     wait_for_job(setup_client, job["id"], {"running"})
     assert setup_client.post("/api/test/reset").status_code == 204
     assert setup_client.get("/api/auth/status").json()["setup_required"] is True
+    state: AppState = setup_client.app.state.app_state  # type: ignore[attr-defined]
+    assert not (state.settings.config_dir / "logs").exists()
 
 
 def test_shutdown_stops_running_downloads(
