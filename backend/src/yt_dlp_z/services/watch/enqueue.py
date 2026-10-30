@@ -1,5 +1,6 @@
 """Creates the download or recording job for a subscription's new video, using its preset."""
 
+import dataclasses
 from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -9,10 +10,11 @@ from yt_dlp_z.db.models.job import Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.db.models.preset import Preset
 from yt_dlp_z.db.models.subscription import Subscription
 from yt_dlp_z.db.models.video import Video
-from yt_dlp_z.services import auth_service
+from yt_dlp_z.services import app_settings, auth_service
 from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs.job_run import job_log_path, publish_job
 from yt_dlp_z.services.jobs.queues import JobQueues
+from yt_dlp_z.services.live.plan import RecordingPlan, plan_recording
 from yt_dlp_z.services.live.scheduler import recording_status
 from yt_dlp_z.services.paths import InvalidPathError, resolve_job_dir
 from yt_dlp_z.services.watch.probe import video_url
@@ -64,6 +66,12 @@ def _kind_and_status(video: Video) -> tuple[JobKind, JobStatus]:
     return JobKind.LIVE, recording_status(video.release_at, utcnow())
 
 
+async def _recording_plan(session: AsyncSession, video: Video) -> RecordingPlan:
+    live_since = video.release_at if video.live_status == "is_live" else None
+    settings = await app_settings.get_recording_settings(session)
+    return plan_recording(settings, live_since, utcnow())
+
+
 async def enqueue_video(
     context: WatchContext, session: AsyncSession, subscription: Subscription, video: Video
 ) -> Job:
@@ -72,6 +80,7 @@ async def enqueue_video(
     preset = await preset_for(session, subscription)
     requested_dir = subscription.output_dir or (preset.output_dir if preset else None)
     kind, status = _kind_and_status(video)
+    plan = await _recording_plan(session, video) if kind == JobKind.LIVE else None
     job = Job(
         url=video_url(video.video_id),
         # Known from the feed or probe; shown until yt-dlp reports its own.
@@ -79,6 +88,7 @@ async def enqueue_video(
         status=status,
         kind=kind,
         scheduled_at=video.release_at if kind == JobKind.LIVE else None,
+        **(dataclasses.asdict(plan) if plan else {}),
         options=dict(preset.options) if preset else {},
         extra_args=preset.extra_args if preset else "",
         cookie_id=effective_cookie_id(subscription, preset),

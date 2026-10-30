@@ -29,8 +29,9 @@ async def save(session: AsyncSession, job: Job, **changes: Any) -> Job:
 
 async def recover_after_restart(session: AsyncSession) -> list[tuple[int, JobKind]]:
     """Fails downloads that were running when the app stopped, and queues interrupted
-    recordings again (a stream can't wait for someone to press Retry; yt-dlp picks it up
-    from the start). Returns the queued jobs."""
+    recordings again: a stream can't wait for someone to press Retry. They continue as the
+    next part, from now (the part before was saved when the app stopped). Returns the
+    queued jobs."""
     running = Job.status == JobStatus.RUNNING
     await session.execute(
         update(Job)
@@ -45,7 +46,7 @@ async def recover_after_restart(session: AsyncSession) -> list[tuple[int, JobKin
     await session.execute(
         update(Job)
         .where(running, Job.kind == JobKind.LIVE)
-        .values(**retry_changes(), revision=Job.revision + 1)
+        .values(**retry_changes(), record_from_start=False, revision=Job.revision + 1)
     )
     await session.commit()
     result = await session.execute(

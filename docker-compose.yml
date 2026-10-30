@@ -19,3 +19,5 @@ services:
       - ./config:/config
       - ./downloads:/downloads
     restart: unless-stopped
+    # Time to finish files of running recordings when stopped (Docker's default is 10 s).
+    stop_grace_period: 2m

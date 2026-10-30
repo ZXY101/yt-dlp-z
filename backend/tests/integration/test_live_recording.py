@@ -35,9 +35,10 @@ def watch_url(video_id: str) -> str:
     return f"https://www.youtube.com/watch?v={video_id}"
 
 
-def insert_recording(client: TestClient, url: str, starts_in: timedelta) -> int:
+def insert_recording(client: TestClient, url: str, starts_in: timedelta, **fields: Any) -> int:
     """A scheduled recording, written straight to the DB like the watcher does."""
     state = app_state(client)
+    output_dir = client.get("/api/settings").json()["download_dir"]
 
     async def insert() -> int:
         async with state.session_factory() as session:
@@ -46,13 +47,20 @@ def insert_recording(client: TestClient, url: str, starts_in: timedelta) -> int:
                 status=JobStatus.SCHEDULED,
                 kind=JobKind.LIVE,
                 scheduled_at=utcnow() + starts_in,
-                output_dir=str(state.settings.config_dir),
+                output_dir=output_dir,
+                **fields,
             )
             session.add(job)
             await session.commit()
             return job.id
 
     return asyncio.run(insert())
+
+
+def start_recording(client: TestClient, url: str, **fields: Any) -> int:
+    job_id = insert_recording(client, url, timedelta(0), **fields)
+    run_scheduler(client)
+    return job_id
 
 
 def run_scheduler(client: TestClient) -> None:
@@ -180,3 +188,50 @@ def test_a_failing_streams_tab_does_not_fail_the_check(
     checked = wait_for_check(watch_client, created["id"])
     assert checked["last_error"] is None
     assert video_states(watch_client, created["id"]) == {"plain": ("queued", None)}
+
+
+def saved_files(client: TestClient) -> list[str]:
+    folder = Path(client.get("/api/settings").json()["download_dir"])
+    return sorted(path.name for path in folder.iterdir())
+
+
+def test_long_recordings_are_split_into_parts(watch_client: TestClient) -> None:
+    job_id = start_recording(watch_client, watch_url("slow-live"), part_seconds=1, max_seconds=3)
+    job = wait_for_job(watch_client, job_id, FINISHED)
+    assert job["status"] == "completed"
+    assert job["part"] == 3
+    assert saved_files(watch_client) == [
+        f"Fake video slow-live [slow-live] (part {part}).mp4" for part in (1, 2, 3)
+    ]
+    log = watch_client.get(f"/api/jobs/{job_id}/log").text
+    # Only the first part records from the start; later ones continue from now.
+    assert log.count("--live-from-start") == 1
+
+
+def test_a_maximum_length_stops_the_recording(watch_client: TestClient) -> None:
+    job_id = start_recording(watch_client, watch_url("slow-live"), max_seconds=1)
+    assert wait_for_job(watch_client, job_id, FINISHED)["status"] == "completed"
+    assert saved_files(watch_client) == ["Fake video slow-live [slow-live].mp4"]
+
+
+def test_a_stopped_recording_keeps_what_it_recorded(watch_client: TestClient) -> None:
+    job_id = start_recording(watch_client, watch_url("slow-live"))
+    wait_for_job(watch_client, job_id, {"running"})
+    response = watch_client.post(f"/api/jobs/{job_id}/cancel")
+    assert response.json()["status"] == "cancelled"
+    assert response.json()["filepath"].endswith("Fake video slow-live [slow-live].mp4")
+    assert saved_files(watch_client) == ["Fake video slow-live [slow-live].mp4"]
+
+
+def test_streams_live_for_hours_are_recorded_from_now(
+    watch_client: TestClient, feeds: Path
+) -> None:
+    write_feed(feeds, CHANNEL_ID, [])
+    created = subscribe(watch_client, filters=STREAMS_TOO)
+    wait_for_check(watch_client, created["id"])
+    write_feed(feeds, CHANNEL_ID, ["live-old1", "live1"])
+    check(watch_client, created["id"])
+    jobs = jobs_by_url(watch_client)
+    assert jobs[watch_url("live-old1")]["record_from_start"] is False
+    assert jobs[watch_url("live1")]["record_from_start"] is True
+    assert jobs[watch_url("live1")]["part_seconds"] == 6 * 3600

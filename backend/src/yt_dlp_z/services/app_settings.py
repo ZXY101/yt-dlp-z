@@ -2,6 +2,7 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from yt_dlp_z.schemas.app_settings import DEFAULT_RECORDING, RecordingSettings
 from yt_dlp_z.services.settings_store import get_value, set_values
 
 MAX_CONCURRENT_DOWNLOADS = "max_concurrent_downloads"
@@ -36,3 +37,26 @@ async def get_max_subscriptions(session: AsyncSession) -> int:
 
 async def set_max_subscriptions(session: AsyncSession, limit: int) -> None:
     await set_values(session, {MAX_SUBSCRIPTIONS: str(limit)})
+
+
+# Hours; empty means "off". Unset keys fall back to RecordingSettings' defaults.
+RECORDING_KEYS = {
+    "part_hours": "recording_part_hours",
+    "max_hours": "recording_max_hours",
+    "from_start_max_hours": "recording_from_start_max_hours",
+}
+
+
+async def get_recording_settings(session: AsyncSession) -> RecordingSettings:
+    values = DEFAULT_RECORDING.model_dump()
+    for field, key in RECORDING_KEYS.items():
+        stored = await get_value(session, key)
+        if stored is not None:
+            values[field] = int(stored) if stored else None
+    return RecordingSettings.model_validate(values)
+
+
+async def set_recording_settings(session: AsyncSession, recording: RecordingSettings) -> None:
+    stored = recording.model_dump()
+    values = {key: str(stored[field] or "") for field, key in RECORDING_KEYS.items()}
+    await set_values(session, values)

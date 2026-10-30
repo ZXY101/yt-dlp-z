@@ -52,14 +52,14 @@ class JobManager:
     def submit(self, job_id: int) -> None:
         self._queue.put_nowait(job_id)
 
-    async def cancel(self, job_id: int) -> None:
+    async def cancel(self, job_id: int, graceful: bool = False) -> None:
         """Stops a running job and waits until its final status is saved.
-        Queued jobs only need their DB status changed."""
+        Queued jobs only need their DB status changed. `graceful`: see stop_process."""
         self._cancelled.add(job_id)
         finished = self._finished.get(job_id)
         process = self._processes.get(job_id)
         if process is not None:
-            await stop_process(process)
+            await stop_process(process, graceful=graceful)
         if finished is not None:
             await asyncio.wait_for(finished.wait(), FINISH_TIMEOUT_SECONDS)
 

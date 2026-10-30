@@ -18,6 +18,7 @@ async def get_settings(state: State, db: Db) -> AppSettings:
         max_concurrent_downloads=state.jobs.downloads.limit,
         max_concurrent_recordings=state.jobs.recordings.limit,
         max_subscriptions=await app_settings.get_max_subscriptions(db),
+        recording=await app_settings.get_recording_settings(db),
     )
 
 
@@ -32,6 +33,7 @@ async def update_settings(body: AppSettings, state: State, db: Db) -> AppSetting
     await app_settings.set_max_concurrent_downloads(db, body.max_concurrent_downloads)
     await app_settings.set_max_concurrent_recordings(db, body.max_concurrent_recordings)
     await app_settings.set_max_subscriptions(db, body.max_subscriptions)
+    await app_settings.set_recording_settings(db, body.recording)
     state.jobs.downloads.set_limit(body.max_concurrent_downloads)
     state.jobs.recordings.set_limit(body.max_concurrent_recordings)
     return body.model_copy(update={"download_dir": str(download_dir)})
