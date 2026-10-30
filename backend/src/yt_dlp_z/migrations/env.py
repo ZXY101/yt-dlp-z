@@ -1,8 +1,8 @@
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+import yt_dlp_z.db.models  # noqa: F401  (registers every model)
 from yt_dlp_z.db.base import Base
-from yt_dlp_z.db.models import setting  # noqa: F401  (registers the model)
 
 config = context.config
 target_metadata = Base.metadata

@@ -3,6 +3,7 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import HTTPConnection
 
 from yt_dlp_z.api.session_cookie import SESSION_COOKIE
 from yt_dlp_z.api.state import AppState
@@ -26,10 +27,10 @@ async def get_db(state: State) -> AsyncIterator[AsyncSession]:
 Db = Annotated[AsyncSession, Depends(get_db)]
 
 
-async def is_authenticated(request: Request, state: AppState, db: AsyncSession) -> bool:
+async def is_authenticated(connection: HTTPConnection, state: AppState, db: AsyncSession) -> bool:
     if state.settings.auth_mode is AuthMode.NONE:
         return True
-    token = request.cookies.get(SESSION_COOKIE)
+    token = connection.cookies.get(SESSION_COOKIE)
     if token is None:
         return False
     token_version = state.signer.read_version(token)
