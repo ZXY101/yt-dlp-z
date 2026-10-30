@@ -23,6 +23,8 @@ class FeedEntry:
     video_id: str
     title: str
     published_at: datetime | None
+    # Found by the streams-tab sweep, not the feed (see watch/streams.py).
+    from_streams_tab: bool = False
 
 
 def _published(text: str | None) -> datetime | None:

@@ -9,7 +9,9 @@ The URL picks the behaviour:
   ...stubborn...  slow, and ignores SIGTERM (for the force-kill fallback)
   anything else   finishes in about a quarter of a second
 With --simulate (the cookies check) it prints the title, or fails for ...fail... URLs.
-With -J it prints metadata instead (see metadata()): a channel for /@handle URLs,
+With -J it prints metadata instead (see metadata()): a channel for /@handle URLs, the
+streams tab for /channel/<id>/streams URLs (entries for ids containing "streamer",
+an error for "broken"),
 otherwise a video whose id picks its kind (short, upcoming, live, members, broken, long);
 members-only videos only open with --cookies.
 With --cookies it reports how many cookie lines the file had, so tests can see it was passed.
@@ -85,7 +87,23 @@ def video_metadata(video_id: str, has_cookies: bool) -> int:
     return 0
 
 
+def streams_tab(url: str) -> int:
+    if "broken" in url:
+        return fail_json("This channel has no streams tab")
+    entries: list[dict[str, str]] = []
+    if "streamer" in url:
+        entries = [
+            {"id": "live-tab1", "title": "Tab live"},
+            {"id": "ended-tab1", "title": "Tab ended"},
+            {"title": "An entry without an id"},
+        ]
+    emit(json.dumps({"id": "streams", "entries": entries}))
+    return 0
+
+
 def metadata(url: str, args: list[str]) -> int:
+    if url.endswith("/streams"):
+        return streams_tab(url)
     if "/@" in url:
         return channel_metadata(url)
     return video_metadata(video_id_of(url), has_cookies="--cookies" in args)

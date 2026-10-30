@@ -2,11 +2,13 @@ from datetime import UTC, date, datetime, timedelta
 
 import pytest
 
+from yt_dlp_z.db.models.subscription import Subscription
 from yt_dlp_z.schemas.subscriptions import ContentType, SubscriptionFilters
 from yt_dlp_z.services.watch.channel import ChannelError, channel_from_info, channel_url
 from yt_dlp_z.services.watch.feed import FeedError, feed_url, parse_feed
 from yt_dlp_z.services.watch.filters import skip_reason
 from yt_dlp_z.services.watch.probe import VideoInfo, info_from_json
+from yt_dlp_z.services.watch.streams import sweep_due
 from yt_dlp_z.services.watch.watcher import is_due
 
 ATOM = (
@@ -146,3 +148,15 @@ def test_is_due() -> None:
     assert not is_due(NOW - timedelta(minutes=10), 10, 0.1, NOW)
     # SQLite hands back naive datetimes; they are UTC.
     assert is_due((NOW - timedelta(minutes=11)).replace(tzinfo=None), 10, 0.0, NOW)
+
+
+def test_streams_sweep_runs_every_30_minutes_for_stream_subscriptions() -> None:
+    now = datetime(2026, 10, 30, 12, 0, tzinfo=UTC)
+    streams = {"content_types": ["video", "stream"]}
+    assert sweep_due(Subscription(filters=streams, streams_checked_at=None), now)
+    recent = now - timedelta(minutes=29)
+    assert not sweep_due(Subscription(filters=streams, streams_checked_at=recent), now)
+    # SQLite hands back naive datetimes; they are UTC.
+    old = (now - timedelta(minutes=30)).replace(tzinfo=None)
+    assert sweep_due(Subscription(filters=streams, streams_checked_at=old), now)
+    assert not sweep_due(Subscription(filters={"content_types": ["video"]}), now)

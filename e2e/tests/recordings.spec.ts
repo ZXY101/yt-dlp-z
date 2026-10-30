@@ -13,10 +13,10 @@ import {
 // "upcoming" (starts in 2100) or "live" as streams (see stub/fake_yt_dlp.py).
 const DEMO_ID = "UCdemo";
 
-async function watchStreams(page: Page) {
+async function watchStreams(page: Page, channel = "@demo", backfill = "0") {
   await page.goto("/subscriptions/new");
-  await page.getByLabel("Channel", { exact: true }).fill("@demo");
-  await page.getByLabel("Download recent uploads now").fill("0");
+  await page.getByLabel("Channel", { exact: true }).fill(channel);
+  await page.getByLabel("Download recent uploads now").fill(backfill);
   await page.getByLabel("Live streams and premieres").check();
   await page.getByRole("button", { name: "Save subscription" }).click();
   await expect(page.getByText(/Checked just now/)).toBeVisible();
@@ -66,5 +66,15 @@ test.describe("recordings", () => {
     const finished = page.getByRole("list", { name: "Finished" });
     await expect(finished.getByText("Cancelled")).toBeVisible();
     await expect(page.getByRole("list", { name: "Scheduled" })).toHaveCount(0);
+  });
+
+  test("streams the feed missed are found on the streams tab", async ({ page, request }) => {
+    // The fake channel @streamer has a live and an ended stream on its streams tab only.
+    await setFeed(request, "UCstreamer", []);
+    await watchStreams(page, "@streamer", "5");
+    await page.getByRole("link", { name: "Edit Fake streamer" }).click();
+    const videos = page.getByRole("list", { name: "Recent videos" });
+    await expect(videos.getByText("Recording", { exact: true })).toBeVisible();
+    await expect(videos.getByText("Found on the streams tab after it ended")).toBeVisible();
   });
 });

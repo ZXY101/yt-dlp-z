@@ -146,3 +146,35 @@ def test_recordings_do_not_wait_behind_downloads(watch_client: TestClient) -> No
     assert wait_for_job(watch_client, recording, FINISHED)["status"] == "completed"
     assert watch_client.get(f"/api/jobs/{waiting['id']}").json()["status"] == "queued"
     watch_client.post(f"/api/jobs/{slow['id']}/cancel")
+
+
+def test_the_streams_tab_catches_streams_the_feed_missed(
+    watch_client: TestClient, feeds: Path
+) -> None:
+    write_feed(feeds, "UCstreamer", [])
+    created = subscribe(watch_client, channel="@streamer", backfill=5, filters=STREAMS_TOO)
+    wait_for_check(watch_client, created["id"])
+
+    states = video_states(watch_client, created["id"])
+    assert states["live-tab1"] == ("live", None)
+    assert states["ended-tab1"] == ("skipped", "Found on the streams tab after it ended")
+    assert jobs_by_url(watch_client)[watch_url("live-tab1")]["kind"] == "live"
+
+
+def test_the_streams_tab_is_left_alone_without_the_stream_filter(
+    watch_client: TestClient, feeds: Path
+) -> None:
+    write_feed(feeds, "UCstreamer", [])
+    created = subscribe(watch_client, channel="@streamer", backfill=5)
+    wait_for_check(watch_client, created["id"])
+    assert video_states(watch_client, created["id"]) == {}
+
+
+def test_a_failing_streams_tab_does_not_fail_the_check(
+    watch_client: TestClient, feeds: Path
+) -> None:
+    write_feed(feeds, "UCbrokenstreams", ["plain"])
+    created = subscribe(watch_client, channel="@brokenstreams", backfill=5, filters=STREAMS_TOO)
+    checked = wait_for_check(watch_client, created["id"])
+    assert checked["last_error"] is None
+    assert video_states(watch_client, created["id"]) == {"plain": ("queued", None)}
