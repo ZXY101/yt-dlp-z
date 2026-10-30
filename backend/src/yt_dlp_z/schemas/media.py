@@ -24,7 +24,7 @@ class MediaInfo(BaseModel):
     title: str | None
     uploader: str | None
     thumbnail: str | None
-    # yt-dlp's name for the site, e.g. "Youtube", "Vimeo".
+    # The site's domain, e.g. "youtube.com"; else yt-dlp's name for it.
     site: str | None
     duration: int | None
     # Playlists: how many entries, when the site says or the list is short.

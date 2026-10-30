@@ -46,10 +46,20 @@ def test_a_page_of_playlists_is_a_channel() -> None:
     assert info({"_type": "playlist", "entries": tabs}).kind == "channel"
 
 
-def test_playlist_thumbnail_is_the_largest_listed() -> None:
-    thumbnails = [{"url": "https://img.example/s.jpg"}, {}, {"url": "https://img.example/l.jpg"}]
+def test_playlist_thumbnail_is_the_largest_with_a_size() -> None:
+    thumbnails = [
+        {"url": "https://img.example/s.jpg", "width": 10, "height": 10},
+        {},
+        {"url": "https://img.example/l.jpg", "width": 900, "height": 900},
+        {"url": "https://img.example/uncropped.jpg"},
+    ]
     result = info({"_type": "playlist", "entries": [], "thumbnails": thumbnails})
     assert result.thumbnail == "https://img.example/l.jpg"
+
+
+def test_site_prefers_the_domain() -> None:
+    result = info({"webpage_url_domain": "youtube.com", "extractor_key": "YoutubeTab"})
+    assert result.site == "youtube.com"
 
 
 def test_upcoming_stream_reports_its_start() -> None:
@@ -77,7 +87,6 @@ def test_probe_args() -> None:
         "--flat-playlist",
         "--playlist-items",
         f"1:{ENTRY_LIMIT}",
-        "--ignore-no-formats-error",
     ]
     with_both = probe_args(cookies=None, no_playlist=True)
     assert with_both[-1] == "--no-playlist"

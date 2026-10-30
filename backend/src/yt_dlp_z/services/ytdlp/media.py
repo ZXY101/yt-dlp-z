@@ -7,18 +7,19 @@ from typing import Any
 from yt_dlp_z.schemas.app_settings import RecordingSettings
 from yt_dlp_z.schemas.media import MediaInfo, MediaKind
 from yt_dlp_z.services.live.plan import plan_recording
-from yt_dlp_z.services.ytdlp.json_run import run_ytdlp_json
+from yt_dlp_z.services.ytdlp.json_run import YtdlpJsonError, run_ytdlp_json
 
 # Playlist entries listed by the check. Listing a whole channel can take minutes.
 ENTRY_LIMIT = 50
 MEMBERS_ONLY = {"subscriber_only", "premium_only"}
 LIVE_KINDS: dict[str, MediaKind] = {"is_live": "live", "is_upcoming": "upcoming"}
+# yt-dlp's errors for streams and premieres that haven't started ("This live event will
+# begin in 3 hours", "Premieres in 2 days").
+UPCOMING_HINTS = ("will begin", "premieres in")
 
 
 def probe_args(*, cookies: Path | None, no_playlist: bool) -> list[str]:
-    # Upcoming streams have no formats yet; without --ignore-no-formats-error yt-dlp
-    # fails on them instead of reporting their start time.
-    args = ["--flat-playlist", "--playlist-items", f"1:{ENTRY_LIMIT}", "--ignore-no-formats-error"]
+    args = ["--flat-playlist", "--playlist-items", f"1:{ENTRY_LIMIT}"]
     if no_playlist:
         args.append("--no-playlist")
     if cookies is not None:
@@ -30,7 +31,15 @@ async def probe_media(
     ytdlp_command: list[str], url: str, *, cookies: Path | None, no_playlist: bool
 ) -> dict[str, Any]:
     args = probe_args(cookies=cookies, no_playlist=no_playlist)
-    return await run_ytdlp_json(ytdlp_command, args, url)
+    try:
+        return await run_ytdlp_json(ytdlp_command, args, url)
+    except YtdlpJsonError as error:
+        if not any(hint in str(error).lower() for hint in UPCOMING_HINTS):
+            raise
+    # Upcoming streams have no formats yet, so yt-dlp needs this to report their start
+    # time. Only used for them: it also turns real failures (unavailable videos, ended
+    # streams) into empty results that look fine.
+    return await run_ytdlp_json(ytdlp_command, [*args, "--ignore-no-formats-error"], url)
 
 
 def _text(data: dict[str, Any], *keys: str) -> str | None:
@@ -50,13 +59,20 @@ def _timestamp(value: object) -> datetime | None:
     return datetime.fromtimestamp(seconds, UTC) if seconds is not None else None
 
 
+def _area(thumbnail: dict[str, Any]) -> int:
+    return (_number(thumbnail.get("width")) or 0) * (_number(thumbnail.get("height")) or 0)
+
+
 def _thumbnail(data: dict[str, Any]) -> str | None:
     if thumbnail := _text(data, "thumbnail"):
         return thumbnail
-    # Playlists list several sizes, smallest first.
+    # Playlists and channels list several; entries without a size (a channel's
+    # "avatar_uncropped") may not display, so the largest sized one wins.
     thumbnails = [t for t in data.get("thumbnails") or [] if isinstance(t, dict)]
-    urls = [t["url"] for t in thumbnails if isinstance(t.get("url"), str)]
-    return urls[-1] if urls else None
+    usable = [t for t in thumbnails if isinstance(t.get("url"), str)]
+    if not usable:
+        return None
+    return str(max(usable, key=_area)["url"])
 
 
 def _entries(data: dict[str, Any]) -> list[dict[str, Any]]:
@@ -92,7 +108,7 @@ def media_info(data: dict[str, Any], recording: RecordingSettings, now: datetime
         title=_text(data, "title"),
         uploader=_text(data, "uploader", "channel", "playlist_uploader"),
         thumbnail=_thumbnail(data),
-        site=_text(data, "extractor_key"),
+        site=_text(data, "webpage_url_domain", "extractor_key"),
         duration=_number(data.get("duration")),
         entry_count=_entry_count(data) if kind in {"playlist", "channel"} else None,
         starts_at=release if kind == "upcoming" else None,
