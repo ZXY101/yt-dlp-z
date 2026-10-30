@@ -6,8 +6,8 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 6 (ops): in progress.** Steps 1–2 (yt-dlp updates) done; next is
-step 3 (ntfy notifications). Milestone 5 is done (a real scheduled stream starting
+**Milestone 6 (ops): in progress.** Steps 1–2 (yt-dlp updates) done. Next:
+presets per kind of link (below), then M6 step 3 (ntfy notifications). Milestone 5 is done (a real scheduled stream starting
 on time is still unchecked, see below).
 
 | Milestone                 | Status      |
@@ -58,6 +58,28 @@ Vitest, pytest and Playwright suites; Docker image; CI for all of it.
 6. PO-token provider (bgutil) recipe.
 7. Docs: configuration.md, ops; healthcheck review.
 
+## Next: presets per kind of link (agreed 2026-10-31, before M6 step 3)
+
+The maintainer asked to rethink the global live-stream settings now that the
+form knows what a link is: recording settings per recording and per
+subscription, carried by presets made for a kind of link ("live stream /
+playlist presets"). Plan:
+
+1. Presets get a "Use for" kind: any link, videos, playlists & channels, live
+   streams. Live-stream presets also hold recording settings (start: from the
+   start / from now / first N hours; new file every N h; stop after N h).
+2. A default preset per kind replaces the single "Use by default". When the
+   check finds a live stream the form picks the default live preset; a
+   playlist picks the playlist preset. The picker lists matching presets
+   first; every field can still be changed for one download.
+3. The download form shows the recording fields for live/upcoming links,
+   prefilled from the preset, with how long the stream has been live.
+4. Subscriptions get a separate preset for their streams, plus the "already
+   live longer than N h when found" rule.
+5. Settings keeps only "Recordings at the same time". A migration turns the
+   current global recording settings into a "Live streams" preset (default
+   for live), so nothing changes on upgrade.
+
 ## Link check on the download form (done 2026-10-31)
 
 Asked by the maintainer: no more blind submits. Typing a link checks it with
@@ -76,7 +98,13 @@ at whichever is picked), live streams offer "from the start / from now" and a
 stream "will begin" / "premieres in": on every run it turned unavailable videos
 and ended streams into empty results that passed (found on real YouTube
 2026-10-31). Verified on real YouTube: video, live (`@LofiGirl/live`), ended
-stream, made-up id, playlist (150), channel. Known gap: the check doesn't pass
+stream, made-up id, playlist (150), channel. Faster since 2026-10-31: without cookies it first
+tries YouTube's `android_vr` player without the JS challenge
+(`youtube:player_skip=js;player_client=android_vr`; about 2 s instead of 6 for
+a video), and any failure falls back to the full check; a pasted link is
+checked at once (typing still waits 0.6 s). Paste-to-card on real YouTube:
+video 2.6–2.9 s, playlist 2.4 s, `@x/live` about 5 s (resolving the channel's
+live page is the slow part). Known gap: the check doesn't pass
 the form's options, so a link that only works through `--proxy` fails the check.
 
 ## Playlist downloads (steps 1–2 done 2026-10-30)
@@ -326,5 +354,8 @@ Still open:
 - **2026-10-31 · Update checks.** Daily check, "available" notice, optional
   auto-update (M6 step 2).
 
-**Next session:** M6 step 3 (ntfy), see "Milestone 6 steps". Still unverified: a real scheduled stream starting on time.
+- **2026-10-31 · Faster link check.** Fast path + check on paste. Agreed the
+  presets-per-kind redesign (see "Next: presets per kind of link").
+
+**Next session:** presets per kind of link (plan above), then M6 step 3 (ntfy). Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.
