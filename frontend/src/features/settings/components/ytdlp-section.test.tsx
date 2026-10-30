@@ -65,3 +65,46 @@ describe("YtdlpSection", () => {
     expect(screen.getByText(/Version 2026.10.26, bundled/)).toBeInTheDocument();
   });
 });
+
+describe("YtdlpSection update checks", () => {
+  it("says when a newer version is out, then that it is the newest", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/settings");
+
+    await user.click(await screen.findByRole("button", { name: "Check for updates" }));
+    expect(await screen.findByText("yt-dlp 2099.1.1 is available.")).toBeInTheDocument();
+    expect(server.ytdlp.using_update).toBe(false);
+
+    await user.click(screen.getByRole("button", { name: "Update now" }));
+    expect(
+      await screen.findByText(/The newest version \(checked/, {}, UPDATE_TIMEOUT),
+    ).toBeInTheDocument();
+  });
+
+  it("turns automatic updates on", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/settings");
+
+    await user.click(await screen.findByLabelText("Update automatically"));
+
+    expect(await screen.findByLabelText("Update automatically")).toBeChecked();
+    expect(server.ytdlp).toMatchObject({ auto_update: true, channel: "stable" });
+  });
+});
+
+describe("YtdlpSection preferences", () => {
+  it("puts the choice back when saving fails", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/settings");
+
+    const checkbox = await screen.findByLabelText("Update automatically");
+    server.failWith = 500;
+    await user.click(checkbox);
+
+    expect(await screen.findByText("Server error")).toBeInTheDocument();
+    expect(screen.getByLabelText("Update automatically")).not.toBeChecked();
+  });
+});

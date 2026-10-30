@@ -7,7 +7,10 @@ export function makeYtdlpInfo(): YtdlpInfo {
     active_version: "2026.10.26",
     using_update: false,
     channel: "stable",
+    auto_update: false,
     update: { state: "idle", message: null, finished_at: null },
+    latest_version: null,
+    checked_at: null,
   };
 }
 
@@ -40,9 +43,19 @@ export const ytdlpRoutes: Route[] = [
   },
   {
     method: "PUT",
-    path: /^\/api\/ytdlp\/channel$/,
+    path: /^\/api\/ytdlp\/preferences$/,
     handle: (server, { body }) => {
       server.ytdlp.channel = body.channel as YtdlpInfo["channel"];
+      server.ytdlp.auto_update = Boolean(body.auto_update);
+      return json(server.ytdlp);
+    },
+  },
+  {
+    method: "POST",
+    path: /^\/api\/ytdlp\/check$/,
+    handle: (server) => {
+      server.ytdlp.latest_version = UPDATED_TO[server.ytdlp.channel];
+      server.ytdlp.checked_at = "2026-10-31T09:00:00+00:00";
       return json(server.ytdlp);
     },
   },
