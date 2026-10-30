@@ -109,10 +109,11 @@ test.describe("downloads", () => {
     await page.goto("/");
     const field = page.getByLabel("Save to");
     await field.click();
-    await field.fill("shows/");
-    const listId = await field.getAttribute("list");
-    const options = page.locator(`datalist[id="${listId}"] option`);
-    await expect(options).toHaveAttribute("value", "shows/season 1");
+    await page.getByRole("option", { name: "shows", exact: true }).click();
+    await expect(field).toHaveValue("shows/");
+    await page.getByRole("option", { name: "shows/season 1" }).click();
+    await expect(field).toHaveValue("shows/season 1/");
+    await expect(page.getByRole("listbox", { name: "Existing folders" })).toBeHidden();
   });
 
   test("finished downloads can be removed from the list", async ({ page }) => {
