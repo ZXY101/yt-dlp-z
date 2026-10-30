@@ -6,7 +6,7 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 5 (live): done** (real-YouTube check still open, see below). Next up: **Milestone 6 (ops).**
+**Milestone 5 (live): done** (a real scheduled stream starting on time is still unchecked, see below). Next up: **Milestone 6 (ops).**
 
 | Milestone                 | Status      |
 | ------------------------- | ----------- |
@@ -58,15 +58,19 @@ Still open:
 1. **Real-YouTube check, partly done 2026-10-30.** Sweep + probe worked on real
    channels; a 60 s real recording (Lofi Girl) worked. It found two bugs, both
    fixed: upcoming streams failed the probe (needs `--ignore-no-formats-error`)
-   and recordings showed no progress (parallel `N: ` prefixed lines). Still to
-   see: a real scheduled stream starting on time, and a finished file after a
-   stream ends. Consider an opt-in `live` Playwright test.
-2. **Open question for the maintainer: 24/7 and long-running streams.**
-   `--live-from-start` fetches everything YouTube keeps (Lofi Girl reported
-   ~1.25M fragments), and a 24/7 stream never ends. Options: record from "now"
-   when a stream has been live for more than a few hours when found; a maximum
-   recording length (e.g. 12 h, configurable); skip streams flagged 24/7 by a
-   title filter. Not decided.
+   and recordings showed no progress (parallel `N: ` prefixed lines). Split
+   recordings checked on real YouTube too (valid parts, stops at the maximum);
+   that found from-now parts showing no progress (ffmpeg's `\r` progress lines),
+   fixed. Still to see: a real scheduled stream starting on time, and a
+   finished file after a stream ends. Consider an opt-in `live` Playwright test.
+2. **24/7 and long streams: done 2026-10-30.** Settings → Recordings (all
+   combinable, each can be turned off): new file every N hours (default 6, so
+   a 24/7 stream records forever in parts), stop after N hours (default off),
+   record from the start unless live longer than N hours (default 6, else
+   from now). Each part is its own yt-dlp run stopped with SIGINT, so parts
+   are merged files; there is a gap of a few seconds between parts. Cancel,
+   shutdown and restart keep the file (restart continues as the next part).
+   Skipping 24/7 streams is done with title filters.
 3. A stream rescheduled _earlier_ after we scheduled it is only caught if a
    later check re-probes it (it doesn't today: videos with a job are done).
    Later yt-dlp `--wait-for-video` covers streams that start late.
@@ -80,6 +84,8 @@ Still open:
 
 - Inner handlers in components use `function handleX()`, not `const` arrows
   (confirmed by the maintainer; enforced by `func-style`).
+- Recording settings are global and copied onto each live job when it is
+  created; per-subscription overrides could come later.
 - Downloads: any yt-dlp site. Channel watching: YouTube only (Twitch later).
 - The watched-channel limit of 5 counts subscriptions, not concurrent downloads.
 - No import of existing archives. The download folder is chosen at first-run
@@ -241,4 +247,9 @@ Still open:
 - **2026-10-30 · Real-YouTube check.** Two fixes from it (upcoming-stream probe,
   recording progress); stub now mimics both real behaviours.
 
-**Next session:** get the maintainer's answer on 24/7 streams (M5 notes item 2) and build it; then milestone 6. `cd ~/dev/yt-dlp-z && git pull && npm run check`. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
+- **2026-10-30 · Split and limited recordings.** Settings → Recordings (parts,
+  maximum length, from-start limit); graceful SIGINT stops; ffmpeg progress
+  for from-now parts. Verified on real YouTube. 240 backend tests, 75 E2E.
+  Deployed ff62e83 on the maintainer's server.
+
+**Next session:** milestone 6 (ops). `cd ~/dev/yt-dlp-z && git pull && npm run check`.
