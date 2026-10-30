@@ -5,6 +5,7 @@ import sys
 from pydantic import ValidationError
 
 from yt_dlp_z.schemas.options import OptionSchema, OptionSpec
+from yt_dlp_z.services.ytdlp.communicate import communicate
 from yt_dlp_z.services.ytdlp.errors import SchemaUnavailableError
 from yt_dlp_z.services.ytdlp.policy import blocked_reason
 
@@ -19,9 +20,9 @@ async def read_option_schema(*, allow_unsafe: bool) -> OptionSchema:
         *DUMP_COMMAND, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
     try:
-        stdout, stderr = await asyncio.wait_for(process.communicate(), TIMEOUT_SECONDS)
+        async with asyncio.timeout(TIMEOUT_SECONDS):
+            stdout, stderr = await communicate(process)
     except TimeoutError as error:
-        process.kill()
         raise SchemaUnavailableError("Reading yt-dlp's options timed out.") from error
     if process.returncode != 0:
         detail = stderr.decode(errors="replace").strip().splitlines()[-1:] or ["no output"]
