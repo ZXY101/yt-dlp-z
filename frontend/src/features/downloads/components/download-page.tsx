@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AdvancedOptions } from "@/features/downloads/components/advanced-options";
 import { CommonOptions } from "@/features/downloads/components/common-options";
 import { useDownloadForm } from "@/features/downloads/hooks/use-download-form";
+import { SystemWarnings } from "@/features/system";
 
 export function DownloadPage() {
   const form = useDownloadForm();
@@ -17,7 +18,8 @@ export function DownloadPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <PageHeader title="New download" />
+      <PageHeader title="Download" />
+      <SystemWarnings />
       <form className="space-y-6" onSubmit={handleSubmit} noValidate>
         <FormError message={form.createJob.isError ? describeError(form.createJob.error) : null} />
         <FormField

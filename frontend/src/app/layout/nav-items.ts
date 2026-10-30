@@ -1,4 +1,4 @@
-import { CirclePlus, LayoutDashboard, ListVideo, type LucideIcon } from "lucide-react";
+import { Download, ListVideo, type LucideIcon } from "lucide-react";
 
 export interface NavItem {
   to: string;
@@ -7,7 +7,6 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/download", label: "New download", icon: CirclePlus },
+  { to: "/", label: "Download", icon: Download },
   { to: "/queue", label: "Queue", icon: ListVideo },
 ];

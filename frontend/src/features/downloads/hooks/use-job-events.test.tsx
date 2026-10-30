@@ -17,7 +17,7 @@ describe("useJobEvents", () => {
   it("connects to the events endpoint on the current host", async () => {
     installFakeApi(createFakeServer());
     renderApp("/");
-    await screen.findByRole("heading", { name: "Dashboard" });
+    await screen.findByRole("heading", { name: "Download" });
     expect(latestSocket().url).toBe(`ws://${window.location.host}/api/ws`);
   });
 
@@ -46,7 +46,7 @@ describe("useJobEvents", () => {
     const server = createFakeServer();
     installFakeApi(server);
     renderApp("/");
-    await screen.findByRole("heading", { name: "Dashboard" });
+    await screen.findByRole("heading", { name: "Download" });
 
     server.status = { ...server.status, authenticated: false };
     act(() => latestSocket().close(4401));

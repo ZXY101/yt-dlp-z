@@ -18,7 +18,7 @@ describe("LoginPage", () => {
     await user.clear(password);
     await user.type(password, FAKE_PASSWORD);
     await user.click(screen.getByRole("button", { name: "Sign in" }));
-    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Download" })).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Sign out" }));
     expect(await screen.findByLabelText("Password")).toBeInTheDocument();
@@ -28,7 +28,7 @@ describe("LoginPage", () => {
     installFakeApi(createFakeServer());
     const { router } = renderApp("/login");
 
-    expect(await screen.findByRole("heading", { name: "Dashboard" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Download" })).toBeInTheDocument();
     expect(router.state.location.pathname).toBe("/");
   });
 });

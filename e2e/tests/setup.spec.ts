@@ -1,7 +1,7 @@
 import { ADMIN_PASSWORD, expect, expectNoHorizontalScroll, test } from "../fixtures/app";
 
 test.describe("first-run setup", () => {
-  test("a fresh install leads through setup into the dashboard", async ({ page }) => {
+  test("a fresh install leads through setup onto the download page", async ({ page }) => {
     await page.goto("/");
     await expect(page).toHaveURL(/\/setup$/);
     await expect(page.getByRole("heading", { name: "Welcome to yt-dlp-z" })).toBeVisible();
@@ -12,9 +12,9 @@ test.describe("first-run setup", () => {
     await page.getByLabel("Repeat password").fill(ADMIN_PASSWORD);
     await page.getByRole("button", { name: "Finish setup" }).click();
 
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Download", exact: true })).toBeVisible();
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Download", exact: true })).toBeVisible();
   });
 
   test("invalid input is explained and nothing is saved", async ({ page }) => {

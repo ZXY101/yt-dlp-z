@@ -15,11 +15,11 @@ test.describe("setup with YTDLPZ_ADMIN_PASSWORD", () => {
 
     await page.getByLabel("Admin password").fill(ENV_ADMIN_PASSWORD);
     await page.getByRole("button", { name: "Finish setup" }).click();
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Download", exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Sign out" }).click();
     await page.getByLabel("Password").fill(ENV_ADMIN_PASSWORD);
     await page.getByRole("button", { name: "Sign in" }).click();
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Download", exact: true })).toBeVisible();
   });
 });

@@ -26,7 +26,7 @@ test.describe("login", () => {
 
   test("signing in and out", async ({ page }) => {
     await signIn(page);
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Download", exact: true })).toBeVisible();
 
     await page.getByRole("button", { name: "Sign out" }).click();
     await expect(page).toHaveURL(/\/login$/);
