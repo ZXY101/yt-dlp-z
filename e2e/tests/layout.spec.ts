@@ -20,6 +20,14 @@ test.describe("app layout", () => {
     await expectNoHorizontalScroll(page);
   });
 
+  test("buttons show a pointer cursor", async ({ page }) => {
+    // Regression: Tailwind v4 resets buttons to the default arrow cursor.
+    const cursor = await page
+      .getByRole("button", { name: "Download" })
+      .evaluate((button) => getComputedStyle(button).cursor);
+    expect(cursor).toBe("pointer");
+  });
+
   test("dark mode also darkens native controls", async ({ page }) => {
     // Regression: select popups stayed white with light text in dark mode.
     await page.emulateMedia({ colorScheme: "dark" });

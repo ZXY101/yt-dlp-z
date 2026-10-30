@@ -2,6 +2,7 @@ import { useId } from "react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 interface CheckboxFieldProps {
   label: string;
@@ -30,7 +31,7 @@ export function CheckboxField({
         aria-describedby={description ? `${id}-description` : undefined}
       />
       <div className="space-y-0.5">
-        <Label htmlFor={id} className="break-all">
+        <Label htmlFor={id} className={cn("break-all", !disabled && "cursor-pointer")}>
           {label}
         </Label>
         {description && (
