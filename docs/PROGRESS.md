@@ -29,6 +29,25 @@ searchable editor for every yt-dlp option), Queue, Subscriptions, Presets,
 Cookies, Settings.
 Vitest, pytest and Playwright suites; Docker image; CI for all of it.
 
+## Do first: playlist downloads (before Milestone 5)
+
+Reported 2026-10-30: pasting a playlist link downloads every video without
+warning. yt-dlp-z passes the URL as-is and yt-dlp takes the whole playlist by
+default, even for `watch?v=…&list=…` links copied from inside a playlist.
+
+1. Video link that also has a playlist (`watch?v=…&list=…`): a choice under the
+   link field, "Just this video" (default, passes `--no-playlist`) / "The whole
+   playlist".
+2. Playlist or channel link (`/playlist?list=…`, `/@channel`, `/videos`): a
+   notice before downloading that every video in it will be downloaded. No
+   count for now (a `--flat-playlist` probe would add seconds per link).
+3. Later: the queue card says "playlist" and which item it is on
+   ("video 3 of 24"), from yt-dlp's playlist_index / n_entries.
+
+Detection is URL parsing in the frontend (generic: other sites' playlists get
+the notice only if yt-dlp-z can recognise them; YouTube first). Unit tests for
+the parser, E2E for both flows (the stub needs a playlist URL behaviour).
+
 ## Next steps (Milestone 5)
 
 See PLAN.md "YouTube channel watching" (the `is_upcoming` / `is_live` paths).
@@ -185,5 +204,5 @@ Subscriptions already record such videos as `upcoming` (with `release_at`) or
   turned out to be the browser's network path, not the app (no requests reached
   the container); fixed on the user's side.
 
-**Next session:** ask whether to build backfill-on-edit (step 7), else start
-milestone 5 step 1. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
+**Next session:** build "Do first: playlist downloads" steps 1–2. Then ask
+about backfill-on-edit (M5 step 7), then milestone 5 step 1. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
