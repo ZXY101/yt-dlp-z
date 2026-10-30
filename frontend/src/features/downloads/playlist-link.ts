@@ -1,11 +1,8 @@
 /**
- * What a link points at, as far as playlists go:
- * - "video-in-playlist": a video opened from inside a playlist (`watch?v=…&list=…`)
- * - "playlist" / "channel": yt-dlp downloads every video in it
- * - undefined: a single video, or a link yt-dlp-z doesn't recognise
+ * Whether a link is a YouTube video opened from inside a playlist (`watch?v=…&list=…`).
+ * yt-dlp downloads the whole playlist for those unless told otherwise, so the form asks.
+ * Other playlists and channels are recognised by the link check (`useLinkCheck`).
  */
-export type PlaylistLinkKind = "video-in-playlist" | "playlist" | "channel";
-
 const YOUTUBE_HOSTS = new Set([
   "youtube.com",
   "www.youtube.com",
@@ -13,35 +10,17 @@ const YOUTUBE_HOSTS = new Set([
   "music.youtube.com",
 ]);
 
-// Channel pages: /@handle, /channel/UC…, /c/name, /user/name, and their tabs.
-const CHANNEL_PATH = /^\/(@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+)(\/|$)/;
-
-export function playlistLinkKind(url: string): PlaylistLinkKind | undefined {
+export function isVideoInPlaylist(url: string) {
   const link = parseUrl(url.trim());
-  if (!link) {
-    return undefined;
+  if (!link?.searchParams.has("list")) {
+    return false;
   }
   if (link.hostname === "youtu.be") {
-    return link.searchParams.has("list") ? "video-in-playlist" : undefined;
+    return true;
   }
-  if (!YOUTUBE_HOSTS.has(link.hostname)) {
-    return undefined;
-  }
-  return youtubeKind(link);
-}
-
-function youtubeKind(link: URL): PlaylistLinkKind | undefined {
-  const hasList = link.searchParams.has("list");
-  if (link.pathname === "/watch") {
-    return hasList && link.searchParams.has("v") ? "video-in-playlist" : undefined;
-  }
-  if (link.pathname === "/playlist") {
-    return hasList ? "playlist" : undefined;
-  }
-  if (CHANNEL_PATH.test(link.pathname)) {
-    return "channel";
-  }
-  return undefined;
+  return (
+    YOUTUBE_HOSTS.has(link.hostname) && link.pathname === "/watch" && link.searchParams.has("v")
+  );
 }
 
 function parseUrl(url: string) {

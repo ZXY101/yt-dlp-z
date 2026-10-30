@@ -40,7 +40,7 @@ test.describe("app layout", () => {
   test("buttons show a pointer cursor", async ({ page }) => {
     // Regression: Tailwind v4 resets buttons to the default arrow cursor.
     const cursor = await page
-      .getByRole("button", { name: "Download" })
+      .getByRole("button", { name: "Advanced options" })
       .evaluate((button) => getComputedStyle(button).cursor);
     expect(cursor).toBe("pointer");
   });

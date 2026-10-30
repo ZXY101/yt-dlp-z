@@ -5,7 +5,9 @@ import { FormField, SelectField } from "@/components/form-field";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { useCookieFiles } from "@/features/cookies";
+import { MediaPreview } from "@/features/downloads/components/media-preview";
 import { PlaylistChoice } from "@/features/downloads/components/playlist-choice";
+import { RecordingChoice } from "@/features/downloads/components/recording-choice";
 import { type DownloadForm, useDownloadForm } from "@/features/downloads/hooks/use-download-form";
 import { SystemWarnings } from "@/features/system";
 
@@ -25,6 +27,28 @@ function PresetField({ choice }: { choice: DownloadForm["presetChoice"] }) {
       choices={choices}
       onValueChange={choice.choose}
     />
+  );
+}
+
+function submitLabel(form: DownloadForm) {
+  if (form.createJob.isPending) {
+    return "Starting…";
+  }
+  const labels = { live: "Record", upcoming: "Schedule recording" };
+  const kind = form.media?.kind;
+  return kind === "live" || kind === "upcoming" ? labels[kind] : "Download";
+}
+
+function SubmitButton({ form }: { form: DownloadForm }) {
+  return (
+    <Button
+      type="submit"
+      size="lg"
+      className="h-10 w-full sm:w-auto"
+      disabled={!form.media || form.createJob.isPending}
+    >
+      {submitLabel(form)}
+    </Button>
   );
 }
 
@@ -51,14 +75,23 @@ export function DownloadPage() {
           hint="A video, playlist or channel from any site yt-dlp supports."
           required
           value={form.url}
-          error={form.urlError}
+          error={form.check.status === "invalid" ? form.check.message : undefined}
           onChange={(event) => form.setUrl(event.target.value)}
         />
+        <MediaPreview check={form.check} />
         <PlaylistChoice
-          kind={form.playlistKind}
+          videoInPlaylist={form.videoInPlaylist}
+          media={form.media}
           wholePlaylist={form.wholePlaylist}
           onWholePlaylistChange={form.setWholePlaylist}
         />
+        {(form.media?.kind === "live" || form.media?.kind === "upcoming") && (
+          <RecordingChoice
+            media={form.media}
+            fromStart={form.fromStart}
+            onFromStartChange={form.setFromStart}
+          />
+        )}
         <PresetField choice={form.presetChoice} />
         <DownloadSettingsFields
           key={form.settingsVersion}
@@ -66,14 +99,7 @@ export function DownloadPage() {
           onChange={form.setSettings}
           cookieFiles={cookieFiles}
         />
-        <Button
-          type="submit"
-          size="lg"
-          className="h-10 w-full sm:w-auto"
-          disabled={form.createJob.isPending}
-        >
-          {form.createJob.isPending ? "Starting…" : "Download"}
-        </Button>
+        <SubmitButton form={form} />
       </form>
     </>
   );

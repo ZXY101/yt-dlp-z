@@ -1,4 +1,4 @@
-import type { Job, JobOptions } from "@/features/downloads/types";
+import type { Job, JobCreate, JobOptions } from "@/features/downloads/types";
 import { type FakeServer, type Route, json, noContent } from "@/test/fake-http";
 import { broadcast } from "@/test/fake-socket";
 
@@ -48,6 +48,19 @@ function updateJob(server: FakeServer, params: string[], changes: Partial<Job>) 
   return json(job);
 }
 
+function recordingFields(recording: JobCreate["recording"]): Partial<Job> {
+  if (!recording) {
+    return {};
+  }
+  const scheduledAt = recording.starts_at ?? null;
+  return {
+    kind: "live",
+    status: scheduledAt ? "scheduled" : "queued",
+    scheduled_at: scheduledAt,
+    record_from_start: recording.from_start,
+  };
+}
+
 function createJob(server: FakeServer, body: Record<string, unknown>) {
   const url = String(body.url ?? "");
   if (!/^https?:\/\//.test(url)) {
@@ -64,6 +77,8 @@ function createJob(server: FakeServer, body: Record<string, unknown>) {
     extra_args: String(body.extra_args ?? ""),
     output_dir: (body.output_dir as string | null) ?? "/downloads",
     cookie_id: (body.cookie_id as number | null | undefined) ?? null,
+    title: (body.title as string | null | undefined) ?? null,
+    ...recordingFields(body.recording as JobCreate["recording"]),
   });
   server.nextJobId += 1;
   server.jobs.push(job);
