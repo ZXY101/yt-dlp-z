@@ -16,12 +16,17 @@ describe("SettingsPage", () => {
     const limit = screen.getByLabelText("Downloads at the same time");
     await user.clear(limit);
     await user.type(limit, "5");
+    const recordings = screen.getByLabelText("Recordings at the same time");
+    expect(recordings).toHaveValue("2");
+    await user.clear(recordings);
+    await user.type(recordings, "4");
     await user.click(screen.getByRole("button", { name: "Save settings" }));
 
     expect(await screen.findByText("Settings saved.")).toBeInTheDocument();
     expect(server.settings).toEqual({
       download_dir: "/media/videos",
       max_concurrent_downloads: 5,
+      max_concurrent_recordings: 4,
       max_subscriptions: 5,
     });
   });

@@ -80,7 +80,9 @@ test.describe("subscriptions", () => {
     await page.getByRole("button", { name: "Check Fake demo now" }).click();
     await page.getByRole("link", { name: "Edit Fake demo" }).click();
     await expect(
-      page.getByRole("list", { name: "Recent videos" }).getByText("Upcoming", { exact: true }),
+      page
+        .getByRole("list", { name: "Recent videos" })
+        .getByText("Recording scheduled", { exact: true }),
     ).toBeVisible();
 
     await page.goto("/subscriptions");

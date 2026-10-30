@@ -7,7 +7,7 @@ import { FormError } from "@/components/form-error";
 import { PageHeader } from "@/components/page-header";
 import { useJobs } from "@/features/downloads/api";
 import { JobList } from "@/features/downloads/components/job-card";
-import { isActiveJob } from "@/features/downloads/jobs";
+import { isActiveJob, isFinishedJob, scheduledJobs } from "@/features/downloads/jobs";
 import type { Job } from "@/features/downloads/types";
 
 function JobSection({ title, jobs }: { title: string; jobs: Job[] }) {
@@ -42,7 +42,8 @@ function QueueContent({ jobs }: { jobs: UseQueryResult<Job[]> }) {
   return (
     <div className="space-y-8">
       <JobSection title="In progress" jobs={jobs.data.filter(isActiveJob)} />
-      <JobSection title="Finished" jobs={jobs.data.filter((job) => !isActiveJob(job))} />
+      <JobSection title="Scheduled" jobs={scheduledJobs(jobs.data)} />
+      <JobSection title="Finished" jobs={jobs.data.filter(isFinishedJob)} />
     </div>
   );
 }
