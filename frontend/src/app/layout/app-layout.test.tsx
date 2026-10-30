@@ -16,6 +16,15 @@ describe("AppLayout", () => {
     expect(await screen.findByRole("heading", { name: "Queue" })).toBeInTheDocument();
   });
 
+  it("goes to the download page from the app name", async () => {
+    installFakeApi(createFakeServer());
+    const { user } = renderApp("/queue");
+
+    await user.click(await screen.findByRole("link", { name: "yt-dlp-z" }));
+
+    expect(await screen.findByRole("heading", { name: "Download" })).toBeInTheDocument();
+  });
+
   it("hides sign out when auth is handled by a proxy", async () => {
     installFakeApi(createFakeServer({ auth_mode: "none" }));
     renderApp("/");

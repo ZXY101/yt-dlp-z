@@ -1,5 +1,5 @@
 import { Download, LogOut } from "lucide-react";
-import { Outlet } from "react-router";
+import { Link, Outlet } from "react-router";
 
 import { MobileNav } from "@/app/layout/mobile-nav";
 import { NavLinks } from "@/app/layout/nav-links";
@@ -32,10 +32,10 @@ export function AppLayout() {
     <div className="flex min-h-svh flex-col">
       <header className="flex h-14 items-center gap-2 border-b px-4">
         <MobileNav />
-        <div className="flex items-center gap-2 font-semibold">
+        <Link to="/" className="flex items-center gap-2 rounded-md font-semibold">
           <Download className="size-5" aria-hidden />
           yt-dlp-z
-        </div>
+        </Link>
         <div className="ml-auto">{showLogout && <LogoutButton />}</div>
       </header>
       <div className="flex flex-1">
