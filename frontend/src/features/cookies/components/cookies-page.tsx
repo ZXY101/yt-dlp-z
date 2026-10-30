@@ -10,6 +10,13 @@ import { CookieCard } from "@/features/cookies/components/cookie-card";
 import { CookieUploadForm } from "@/features/cookies/components/cookie-upload-form";
 import type { CookieFile } from "@/features/cookies/types";
 
+const UPLOAD_FORM_ID = "cookie-upload";
+
+/** Focusing the form's first field also scrolls it into view. */
+function focusUploadForm() {
+  document.getElementById(UPLOAD_FORM_ID)?.querySelector("input")?.focus();
+}
+
 function CookieList({ files }: { files: UseQueryResult<CookieFile[]> }) {
   if (files.isPending) {
     return <p className="text-sm text-muted-foreground">Loading cookies…</p>;
@@ -23,6 +30,7 @@ function CookieList({ files }: { files: UseQueryResult<CookieFile[]> }) {
         icon={Cookie}
         title="No cookies yet"
         description="Downloads run signed out until you add a cookies file."
+        action={{ label: "Add a cookies file", onClick: focusUploadForm }}
       />
     );
   }
@@ -45,7 +53,7 @@ export function CookiesPage() {
         them from a browser where you're signed in. They're stored privately on the server and never
         shown again.
       </p>
-      <CookieUploadForm />
+      <CookieUploadForm id={UPLOAD_FORM_ID} />
       <CookieList files={files} />
     </div>
   );

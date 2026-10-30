@@ -30,8 +30,7 @@ test.describe("subscriptions", () => {
   }) => {
     await setFeed(request, DEMO_ID, ["plain1", "short1", "older"]);
     await page.goto("/subscriptions");
-    await expect(page.getByText("No channels watched yet")).toBeVisible();
-    await page.getByRole("link", { name: "Watch a channel" }).click();
+    await page.getByRole("link", { name: /No channels watched yet/ }).click();
     await page.getByLabel("Channel", { exact: true }).fill("@demo");
     await page.getByLabel("Download recent uploads now").fill("2");
     await expectNoHorizontalScroll(page);

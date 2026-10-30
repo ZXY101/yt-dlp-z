@@ -35,6 +35,7 @@ function PresetList({ presets }: { presets: UseQueryResult<Preset[]> }) {
         icon={SlidersHorizontal}
         title="No presets yet"
         description="Save options you use often, like audio-only or a channel folder, and pick them when downloading."
+        action={{ label: "Create your first preset", to: "/presets/new" }}
       />
     );
   }

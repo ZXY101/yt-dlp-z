@@ -6,10 +6,11 @@ import { makeSubscription, makeVideo } from "@/test/fake-subscriptions";
 import { renderApp } from "@/test/render";
 
 describe("Subscriptions", () => {
-  it("explains subscriptions when there are none", async () => {
+  it("explains subscriptions when there are none, and links to adding one", async () => {
     installFakeApi(createFakeServer());
-    renderApp("/subscriptions");
-    expect(await screen.findByText("No channels watched yet")).toBeInTheDocument();
+    const { user, router } = renderApp("/subscriptions");
+    await user.click(await screen.findByRole("link", { name: /No channels watched yet/ }));
+    expect(router.state.location.pathname).toBe("/subscriptions/new");
   });
 
   it("adds a channel with a preset, cookies and filters", async () => {

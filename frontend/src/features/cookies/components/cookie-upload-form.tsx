@@ -47,7 +47,7 @@ function useUploadForm() {
   return { name, setName, setFile, errors, inputKey, upload, submit };
 }
 
-export function CookieUploadForm() {
+export function CookieUploadForm({ id }: { id?: string }) {
   const { name, setName, setFile, errors, inputKey, upload, submit } = useUploadForm();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -56,7 +56,7 @@ export function CookieUploadForm() {
   }
 
   return (
-    <form className="space-y-4 rounded-xl border p-4" onSubmit={handleSubmit} noValidate>
+    <form id={id} className="space-y-4 rounded-xl border p-4" onSubmit={handleSubmit} noValidate>
       <h2 className="text-lg font-medium">Add cookies</h2>
       <FormError message={upload.isError ? describeError(upload.error) : null} />
       <FormField
