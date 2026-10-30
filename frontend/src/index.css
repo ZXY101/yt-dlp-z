@@ -130,4 +130,11 @@
   html {
     @apply font-sans;
   }
+  /* Tailwind v4 dropped the pointer cursor on buttons; clickable controls should show it. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  select:not(:disabled),
+  input[type="file"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
