@@ -9,8 +9,9 @@ A self-hosted web dashboard for [yt-dlp](https://github.com/yt-dlp/yt-dlp).
 - Cookies for members-only content, ntfy notifications, optional proxy rotation
 - One Docker container, or run it directly
 
-> Status: early development. Setup and sign-in work; downloading arrives in the
-> next milestone. See [docs/PROGRESS.md](docs/PROGRESS.md).
+> Status: early development. Downloading from any yt-dlp site works, with a live
+> queue; channel watching and live recording come next. See
+> [docs/PROGRESS.md](docs/PROGRESS.md).
 
 ## Quick start (Docker)
 

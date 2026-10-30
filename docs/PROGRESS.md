@@ -6,13 +6,13 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 1 (skeleton): done.** Next up: **Milestone 2 (downloads).**
+**Milestone 2 (downloads): done.** Next up: **Milestone 3 (presets & cookies).**
 
 | Milestone                 | Status      |
 | ------------------------- | ----------- |
 | 0. Repo foundation        | Done        |
 | 1. Skeleton               | Done        |
-| 2. Downloads              | Not started |
+| 2. Downloads              | Done        |
 | 3. Presets & cookies      | Not started |
 | 4. Watching               | Not started |
 | 5. Live                   | Not started |
@@ -25,21 +25,17 @@ download folder), login/logout, rate limiting, `AUTH_MODE=none`, and a
 shell and an empty dashboard. Vitest, pytest and Playwright suites; Docker
 image; CI for all of it.
 
-## Next steps (Milestone 2)
+## Next steps (Milestone 3)
 
-1. Add yt-dlp (`yt-dlp[default]`), ffmpeg and Deno to the image; check what
-   yt-dlp currently needs for YouTube (JS runtime, PO tokens) before starting.
-2. Option schema: isolated helper that reads yt-dlp's parser →
-   `GET /api/options/schema`, with a fallback and a test against the latest yt-dlp.
-3. Jobs: `jobs` table + migration, subprocess runner with JSON progress
-   parsing, concurrency limit, cancel/retry, per-job log file.
-4. Realtime: authenticated WebSocket for job progress.
-5. Download path checks: per-download folder overrides validated against the
-   allowed roots (path traversal).
-6. UI: New download page (URL, folder, common options, raw extra args),
-   Queue/History page with live progress.
-7. E2E: fake yt-dlp stub (`e2e/stub/`) emitting scripted progress, wired via
-   an env var for the yt-dlp binary.
+1. Presets: `presets` table + migration, CRUD API, options stored by long flag
+   (same format as jobs), default preset, pick a preset on the download page.
+2. Full options editor generated from `GET /api/options/schema`: grouped,
+   searchable, help text, blocked options shown disabled with the reason.
+3. Cookies: upload Netscape `cookies.txt` (stored in `/config/cookies`, never
+   returned in full), name, test button, choose per preset/download; the app
+   passes `--cookies` itself (users can't).
+4. Settings page: download folder, max concurrent downloads.
+5. E2E for every new flow; regression tests for any bug found.
 
 ## Decisions not obvious from the code
 
@@ -63,6 +59,13 @@ image; CI for all of it.
 
 ## Open items
 
+- Docker image is 784 MB, mostly Debian's ffmpeg. A static ffmpeg build could
+  shrink it a lot.
+- release-please fails until "Allow GitHub Actions to create and approve pull
+  requests" is enabled in the repo settings (waiting on the maintainer).
+- PO tokens: YouTube is enforcing them for some clients. The usual fix is the
+  bgutil-ytdlp-pot-provider plugin (a helper container) — milestone 6.
+
 - `npm audit`: 3 low-severity advisories in `deepmerge`, pulled in by the
   shadcn CLI (dev only, nothing ships to the browser). No patched version
   exists; npm's suggested fix downgrades shadcn to 1.0. Revisit when shadcn
@@ -80,3 +83,31 @@ image; CI for all of it.
   (34 tests, 99%), Playwright (16 tests, desktop + mobile), Docker image
   (201 MB, runs as PUID/PGID, healthcheck), hooks and CI jobs for all of it.
   Layout checked with screenshots at desktop and mobile sizes.
+- **2026-10-30 · M2 in progress (session ended at usage cap).**
+  Pushed: `feat!:` port 8080 → 9742; `YTDLPZ_ADMIN_PASSWORD` (setup must enter it;
+  env-password E2E project on a 2nd server, port 8766); CLAUDE.md regression rule.
+  Committed, **not pushed**: `758e5da feat(backend): download jobs…` (129 tests, 95%).
+  **Uncommitted, unverified:** Dockerfile (+ffmpeg, Deno 2.9.8 from
+  `denoland/deno:bin-2.9.8`, image not rebuilt), vite WS proxy, regenerated
+  `schema.d.ts`, shadcn checkbox/progress/badge/dialog/textarea, the whole
+  frontend for downloads/queue/system warnings, the split test fake
+  (`src/test/fake-*.ts`), `.oxlintrc.json` (react-perf plugin removed) and the
+  CLAUDE.md note about it. Last run: 2 download-page tests failed on
+  `ResizeObserver is not defined`; a stub was just added to `src/test/setup.ts`
+  but tests were not re-run.
+  Still to do for M2: E2E specs for download/queue/cancel/retry/log using the
+  stub (`YTDLPZ_YTDLP_COMMAND` in `e2e/scripts/start-server.sh`), desktop+mobile
+  screenshots, docker build check, docs (configuration.md: new env vars
+  `YTDLPZ_MAX_CONCURRENT_DOWNLOADS`, `YTDLPZ_EXTRA_DOWNLOAD_ROOTS`,
+  `YTDLPZ_ALLOW_UNSAFE_OPTIONS`, `YTDLPZ_YTDLP_COMMAND`; blocked-options list).
+  release-please CI fails until "Allow GitHub Actions to create and approve pull
+  requests" is enabled in repo settings (asked the user, no answer yet).
+  PO-token provider (bgutil) noted for milestone 6.
+  **Next session:** `cd ~/dev/yt-dlp-z && npx tsc -b frontend && npm run test:coverage -w frontend`,
+  fix failures, `npm run check`, then commit frontend + Dockerfile separately.
+- **2026-10-30 · Milestone 2 done.** Frontend tests passed after a
+  ResizeObserver stub; download/queue/system pages, E2E download flows (27 E2E
+  tests), Docker image with ffmpeg + Deno 2.9.8 (verified in a container).
+  Bugs found by the new tests and fixed with regression tests: yt-dlp left
+  running on shutdown; stale cancel responses overwriting "cancelled" (jobs now
+  carry a `revision`); new jobs inheriting a deleted job's log.

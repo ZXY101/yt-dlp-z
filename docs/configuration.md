@@ -5,16 +5,20 @@ command-line flags. Flags win over environment variables.
 
 ## Environment variables
 
-| Variable                      | Default (native)            | Default (Docker) | Purpose                                                                                         |
-| ----------------------------- | --------------------------- | ---------------- | ----------------------------------------------------------------------------------------------- |
-| `YTDLPZ_HOST`                 | `127.0.0.1`                 | `0.0.0.0`        | Address to listen on                                                                            |
-| `YTDLPZ_PORT`                 | `9742`                      | `9742`           | Port to listen on                                                                               |
-| `YTDLPZ_CONFIG_DIR`           | your user data folder¹      | `/config`        | Database and secret key                                                                         |
-| `YTDLPZ_DEFAULT_DOWNLOAD_DIR` | `~/Downloads/yt-dlp-z`      | `/downloads`     | Suggested download folder in first-run setup                                                    |
-| `YTDLPZ_AUTH_MODE`            | `password`                  | `password`       | `password`, or `none` to turn off login. **Only use `none` behind a proxy that handles login.** |
-| `YTDLPZ_ADMIN_PASSWORD`       | unset                       | unset            | Sets the admin password up front (see below)                                                    |
-| `YTDLPZ_SESSION_DAYS`         | `30`                        | `30`             | How long a sign-in lasts                                                                        |
-| `YTDLPZ_FRONTEND_DIST`        | `frontend/dist` in the repo | `/app/frontend`  | Folder with the built web UI                                                                    |
+| Variable                          | Default (native)            | Default (Docker)   | Purpose                                                                                         |
+| --------------------------------- | --------------------------- | ------------------ | ----------------------------------------------------------------------------------------------- |
+| `YTDLPZ_HOST`                     | `127.0.0.1`                 | `0.0.0.0`          | Address to listen on                                                                            |
+| `YTDLPZ_PORT`                     | `9742`                      | `9742`             | Port to listen on                                                                               |
+| `YTDLPZ_CONFIG_DIR`               | your user data folder¹      | `/config`          | Database and secret key                                                                         |
+| `YTDLPZ_DEFAULT_DOWNLOAD_DIR`     | `~/Downloads/yt-dlp-z`      | `/downloads`       | Suggested download folder in first-run setup                                                    |
+| `YTDLPZ_AUTH_MODE`                | `password`                  | `password`         | `password`, or `none` to turn off login. **Only use `none` behind a proxy that handles login.** |
+| `YTDLPZ_ADMIN_PASSWORD`           | unset                       | unset              | Sets the admin password up front (see below)                                                    |
+| `YTDLPZ_SESSION_DAYS`             | `30`                        | `30`               | How long a sign-in lasts                                                                        |
+| `YTDLPZ_MAX_CONCURRENT_DOWNLOADS` | `3`                         | `3`                | How many downloads run at once; the rest wait in the queue                                      |
+| `YTDLPZ_EXTRA_DOWNLOAD_ROOTS`     | `[]`                        | `[]`               | Extra absolute folders downloads may use, as a JSON list, e.g. `["/media/music"]`               |
+| `YTDLPZ_ALLOW_UNSAFE_OPTIONS`     | `false`                     | `false`            | Allows the unsafe yt-dlp options listed below. Only for trusted setups.                         |
+| `YTDLPZ_YTDLP_COMMAND`            | the bundled yt-dlp          | the bundled yt-dlp | Command that runs yt-dlp, as a JSON list (mainly for tests)                                     |
+| `YTDLPZ_FRONTEND_DIST`            | `frontend/dist` in the repo | `/app/frontend`    | Folder with the built web UI                                                                    |
 
 ¹ e.g. `~/.local/share/yt-dlp-z` on Linux.
 
@@ -28,6 +32,38 @@ else can claim the install.
 The variable is applied at every start. Changing it and restarting replaces
 the password and signs out every session. While it is set, `reset-password`
 only lasts until the next restart.
+
+### Download folders
+
+Each download goes to the default folder chosen during setup, unless another
+folder is given for that download:
+
+- empty: the default folder
+- a relative path, e.g. `music/albums`: a sub-folder of the default folder
+- an absolute path: only inside the default folder or one of
+  `YTDLPZ_EXTRA_DOWNLOAD_ROOTS`
+
+Paths are resolved (including `..` and symlinks) before this check, so a
+download can't escape these folders. File name templates (`--output`) must be
+relative for the same reason.
+
+### Blocked yt-dlp options
+
+Every yt-dlp option is available, except these.
+
+Always blocked, because yt-dlp-z manages them itself: `--paths`, `--cookies`,
+`--cookies-from-browser`, `--download-archive`, `--update`, `--update-to`,
+`--batch-file`.
+
+Blocked unless `YTDLPZ_ALLOW_UNSAFE_OPTIONS=true`, because they can run programs
+or read and write files outside the download folder: `--exec`, `--netrc-cmd`,
+`--plugin-dirs`, `--ffmpeg-location`, `--downloader`, `--js-runtimes`,
+`--postprocessor-args`, `--downloader-args`, `--load-info-json`,
+`--netrc-location`, `--config-locations`, `--print-to-file`, `--cache-dir`,
+`--enable-file-urls`, `--alias`.
+
+yt-dlp-z also ignores yt-dlp config files on the server (`--ignore-config`), so
+every download uses exactly the options chosen in the app.
 
 `YTDLPZ_TEST_MODE` exists for the automated test suite only. Never set it on a
 real install: it exposes an endpoint that wipes all data.
