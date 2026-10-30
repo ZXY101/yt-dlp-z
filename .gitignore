@@ -13,6 +13,8 @@ node_modules/
 frontend/dist/
 playwright-report/
 test-results/
+.playwright/
+.playwright-cli/
 coverage/
 .nyc_output/
 
