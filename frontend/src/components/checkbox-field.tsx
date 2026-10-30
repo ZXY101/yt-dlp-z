@@ -24,14 +24,15 @@ export function CheckboxField({
     <div className={cn("flex min-h-10 gap-3 py-1", description ? "items-start" : "items-center")}>
       <Checkbox
         id={id}
-        className={cn("size-5", description && "mt-0.5")}
+        className="size-5"
         checked={checked}
         disabled={disabled}
         onCheckedChange={(state) => onCheckedChange(state === true)}
         aria-describedby={description ? `${id}-description` : undefined}
       />
       <div className="space-y-0.5">
-        <Label htmlFor={id} className={cn("break-all", !disabled && "cursor-pointer")}>
+        {/* leading-5 matches the box's height, so the text lines up with it. */}
+        <Label htmlFor={id} className={cn("leading-5 break-all", !disabled && "cursor-pointer")}>
           {label}
         </Label>
         {description && (
