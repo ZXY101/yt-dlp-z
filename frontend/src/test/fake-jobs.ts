@@ -21,6 +21,7 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     created_at: "2026-10-30T10:00:00+00:00",
     started_at: null,
     finished_at: null,
+    revision: 0,
     ...overrides,
   };
 }
@@ -34,7 +35,7 @@ function updateJob(server: FakeServer, params: string[], changes: Partial<Job>) 
   if (!job) {
     return json({ detail: "Download not found" }, 404);
   }
-  Object.assign(job, changes);
+  Object.assign(job, changes, { revision: job.revision + 1 });
   broadcast({ type: "job", job: { ...job } });
   return json(job);
 }

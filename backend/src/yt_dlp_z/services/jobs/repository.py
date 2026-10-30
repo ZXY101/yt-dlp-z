@@ -21,6 +21,7 @@ async def list_jobs(session: AsyncSession, limit: int) -> Sequence[Job]:
 async def save(session: AsyncSession, job: Job, **changes: Any) -> Job:
     for name, value in changes.items():
         setattr(job, name, value)
+    job.revision += 1
     await session.commit()
     return job
 
@@ -30,7 +31,12 @@ async def recover_after_restart(session: AsyncSession) -> list[int]:
     await session.execute(
         update(Job)
         .where(Job.status == JobStatus.RUNNING)
-        .values(status=JobStatus.FAILED, error=INTERRUPTED_MESSAGE, finished_at=utcnow())
+        .values(
+            status=JobStatus.FAILED,
+            error=INTERRUPTED_MESSAGE,
+            finished_at=utcnow(),
+            revision=Job.revision + 1,
+        )
     )
     await session.commit()
     result = await session.execute(

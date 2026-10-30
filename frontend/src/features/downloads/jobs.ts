@@ -8,9 +8,15 @@ export function isActiveJob(job: Job) {
   return job.status === "queued" || job.status === "running";
 }
 
-/** Inserts or replaces a job, keeping the list newest first. Leaves an unloaded list alone. */
+/** Inserts or replaces a job, keeping the list newest first. Leaves an unloaded list alone.
+ * HTTP responses and WebSocket events can arrive out of order, so an update older than
+ * the cached copy (lower revision) is ignored. */
 export function upsertJob(jobs: Job[] | undefined, job: Job): Job[] | undefined {
   if (!jobs) {
+    return jobs;
+  }
+  const cached = jobs.find((existing) => existing.id === job.id);
+  if (cached && cached.revision > job.revision) {
     return jobs;
   }
   const others = jobs.filter((existing) => existing.id !== job.id);

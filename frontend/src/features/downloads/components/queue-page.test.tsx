@@ -34,11 +34,17 @@ describe("QueuePage", () => {
       title: "Current video",
       progress: 55,
       speed: 1_000_000,
+      revision: 1,
     });
     act(() => broadcast({ type: "job", job: running }));
     expect(await within(inProgress).findByText(/55% · 1.0 MB\/s/)).toBeInTheDocument();
 
-    act(() => broadcast({ type: "job", job: { ...running, status: "completed", progress: 100 } }));
+    act(() =>
+      broadcast({
+        type: "job",
+        job: { ...running, status: "completed", progress: 100, revision: 2 },
+      }),
+    );
     expect(await screen.findByRole("list", { name: "Finished" })).toHaveTextContent(
       "Current video",
     );

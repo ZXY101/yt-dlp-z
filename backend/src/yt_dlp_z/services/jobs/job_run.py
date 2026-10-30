@@ -66,6 +66,7 @@ class ProgressTracker:
             await self.flush()
 
     async def flush(self) -> None:
+        self._job.revision += 1
         await self._session.commit()
         publish_job(self._context.hub, self._job)
         self._last_flush = time.monotonic()

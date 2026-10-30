@@ -47,6 +47,7 @@ class JobOut(BaseModel):
     created_at: datetime
     started_at: datetime | None
     finished_at: datetime | None
+    revision: int
 
     @field_serializer("created_at", "started_at", "finished_at")
     def as_utc(self, value: datetime | None) -> str | None:

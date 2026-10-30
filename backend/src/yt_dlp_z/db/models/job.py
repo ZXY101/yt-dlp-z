@@ -43,3 +43,6 @@ class Job(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # Bumped on every save, so clients can drop updates older than what they have.
+    # (HTTP responses and WebSocket events for the same job can arrive out of order.)
+    revision: Mapped[int] = mapped_column(Integer, default=0, server_default="0")

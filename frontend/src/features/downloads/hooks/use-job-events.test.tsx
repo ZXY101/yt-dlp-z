@@ -34,7 +34,10 @@ describe("useJobEvents", () => {
     await waitFor(() => expect(FakeWebSocket.instances).toHaveLength(2), { timeout: 2000 });
     expect(await screen.findByText("Missed while offline")).toBeInTheDocument();
     act(() =>
-      broadcast({ type: "job", job: makeJob({ id: 9, title: "Live again", status: "running" }) }),
+      broadcast({
+        type: "job",
+        job: makeJob({ id: 9, title: "Live again", status: "running", revision: 1 }),
+      }),
     );
     expect(await screen.findByText("Live again")).toBeInTheDocument();
   });
