@@ -55,16 +55,25 @@ list and a "Recording" badge; Settings has "Recordings at the same time".
 
 Still open:
 
-1. **Check against real YouTube** (the stub can't): record one real live
-   stream and one premiere on the deployed instance, look at the file and the
-   progress text. Consider an opt-in `live` Playwright test.
-2. A stream rescheduled _earlier_ after we scheduled it is only caught if a
+1. **Real-YouTube check, partly done 2026-10-30.** Sweep + probe worked on real
+   channels; a 60 s real recording (Lofi Girl) worked. It found two bugs, both
+   fixed: upcoming streams failed the probe (needs `--ignore-no-formats-error`)
+   and recordings showed no progress (parallel `N: ` prefixed lines). Still to
+   see: a real scheduled stream starting on time, and a finished file after a
+   stream ends. Consider an opt-in `live` Playwright test.
+2. **Open question for the maintainer: 24/7 and long-running streams.**
+   `--live-from-start` fetches everything YouTube keeps (Lofi Girl reported
+   ~1.25M fragments), and a 24/7 stream never ends. Options: record from "now"
+   when a stream has been live for more than a few hours when found; a maximum
+   recording length (e.g. 12 h, configurable); skip streams flagged 24/7 by a
+   title filter. Not decided.
+3. A stream rescheduled _earlier_ after we scheduled it is only caught if a
    later check re-probes it (it doesn't today: videos with a job are done).
    Later yt-dlp `--wait-for-video` covers streams that start late.
-3. Small follow-ups: "download anyway" on skipped videos; manual recording
+4. Small follow-ups: "download anyway" on skipped videos; manual recording
    from the Download page (a "record live stream" choice) for non-subscribed
    streams; ytarchive as an alternative recorder (phase 2).
-4. Not approved: "download the newest N now" on the edit page (backfill after
+5. Not approved: "download the newest N now" on the edit page (backfill after
    adding). The user said to leave it for now (2026-10-30).
 
 ## Decisions not obvious from the code
@@ -229,5 +238,7 @@ Still open:
   limit (`YTDLPZ_MAX_CONCURRENT_RECORDINGS`), streams-tab sweep, auto-restart of
   interrupted recordings. 225 backend tests (96%), 176 unit tests (98%), 73 E2E.
 
-**Next session:** M5 "still open" item 1 (real-YouTube check), then
-milestone 6. `cd ~/dev/yt-dlp-z && git pull && npm run check`. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
+- **2026-10-30 · Real-YouTube check.** Two fixes from it (upcoming-stream probe,
+  recording progress); stub now mimics both real behaviours.
+
+**Next session:** get the maintainer's answer on 24/7 streams (M5 notes item 2) and build it; then milestone 6. `cd ~/dev/yt-dlp-z && git pull && npm run check`. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
