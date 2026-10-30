@@ -7,6 +7,7 @@ interface CheckboxFieldProps {
   label: string;
   description?: string;
   checked: boolean;
+  disabled?: boolean;
   onCheckedChange: (checked: boolean) => void;
 }
 
@@ -14,6 +15,7 @@ export function CheckboxField({
   label,
   description,
   checked,
+  disabled,
   onCheckedChange,
 }: CheckboxFieldProps) {
   const id = useId();
@@ -23,11 +25,14 @@ export function CheckboxField({
         id={id}
         className="mt-0.5 size-5"
         checked={checked}
+        disabled={disabled}
         onCheckedChange={(state) => onCheckedChange(state === true)}
         aria-describedby={description ? `${id}-description` : undefined}
       />
       <div className="space-y-0.5">
-        <Label htmlFor={id}>{label}</Label>
+        <Label htmlFor={id} className="break-all">
+          {label}
+        </Label>
         {description && (
           <p id={`${id}-description`} className="text-xs text-muted-foreground">
             {description}

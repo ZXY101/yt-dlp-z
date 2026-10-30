@@ -29,5 +29,5 @@ class PresetOut(PresetIn):
     updated_at: datetime
 
     @field_serializer("created_at", "updated_at")
-    def as_utc(self, value: datetime) -> str | None:
+    def as_utc(self, value: datetime) -> str:
         return as_utc_iso(value)

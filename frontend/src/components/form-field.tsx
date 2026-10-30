@@ -37,6 +37,7 @@ export function TextareaField({
 interface SelectFieldProps<T extends string> extends FieldLabels {
   value: T;
   choices: { value: T; label: string }[];
+  disabled?: boolean;
   onValueChange: (value: T) => void;
 }
 
@@ -47,6 +48,7 @@ export function SelectField<T extends string>({
   error,
   value,
   choices,
+  disabled,
   onValueChange,
 }: SelectFieldProps<T>) {
   return (
@@ -55,6 +57,7 @@ export function SelectField<T extends string>({
         <select
           {...control}
           value={value}
+          disabled={disabled}
           onChange={(event) => onValueChange(event.target.value as T)}
           className="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
         >

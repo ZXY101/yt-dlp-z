@@ -1,15 +1,35 @@
 import { describeError } from "@/api/errors";
+import { DownloadSettingsFields } from "@/components/download-options/download-settings-fields";
 import { FormError } from "@/components/form-error";
-import { FormField } from "@/components/form-field";
+import { FormField, SelectField } from "@/components/form-field";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { AdvancedOptions } from "@/features/downloads/components/advanced-options";
-import { CommonOptions } from "@/features/downloads/components/common-options";
-import { useDownloadForm } from "@/features/downloads/hooks/use-download-form";
+import { useCookieFiles } from "@/features/cookies";
+import { type DownloadForm, useDownloadForm } from "@/features/downloads/hooks/use-download-form";
 import { SystemWarnings } from "@/features/system";
+
+function PresetField({ choice }: { choice: DownloadForm["presetChoice"] }) {
+  if (choice.presets.length === 0) {
+    return null;
+  }
+  const choices = [
+    { value: "", label: "None" },
+    ...choice.presets.map((preset) => ({ value: String(preset.id), label: preset.name })),
+  ];
+  return (
+    <SelectField
+      label="Preset"
+      hint="Fills in the options below. You can still change them for this download."
+      value={choice.presetId}
+      choices={choices}
+      onValueChange={choice.choose}
+    />
+  );
+}
 
 export function DownloadPage() {
   const form = useDownloadForm();
+  const cookieFiles = useCookieFiles().data ?? [];
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -29,19 +49,17 @@ export function DownloadPage() {
           placeholder="https://www.youtube.com/watch?v=…"
           hint="A video, playlist or channel from any site yt-dlp supports."
           required
-          value={form.fields.url}
+          value={form.url}
           error={form.urlError}
-          onChange={(event) => form.setters.setUrl(event.target.value)}
+          onChange={(event) => form.setUrl(event.target.value)}
         />
-        <FormField
-          label="Save to"
-          placeholder="Default download folder"
-          hint="Leave empty for the default folder. A relative path creates a sub-folder in it."
-          value={form.fields.outputDir}
-          onChange={(event) => form.setters.setOutputDir(event.target.value)}
+        <PresetField choice={form.presetChoice} />
+        <DownloadSettingsFields
+          key={form.settingsVersion}
+          value={form.settings}
+          onChange={form.setSettings}
+          cookieFiles={cookieFiles}
         />
-        <CommonOptions form={form} />
-        <AdvancedOptions form={form} />
         <Button
           type="submit"
           size="lg"

@@ -388,9 +388,9 @@ export interface components {
             /** Domains */
             domains: string[];
             /** Created At */
-            created_at: string | null;
+            created_at: string;
             /** Updated At */
-            updated_at: string | null;
+            updated_at: string;
         };
         /** CookieFileUpdate */
         CookieFileUpdate: {
@@ -576,9 +576,9 @@ export interface components {
             /** Id */
             id: number;
             /** Created At */
-            created_at: string | null;
+            created_at: string;
             /** Updated At */
-            updated_at: string | null;
+            updated_at: string;
         };
         /** SetupRequest */
         SetupRequest: {

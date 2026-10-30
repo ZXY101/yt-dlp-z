@@ -11,6 +11,9 @@ export interface FakeServer {
   nextJobId: number;
   logs: Record<number, string>;
   system: components["schemas"]["SystemInfo"];
+  presets: components["schemas"]["PresetOut"][];
+  cookieFiles: components["schemas"]["CookieFileOut"][];
+  settings: components["schemas"]["AppSettings"];
 }
 
 interface RouteRequest {

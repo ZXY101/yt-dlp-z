@@ -1,10 +1,14 @@
 from datetime import UTC, datetime
-from typing import Annotated
+from typing import Annotated, overload
 from urllib.parse import urlparse
 
 from pydantic import AfterValidator, Field
 
 
+@overload
+def as_utc_iso(value: datetime) -> str: ...
+@overload
+def as_utc_iso(value: datetime | None) -> str | None: ...
 def as_utc_iso(value: datetime | None) -> str | None:
     # SQLite drops timezone info; stored values are always UTC.
     if value is None:
