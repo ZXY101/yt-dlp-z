@@ -14,6 +14,7 @@ from yt_dlp_z.api.routes import (
     jobs,
     options,
     presets,
+    subscriptions,
     system,
     testing,
     ws,
@@ -28,6 +29,8 @@ from yt_dlp_z.services.auth_service import sync_admin_password
 from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs.job_run import JobContext
 from yt_dlp_z.services.jobs.manager import JobManager
+from yt_dlp_z.services.watch.enqueue import WatchContext
+from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
 from yt_dlp_z.web import mount_spa
 
@@ -48,6 +51,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         async with session_factory() as session:
             limit = await get_max_concurrent_downloads(session, settings.max_concurrent_downloads)
         job_manager = JobManager(JobContext(session_factory, hub, settings, schemas), limit)
+        watcher = SubscriptionWatcher(WatchContext(session_factory, settings, hub, job_manager))
         app.state.app_state = AppState(
             settings=settings,
             engine=engine,
@@ -56,12 +60,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             hub=hub,
             schemas=schemas,
             jobs=job_manager,
+            watcher=watcher,
         )
         if settings.admin_password and settings.auth_mode is AuthMode.PASSWORD:
             async with session_factory() as session:
                 await sync_admin_password(session, settings.admin_password.get_secret_value())
         await job_manager.start()
+        watcher.start()
         yield
+        await watcher.stop()
         await job_manager.stop()
         await engine.dispose()
 
@@ -76,6 +83,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         job_actions,
         options,
         presets,
+        subscriptions,
         system,
         ws,
     ):

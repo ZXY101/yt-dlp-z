@@ -12,6 +12,7 @@ from yt_dlp_z.db.models.preset import Preset
 from yt_dlp_z.schemas.cookies import CookieFileUpdate
 from yt_dlp_z.services.cookies.parse import summarise_cookies
 from yt_dlp_z.services.cookies.store import delete_cookie_file, write_cookie_file
+from yt_dlp_z.services.watch.store import unlink_cookie_file
 
 
 class DuplicateCookieFileError(ValueError):
@@ -53,10 +54,12 @@ async def save_cookie_file(
 async def delete_cookie_file_entry(
     session: AsyncSession, config_dir: Path, cookie_file: CookieFile
 ) -> None:
-    """Deletes the file and unlinks it from presets. Past downloads keep their history."""
+    """Deletes the file and unlinks it from presets and subscriptions.
+    Past downloads keep their history."""
     await session.execute(
         update(Preset).where(Preset.cookie_id == cookie_file.id).values(cookie_id=None)
     )
+    await unlink_cookie_file(session, cookie_file.id)
     await session.delete(cookie_file)
     await session.commit()
     delete_cookie_file(config_dir, cookie_file.id)

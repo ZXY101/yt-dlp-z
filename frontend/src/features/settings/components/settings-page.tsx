@@ -30,7 +30,11 @@ function SettingsForm({ settings }: { settings: AppSettings }) {
     const error = validateLimit(limit);
     setLimitError(error);
     if (!error) {
-      save.mutate({ download_dir: downloadDir.trim(), max_concurrent_downloads: Number(limit) });
+      save.mutate({
+        ...settings,
+        download_dir: downloadDir.trim(),
+        max_concurrent_downloads: Number(limit),
+      });
     }
   }
 
