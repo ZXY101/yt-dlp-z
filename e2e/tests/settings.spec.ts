@@ -56,6 +56,8 @@ test.describe("settings", () => {
     const section = page.getByRole("region", { name: "yt-dlp" });
     await expect(section.getByText(/bundled with the app/)).toBeVisible();
     await section.getByLabel("Update channel").selectOption("nightly");
+    await section.getByRole("button", { name: "Check for updates" }).click();
+    await expect(section.getByText("yt-dlp 2099.1.2.dev0 is available.")).toBeVisible();
     await section.getByRole("button", { name: "Update now" }).click();
     await expect(section.getByText("Updated yt-dlp to 2099.1.2.dev0.")).toBeVisible();
     await expect(section.getByText(/Version 2099.1.2.dev0, updated/)).toBeVisible();
@@ -64,5 +66,14 @@ test.describe("settings", () => {
     await section.getByRole("button", { name: "Use bundled version" }).click();
     await expect(section.getByText(/bundled with the app/)).toBeVisible();
     await section.getByLabel("Update channel").selectOption("stable");
+
+    // click(), not check(): the box follows the saved setting a moment after the click.
+    const autoUpdate = section.getByLabel("Update automatically");
+    await autoUpdate.click();
+    await expect(autoUpdate).toBeChecked();
+    await page.reload();
+    await expect(autoUpdate).toBeChecked();
+    await autoUpdate.click();
+    await expect(autoUpdate).not.toBeChecked();
   });
 });

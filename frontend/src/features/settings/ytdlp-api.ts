@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 
 import { api, unwrap } from "@/api/client";
-import type { YtdlpChannel, YtdlpInfo } from "@/features/settings/types";
+import type { YtdlpInfo, YtdlpPreferences } from "@/features/settings/types";
 
 const YTDLP_KEY = ["ytdlp"];
 const UPDATE_POLL_MS = 1000;
@@ -38,10 +38,27 @@ function useYtdlpMutation<T>(send: (value: T) => Promise<YtdlpInfo>) {
   });
 }
 
-export function useSetYtdlpChannel() {
-  return useYtdlpMutation((channel: YtdlpChannel) =>
-    unwrap(api.PUT("/api/ytdlp/channel", { body: { channel } })),
-  );
+/** Shows the choice at once and puts it back if saving fails. */
+export function useSaveYtdlpPreferences() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: YtdlpPreferences) => unwrap(api.PUT("/api/ytdlp/preferences", { body })),
+    onMutate: async (body) => {
+      // A refetch already on its way would overwrite the choice with the old value.
+      await queryClient.cancelQueries({ queryKey: YTDLP_KEY });
+      const previous = queryClient.getQueryData<YtdlpInfo>(YTDLP_KEY);
+      if (previous) {
+        queryClient.setQueryData(YTDLP_KEY, { ...previous, ...body });
+      }
+      return { previous };
+    },
+    onError: (_error, _body, context) => queryClient.setQueryData(YTDLP_KEY, context?.previous),
+    onSuccess: (info) => queryClient.setQueryData(YTDLP_KEY, info),
+  });
+}
+
+export function useCheckYtdlp() {
+  return useYtdlpMutation(() => unwrap(api.POST("/api/ytdlp/check")));
 }
 
 export function useStartYtdlpUpdate() {

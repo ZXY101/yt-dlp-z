@@ -469,7 +469,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/ytdlp/channel": {
+    "/api/ytdlp/preferences": {
         parameters: {
             query?: never;
             header?: never;
@@ -478,11 +478,31 @@ export interface paths {
         };
         get?: never;
         /**
-         * Set Channel
-         * @description Applies to the next update.
+         * Set Preferences
+         * @description The channel applies to the next update or check.
          */
-        put: operations["set_channel_api_ytdlp_channel_put"];
+        put: operations["set_preferences_api_ytdlp_preferences_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ytdlp/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check For Update
+         * @description Asks PyPI for the newest version on the chosen channel. Installs nothing.
+         */
+        post: operations["check_for_update_api_ytdlp_check_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1092,28 +1112,36 @@ export interface components {
          * @enum {string}
          */
         VideoState: "queued" | "skipped" | "upcoming" | "live" | "failed";
-        /** YtdlpChannelBody */
-        YtdlpChannelBody: {
+        /** YtdlpInfo */
+        YtdlpInfo: {
             /**
              * Channel
              * @enum {string}
              */
             channel: "stable" | "nightly";
-        };
-        /** YtdlpInfo */
-        YtdlpInfo: {
+            /** Auto Update */
+            auto_update: boolean;
             /** Bundled Version */
             bundled_version: string;
             /** Active Version */
             active_version: string;
             /** Using Update */
             using_update: boolean;
+            update: components["schemas"]["UpdateStatus"];
+            /** Latest Version */
+            latest_version: string | null;
+            /** Checked At */
+            checked_at: string | null;
+        };
+        /** YtdlpPreferences */
+        YtdlpPreferences: {
             /**
              * Channel
              * @enum {string}
              */
             channel: "stable" | "nightly";
-            update: components["schemas"]["UpdateStatus"];
+            /** Auto Update */
+            auto_update: boolean;
         };
     };
     responses: never;
@@ -2148,7 +2176,7 @@ export interface operations {
             };
         };
     };
-    set_channel_api_ytdlp_channel_put: {
+    set_preferences_api_ytdlp_preferences_put: {
         parameters: {
             query?: never;
             header?: never;
@@ -2157,7 +2185,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["YtdlpChannelBody"];
+                "application/json": components["schemas"]["YtdlpPreferences"];
             };
         };
         responses: {
@@ -2177,6 +2205,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_for_update_api_ytdlp_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["YtdlpInfo"];
                 };
             };
         };
