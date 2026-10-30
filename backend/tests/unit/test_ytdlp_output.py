@@ -13,6 +13,7 @@ from yt_dlp_z.services.ytdlp.output import (
     FileUpdate,
     InfoUpdate,
     ProgressUpdate,
+    combine_parts,
     error_message,
     parse_line,
 )
@@ -86,3 +87,25 @@ def test_command_shape(tmp_path: Path) -> None:
     assert f"home:{tmp_path}" in command
     templates = " ".join(command)
     assert all(marker in templates for marker in (PROGRESS_MARKER, INFO_MARKER, FILE_MARKER))
+
+
+def test_parallel_progress_lines_are_numbered_per_stream() -> None:
+    """Regression: live-from-start recordings download video and audio at once, and yt-dlp
+    prefixes each progress line with the stream's number, which hid all progress."""
+    data = {"downloaded_bytes": 300, "speed": 30.0, "progress_idx": 1, "max_progress": 2}
+    update = parse_line("1: " + progress_line(data))
+    assert update == ProgressUpdate(300, None, 30.0, None, None, part=1)
+
+
+def test_combine_parts_adds_up_the_streams() -> None:
+    video = ProgressUpdate(700, 1000, 70.0, 5, 70.0)
+    audio = ProgressUpdate(100, 200, 10.0, 9, 50.0, part=1)
+    assert combine_parts({0: video, 1: audio}) == ProgressUpdate(
+        800, 1200, 80.0, 9, 800 / 1200 * 100
+    )
+    live_video = ProgressUpdate(700, None, 70.0, None, None)
+    live_audio = ProgressUpdate(100, None, None, None, None, part=1)
+    assert combine_parts({0: live_video, 1: live_audio}) == ProgressUpdate(
+        800, None, 70.0, None, None
+    )
+    assert combine_parts({0: video}) == video

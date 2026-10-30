@@ -78,6 +78,8 @@ def test_streams_are_recorded_instead_of_downloaded(watch_client: TestClient, fe
     live = wait_for_job(watch_client, jobs[watch_url("live1")]["id"], FINISHED)
     assert live["status"] == "completed"
     assert live["kind"] == "live"
+    # Video (1 MB) and audio (0.1 MB) progress, added up.
+    assert live["downloaded_bytes"] == 1_100_000
     log = watch_client.get(f"/api/jobs/{live['id']}/log").text
     assert "--live-from-start --wait-for-video 30-300" in log
 

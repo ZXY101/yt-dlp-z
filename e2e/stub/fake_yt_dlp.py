@@ -16,7 +16,8 @@ otherwise a video whose id picks its kind (short, upcoming, live, members, broke
 upcoming ones fail without --ignore-no-formats-error, as with real yt-dlp;
 members-only videos only open with --cookies.
 With --cookies it reports how many cookie lines the file had, so tests can see it was passed.
-With --live-from-start (recordings) progress has no total size, like a live stream;
+With --live-from-start (recordings) progress has no total size, like a live stream, and
+comes as two numbered streams ("0: …" video, "1: …" audio at a tenth of the size);
 ...upcoming... URLs first print yt-dlp's wait message.
 """
 
@@ -161,7 +162,13 @@ def main() -> int:
             "speed": 250_000.0,
             "eta": steps - step,
         }
-        emit(PROGRESS + json.dumps(progress))
+        if live:
+            # Real recordings fetch video and audio at once, numbering each stream's lines.
+            audio = {**progress, "downloaded_bytes": downloaded // 10, "progress_idx": 1}
+            emit("0: " + PROGRESS + json.dumps({**progress, "progress_idx": 0}))
+            emit("1: " + PROGRESS + json.dumps(audio))
+        else:
+            emit(PROGRESS + json.dumps(progress))
         time.sleep(delay)
 
     target = home / f"{title} [{video_id}].mp4"
