@@ -5,6 +5,7 @@ import { MobileNav } from "@/app/layout/mobile-nav";
 import { NavLinks } from "@/app/layout/nav-links";
 import { Button } from "@/components/ui/button";
 import { useAuthStatus, useLogout } from "@/features/auth/api";
+import { useJobEvents } from "@/features/downloads";
 
 function LogoutButton() {
   const logout = useLogout();
@@ -24,6 +25,7 @@ function LogoutButton() {
 
 export function AppLayout() {
   const { data: status } = useAuthStatus();
+  useJobEvents();
   const showLogout = status?.auth_mode === "password";
 
   return (

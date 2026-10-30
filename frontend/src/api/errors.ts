@@ -15,7 +15,11 @@ interface ValidationIssue {
 }
 
 function validationMessage(issues: ValidationIssue[]) {
-  const messages = issues.map((issue) => issue.msg).filter((msg) => typeof msg === "string");
+  const messages = issues
+    .map((issue) => issue.msg)
+    .filter((msg) => typeof msg === "string")
+    // Pydantic prefixes custom validator messages with "Value error, ".
+    .map((msg) => msg.replace(/^Value error, /, ""));
   return messages.length > 0 ? messages.join(" ") : FALLBACK_MESSAGE;
 }
 

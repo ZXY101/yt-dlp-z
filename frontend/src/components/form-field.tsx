@@ -1,42 +1,70 @@
-import { useId } from "react";
-
+import { FieldShell } from "@/components/field-shell";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
-interface FormFieldProps extends React.ComponentProps<typeof Input> {
+interface FieldLabels {
   label: string;
   hint?: string;
   error?: string;
 }
 
-export function FormField({ label, hint, error, ...inputProps }: FormFieldProps) {
-  const id = useId();
-  const hintId = `${id}-hint`;
-  const errorId = `${id}-error`;
-  // The error replaces the hint rather than stacking under it.
-  const showHint = Boolean(hint) && !error;
-  const describedBy = [showHint && hintId, error && errorId].filter(Boolean).join(" ") || undefined;
-
+export function FormField({
+  label,
+  hint,
+  error,
+  ...inputProps
+}: FieldLabels & React.ComponentProps<typeof Input>) {
   return (
-    <div className="space-y-2">
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        className="h-10"
-        aria-invalid={Boolean(error)}
-        aria-describedby={describedBy}
-        {...inputProps}
-      />
-      {showHint && (
-        <p id={hintId} className="text-xs text-muted-foreground">
-          {hint}
-        </p>
+    <FieldShell label={label} hint={hint} error={error}>
+      {(control) => <Input className="h-10" {...control} {...inputProps} />}
+    </FieldShell>
+  );
+}
+
+export function TextareaField({
+  label,
+  hint,
+  error,
+  ...textareaProps
+}: FieldLabels & React.ComponentProps<typeof Textarea>) {
+  return (
+    <FieldShell label={label} hint={hint} error={error}>
+      {(control) => <Textarea className="min-h-20 font-mono" {...control} {...textareaProps} />}
+    </FieldShell>
+  );
+}
+
+interface SelectFieldProps<T extends string> extends FieldLabels {
+  value: T;
+  choices: { value: T; label: string }[];
+  onValueChange: (value: T) => void;
+}
+
+/** A native select: works well with mobile pickers and screen readers. */
+export function SelectField<T extends string>({
+  label,
+  hint,
+  error,
+  value,
+  choices,
+  onValueChange,
+}: SelectFieldProps<T>) {
+  return (
+    <FieldShell label={label} hint={hint} error={error}>
+      {(control) => (
+        <select
+          {...control}
+          value={value}
+          onChange={(event) => onValueChange(event.target.value as T)}
+          className="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+        >
+          {choices.map((choice) => (
+            <option key={choice.value} value={choice.value}>
+              {choice.label}
+            </option>
+          ))}
+        </select>
       )}
-      {error && (
-        <p id={errorId} className="text-sm text-destructive">
-          {error}
-        </p>
-      )}
-    </div>
+    </FieldShell>
   );
 }

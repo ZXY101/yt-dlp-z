@@ -12,6 +12,6 @@ export default defineConfig({
     alias: { "@": path.resolve(import.meta.dirname, "src") },
   },
   server: {
-    proxy: { "/api": backendUrl },
+    proxy: { "/api": { target: backendUrl, ws: true } },
   },
 });
