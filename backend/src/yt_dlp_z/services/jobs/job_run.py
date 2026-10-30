@@ -18,7 +18,13 @@ from yt_dlp_z.services.cookies.store import cookie_path, working_copy
 from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs import repository
 from yt_dlp_z.services.jobs.process import ProcessHooks, ProcessResult, run_ytdlp
-from yt_dlp_z.services.live.recorder import Outcome, RecordingHooks, part_args, record
+from yt_dlp_z.services.live.recorder import (
+    Outcome,
+    PartWatch,
+    RecordingHooks,
+    part_args,
+    record,
+)
 from yt_dlp_z.services.ytdlp.args import build_user_args
 from yt_dlp_z.services.ytdlp.command import build_command
 from yt_dlp_z.services.ytdlp.errors import ArgumentError, SchemaUnavailableError
@@ -55,7 +61,7 @@ def job_log_path(settings: Settings, job_id: int) -> Path:
 def _changes_for(update: Update) -> dict[str, Any]:
     if isinstance(update, ProgressUpdate):
         changes = dataclasses.asdict(update)
-        del changes["part"]
+        del changes["part"], changes["fragments"]
         return changes
     if isinstance(update, InfoUpdate):
         return {"title": update.title} if update.title else {}
@@ -158,12 +164,16 @@ async def _record(running: Running, cookie_args: list[str]) -> Outcome:
     context, session, job = running.context, running.session, running.job
     log_path = job_log_path(context.settings, job.id)
 
-    async def run_part(
-        app_args: list[str], on_start: Callable[[asyncio.subprocess.Process], None]
-    ) -> ProcessResult:
+    async def run_part(app_args: list[str], watch: PartWatch) -> ProcessResult:
         command = await _command_for(context, job, cookie_args, app_args)
         tracker = ProgressTracker(context, session, job)
-        hooks = ProcessHooks(tracker.apply, on_start, graceful=True)
+
+        async def on_update(update: Update) -> None:
+            if isinstance(update, ProgressUpdate):
+                watch.on_progress(update)
+            await tracker.apply(update)
+
+        hooks = ProcessHooks(on_update, watch.on_start, graceful=True)
         return await run_ytdlp(command, log_path, hooks)
 
     async def on_part(part: int) -> None:

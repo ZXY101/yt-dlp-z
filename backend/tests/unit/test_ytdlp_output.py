@@ -97,6 +97,11 @@ def test_parallel_progress_lines_are_numbered_per_stream() -> None:
     assert update == ProgressUpdate(300, None, 30.0, None, None, part=1)
 
 
+def test_fragment_numbers_are_read() -> None:
+    data = {"downloaded_bytes": 300, "fragment_index": 12, "fragment_count": 7200}
+    assert parse_line(progress_line(data)).fragments == (12, 7200)  # type: ignore[union-attr]
+
+
 def test_combine_parts_adds_up_the_streams() -> None:
     video = ProgressUpdate(700, 1000, 70.0, 5, 70.0)
     audio = ProgressUpdate(100, 200, 10.0, 9, 50.0, part=1)

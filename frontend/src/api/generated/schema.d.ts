@@ -726,6 +726,12 @@ export interface components {
       max_hours: number | null;
       /** From Start Max Hours */
       from_start_max_hours: number | null;
+      /**
+       * Long Streams
+       * @default from_now
+       * @enum {string}
+       */
+      long_streams: "from_now" | "first_hours";
     };
     /** SetupRequest */
     SetupRequest: {
