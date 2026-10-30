@@ -110,9 +110,9 @@ export function SubscriptionEditorPage() {
   const { subscriptionId } = useParams();
   const id = subscriptionId === undefined ? null : Number(subscriptionId);
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <>
       <PageHeader title={id === null ? "Watch a channel" : "Edit subscription"} />
       <EditorContent subscriptionId={id} />
-    </div>
+    </>
   );
 }

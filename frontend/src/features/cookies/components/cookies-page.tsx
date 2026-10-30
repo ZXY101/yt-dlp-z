@@ -46,7 +46,7 @@ function CookieList({ files }: { files: UseQueryResult<CookieFile[]> }) {
 export function CookiesPage() {
   const files = useCookieFiles();
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <>
       <PageHeader title="Cookies" />
       <p className="text-sm text-muted-foreground">
         Cookies let yt-dlp download as you: members-only, private and age-restricted videos. Export
@@ -55,6 +55,6 @@ export function CookiesPage() {
       </p>
       <CookieUploadForm id={UPLOAD_FORM_ID} />
       <CookieList files={files} />
-    </div>
+    </>
   );
 }
