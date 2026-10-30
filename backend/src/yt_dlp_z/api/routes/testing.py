@@ -12,6 +12,7 @@ router = APIRouter(prefix="/api/test", tags=["testing"], include_in_schema=False
 
 @router.post("/reset", status_code=status.HTTP_204_NO_CONTENT)
 async def reset(state: State, db: Db) -> None:
+    await state.jobs.stop_all()
     for table in reversed(Base.metadata.sorted_tables):
         await db.execute(delete(table))
     await db.commit()

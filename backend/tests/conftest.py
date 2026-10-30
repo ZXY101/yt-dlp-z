@@ -1,5 +1,8 @@
+import sys
+import time
 from collections.abc import Callable, Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -7,6 +10,7 @@ from fastapi.testclient import TestClient
 from yt_dlp_z.core.config import AuthMode, Settings
 from yt_dlp_z.main import create_app
 
+FAKE_YTDLP = Path(__file__).resolve().parents[2] / "e2e" / "stub" / "fake_yt_dlp.py"
 TEST_PASSWORD = "correct-horse-battery"  # noqa: S105  (test fixture, not a real secret)
 
 MakeClient = Callable[..., TestClient]
@@ -30,6 +34,7 @@ def make_settings(tmp_path: Path, frontend_dist: Path) -> Callable[..., Settings
             "frontend_dist": frontend_dist,
             "auth_mode": AuthMode.PASSWORD,
             "test_mode": True,
+            "ytdlp_command": [sys.executable, str(FAKE_YTDLP)],
         }
         values.update(overrides)
         return Settings.model_validate(values)
@@ -65,3 +70,16 @@ def setup_client(client: TestClient, tmp_path: Path) -> TestClient:
     )
     assert response.status_code == 204
     return client
+
+
+def wait_for_job(
+    client: TestClient, job_id: int, statuses: set[str], timeout: float = 15
+) -> dict[str, Any]:
+    deadline = time.monotonic() + timeout
+    while True:
+        job: dict[str, Any] = client.get(f"/api/jobs/{job_id}").json()
+        if job["status"] in statuses:
+            return job
+        if time.monotonic() > deadline:
+            raise AssertionError(f"job {job_id} stuck in {job['status']}, wanted {statuses}")
+        time.sleep(0.05)

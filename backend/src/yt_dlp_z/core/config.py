@@ -1,3 +1,4 @@
+import sys
 from enum import StrEnum
 from functools import lru_cache
 from pathlib import Path
@@ -30,6 +31,13 @@ class Settings(BaseSettings):
     # It is re-applied at every start, so changing it rotates the password.
     admin_password: SecretStr | None = None
     session_days: int = 30
+    max_concurrent_downloads: int = 3
+    # Absolute folders, besides the setup download folder, that downloads may target.
+    extra_download_roots: list[Path] = []
+    # Allows yt-dlp options that can run commands or read/write arbitrary files.
+    allow_unsafe_options: bool = False
+    # Command that runs yt-dlp. Defaults to the yt-dlp installed next to this app.
+    ytdlp_command: list[str] = [sys.executable, "-m", "yt_dlp"]
     # Enables /api/test/* endpoints used by the E2E suite. Never set in production.
     test_mode: bool = False
 

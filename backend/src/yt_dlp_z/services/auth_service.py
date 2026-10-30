@@ -22,6 +22,11 @@ async def complete_setup(session: AsyncSession, password: str | None, download_d
     await set_values(session, values)
 
 
+async def get_download_dir(session: AsyncSession) -> Path | None:
+    value = await get_value(session, DOWNLOAD_DIR)
+    return Path(value) if value else None
+
+
 async def check_password(session: AsyncSession, password: str) -> bool:
     password_hash = await get_value(session, ADMIN_PASSWORD_HASH)
     if password_hash is None:
