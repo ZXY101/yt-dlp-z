@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -55,10 +56,16 @@ def test_jobs_interrupted_by_a_restart(make_client: MakeClient, tmp_path: Path) 
     first.post("/api/auth/setup", json={"password": TEST_PASSWORD, "download_dir": str(tmp_path)})
     state: AppState = first.app.state.app_state  # type: ignore[attr-defined]
 
-    async def insert(status: JobStatus, kind: JobKind = JobKind.DOWNLOAD) -> int:
+    async def insert(
+        status: JobStatus, kind: JobKind = JobKind.DOWNLOAD, part: int | None = None
+    ) -> int:
         async with state.session_factory() as session:
             job = Job(
-                url="https://example.com/r", status=status, kind=kind, output_dir=str(tmp_path)
+                url="https://example.com/r",
+                status=status,
+                kind=kind,
+                part=part,
+                output_dir=str(tmp_path),
             )
             session.add(job)
             await session.commit()
@@ -67,7 +74,7 @@ def test_jobs_interrupted_by_a_restart(make_client: MakeClient, tmp_path: Path) 
     # Written behind the manager's back to simulate rows left by a crashed process.
     running_id = asyncio.run(insert(JobStatus.RUNNING))
     queued_id = asyncio.run(insert(JobStatus.QUEUED))
-    recording_id = asyncio.run(insert(JobStatus.RUNNING, JobKind.LIVE))
+    recording_id = asyncio.run(insert(JobStatus.RUNNING, JobKind.LIVE, part=1))
 
     restarted = make_client()
     restarted.cookies.update(first.cookies)
@@ -75,8 +82,12 @@ def test_jobs_interrupted_by_a_restart(make_client: MakeClient, tmp_path: Path) 
     assert interrupted["status"] == "failed"
     assert "Interrupted" in interrupted["error"]
     assert wait_for_job(restarted, queued_id, FINISHED)["status"] == "completed"
-    # Recordings start again by themselves.
-    assert wait_for_job(restarted, recording_id, FINISHED)["status"] == "completed"
+    # Recordings continue by themselves, as the next part, from now.
+    recording = wait_for_job(restarted, recording_id, FINISHED)
+    assert recording["status"] == "completed"
+    assert recording["part"] == 2
+    assert recording["record_from_start"] is False
+    assert recording["filepath"].endswith("(part 2).mp4")
 
 
 def test_crashed_job_is_marked_failed(
@@ -141,3 +152,37 @@ def test_shutdown_stops_running_downloads(
 
     with pytest.raises(ProcessLookupError):
         os.kill(pid, 0)
+
+
+def test_shutdown_saves_running_recordings(
+    make_settings: Callable[..., Settings], tmp_path: Path
+) -> None:
+    """A recording stopped by a shutdown finishes its file; the restart continues it."""
+    with TestClient(create_app(make_settings())) as client:
+        client.post(
+            "/api/auth/setup", json={"password": TEST_PASSWORD, "download_dir": str(tmp_path)}
+        )
+        state: AppState = client.app.state.app_state  # type: ignore[attr-defined]
+
+        async def insert() -> int:
+            async with state.session_factory() as session:
+                job = Job(
+                    url="https://www.youtube.com/watch?v=slow-live",
+                    status=JobStatus.QUEUED,
+                    kind=JobKind.LIVE,
+                    output_dir=str(tmp_path),
+                )
+                session.add(job)
+                await session.commit()
+                state.jobs.submit(job)
+                return job.id
+
+        job_id = client.portal.call(insert)  # type: ignore[union-attr]
+        wait_for_job(client, job_id, {"running"})
+        # "running" is saved just before yt-dlp starts; wait until it is recording.
+        deadline = time.monotonic() + 10
+        while client.get(f"/api/jobs/{job_id}").json()["downloaded_bytes"] is None:
+            assert time.monotonic() < deadline
+            time.sleep(0.05)
+
+    assert (tmp_path / "Fake video slow-live [slow-live].mp4").exists()

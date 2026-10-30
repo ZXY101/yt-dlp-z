@@ -16,8 +16,10 @@ otherwise a video whose id picks its kind (short, upcoming, live, members, broke
 upcoming ones fail without --ignore-no-formats-error, as with real yt-dlp;
 members-only videos only open with --cookies.
 With --cookies it reports how many cookie lines the file had, so tests can see it was passed.
-With --live-from-start (recordings) progress has no total size, like a live stream, and
-comes as two numbered streams ("0: …" video, "1: …" audio at a tenth of the size);
+Recordings (--wait-for-video) have no total size, like a live stream, and stop cleanly on
+SIGINT, saving the file. With --live-from-start progress comes as two numbered streams
+("0: …" video, "1: …" audio at a tenth of the size), like real yt-dlp. --output is honoured
+for %(title)s, %(id)s and %(ext)s;
 ...upcoming... URLs first print yt-dlp's wait message.
 """
 
@@ -89,6 +91,8 @@ def video_metadata(video_id: str, args: list[str]) -> int:
         data.update(live_status="is_upcoming", duration=None, release_timestamp=4_102_444_800)
     elif "live" in video_id:
         data.update(live_status="is_live", duration=None)
+        if "old" in video_id:  # live for 10 hours already
+            data["release_timestamp"] = int(time.time()) - 10 * 3600
     emit(json.dumps(data))
     return 0
 
@@ -129,6 +133,25 @@ def report_cookies(args: list[str]) -> None:
         emit(f"[fake] cookies: {len(cookies)}")
 
 
+def output_name(args: list[str], title: str, video_id: str) -> str:
+    templates = values_of(args, "--output")
+    template = templates[-1] if templates else "%(title)s [%(id)s].%(ext)s"
+    names = {"%(title)s": title, "%(id)s": video_id, "%(ext)s": "mp4"}
+    for field, value in names.items():
+        template = template.replace(field, value)
+    return template
+
+
+class Recording:
+    """Stops a recording's loop on SIGINT, like yt-dlp finishing on Ctrl+C."""
+
+    stopped = False
+
+    @classmethod
+    def stop(cls, *_args: object) -> None:
+        cls.stopped = True
+
+
 def main() -> int:
     args = sys.argv[1:]
     url = args[args.index("--") + 1]
@@ -148,12 +171,17 @@ def main() -> int:
     if "stubborn" in url:
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
     steps, delay = (600, 0.1) if "slow" in url or "stubborn" in url else (5, 0.05)
-    live = "--live-from-start" in args
+    live = "--wait-for-video" in args
+    parallel = "--live-from-start" in args
+    if live:
+        signal.signal(signal.SIGINT, Recording.stop)
     if live and "upcoming" in url:
         emit("[wait] Waiting for the stream to start")
 
     emit(INFO + json.dumps({"id": video_id, "title": title, "webpage_url": url}))
     for step in range(1, steps + 1):
+        if Recording.stopped:
+            break
         downloaded = TOTAL_BYTES * step // steps
         progress = {
             "status": "downloading",
@@ -162,7 +190,7 @@ def main() -> int:
             "speed": 250_000.0,
             "eta": steps - step,
         }
-        if live:
+        if parallel:
             # Real recordings fetch video and audio at once, numbering each stream's lines.
             audio = {**progress, "downloaded_bytes": downloaded // 10, "progress_idx": 1}
             emit("0: " + PROGRESS + json.dumps({**progress, "progress_idx": 0}))
@@ -171,7 +199,7 @@ def main() -> int:
             emit(PROGRESS + json.dumps(progress))
         time.sleep(delay)
 
-    target = home / f"{title} [{video_id}].mp4"
+    target = home / output_name(args, title, video_id)
     target.write_bytes(b"fake video")
     emit(PROGRESS + json.dumps({"status": "finished", "downloaded_bytes": TOTAL_BYTES}))
     emit(FILE + json.dumps(str(target)))

@@ -29,6 +29,11 @@ class JobOut(BaseModel):
     kind: JobKind
     # When a scheduled recording's stream is due to start.
     scheduled_at: datetime | None
+    # Recordings: settings they started with, and the part being recorded.
+    record_from_start: bool
+    part_seconds: int | None
+    max_seconds: int | None
+    part: int | None
     options: dict[str, OptionValue]
     extra_args: str
     output_dir: str

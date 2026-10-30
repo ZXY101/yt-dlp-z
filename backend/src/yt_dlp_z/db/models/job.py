@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, Float, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from yt_dlp_z.db.base import Base
@@ -41,6 +41,12 @@ class Job(Base):
     )
     # When a scheduled recording's stream starts; the live scheduler queues it shortly before.
     scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # Recording settings, copied from Settings when the job is created (see services/live).
+    record_from_start: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    part_seconds: Mapped[int | None] = mapped_column(Integer, default=None)
+    max_seconds: Mapped[int | None] = mapped_column(Integer, default=None)
+    # The part being recorded (1, 2, …) when recordings are split into several files.
+    part: Mapped[int | None] = mapped_column(Integer, default=None)
     options: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     extra_args: Mapped[str] = mapped_column(Text, default="")
     # No foreign key: a deleted cookies file must not delete history. Checked when used.

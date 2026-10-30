@@ -35,4 +35,5 @@ class JobQueues:
         self._manager(job.kind).submit(job.id)
 
     async def cancel(self, job: Job) -> None:
-        await self._manager(job.kind).cancel(job.id)
+        # A stopped recording keeps what it recorded so far.
+        await self._manager(job.kind).cancel(job.id, graceful=job.kind == JobKind.LIVE)
