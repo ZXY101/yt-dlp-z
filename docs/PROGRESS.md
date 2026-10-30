@@ -6,7 +6,7 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 4 (watching): done.** Next up: **Milestone 5 (live).**
+**Milestone 5 (live): done** (real-YouTube check still open, see below). Next up: **Milestone 6 (ops).**
 
 | Milestone                 | Status      |
 | ------------------------- | ----------- |
@@ -15,7 +15,7 @@ Design and milestones: [PLAN.md](PLAN.md).
 | 2. Downloads              | Done        |
 | 3. Presets & cookies      | Done        |
 | 4. Watching               | Done        |
-| 5. Live                   | Not started |
+| 5. Live                   | Done        |
 | 6. Ops (incl. proxy pool) | Not started |
 | 7. Release                | Not started |
 
@@ -24,7 +24,8 @@ What exists: FastAPI backend with first-run setup, login/logout, rate limiting,
 progress over WebSocket, cancel/retry/log); presets; cookies files (upload,
 test, per download/preset); runtime settings (download folder, download
 limit, channel limit); channel subscriptions (RSS poller, yt-dlp probe, filters,
-backfill, per-video history). React frontend: Download (home, with preset/cookies pickers and a
+backfill, per-video history); live recording (scheduled/queued recordings in their
+own queue, live scheduler, streams-tab sweep). React frontend: Download (home, with preset/cookies pickers and a
 searchable editor for every yt-dlp option), Queue, Subscriptions, Presets,
 Cookies, Settings.
 Vitest, pytest and Playwright suites; Docker image; CI for all of it.
@@ -43,27 +44,28 @@ warning. Now (`features/downloads/playlist-link.ts`, URL parsing, YouTube only):
    ("video 3 of 24"), from yt-dlp's playlist_index / n_entries. Needs the stub
    to emit several items for a playlist URL.
 
-## Next steps (Milestone 5)
+## Milestone 5 notes
 
-See PLAN.md "YouTube channel watching" (the `is_upcoming` / `is_live` paths).
-Subscriptions already record such videos as `upcoming` (with `release_at`) or
-`live` in the `videos` table; nothing records them yet.
+Done 2026-10-30: streams found by a subscription (feed or streams-tab sweep)
+become `kind: live` jobs; upcoming ones wait as `scheduled` and the live
+scheduler (`services/live/scheduler.py`) queues them 5 min before
+`release_at`; recordings have their own queue and limit; interrupted
+recordings restart by themselves after a restart. Queue shows a "Scheduled"
+list and a "Recording" badge; Settings has "Recordings at the same time".
 
-1. Live scheduler: wake a few minutes before `release_at`, then run
-   `yt-dlp --live-from-start --wait-for-video` as a job (jobs need a "live"
-   kind or flag, and the UI a "recording" state).
-2. `live` videos: start recording immediately from the start.
-3. Separate live concurrency limit (recordings shouldn't block downloads).
-4. Backup sweep of the channel's `/streams` tab with `--flat-playlist`
-   (every ~30 min) for streams the RSS feed misses.
-5. Stub: upcoming/live behaviour for recordings; E2E for every flow.
-6. Small follow-ups from M4: the video list shows probe titles only for probed
-   videos (skipped-before-subscribing ones keep the feed title, which is fine);
-   consider a "download anyway" action on skipped videos.
-7. Proposed to the user, not yet approved: a "download the newest N now" action
-   on the edit page (backfill after adding). It would re-run the newest N
-   "Uploaded before you subscribed" videos through probe → filters → queue.
-   The RSS feed caps it at 15; more needs yt-dlp `--flat-playlist` on /videos.
+Still open:
+
+1. **Check against real YouTube** (the stub can't): record one real live
+   stream and one premiere on the deployed instance, look at the file and the
+   progress text. Consider an opt-in `live` Playwright test.
+2. A stream rescheduled _earlier_ after we scheduled it is only caught if a
+   later check re-probes it (it doesn't today: videos with a job are done).
+   Later yt-dlp `--wait-for-video` covers streams that start late.
+3. Small follow-ups: "download anyway" on skipped videos; manual recording
+   from the Download page (a "record live stream" choice) for non-subscribed
+   streams; ytarchive as an alternative recorder (phase 2).
+4. Not approved: "download the newest N now" on the edit page (backfill after
+   adding). The user said to leave it for now (2026-10-30).
 
 ## Decisions not obvious from the code
 
@@ -112,7 +114,23 @@ Subscriptions already record such videos as `upcoming` (with `release_at`) or
 - Tests: pytest points `YTDLPZ_YOUTUBE_FEED_URL` at `file://` feeds; E2E uses
   the test server's own `/api/test/feeds/{channel_id}`.
 
+- Recordings: `JobQueues` (`services/jobs/queues.py`) holds two `JobManager`s
+  (downloads, recordings) and routes by `job.kind`. Scheduled recordings wait in
+  the DB, not in a yt-dlp process, so a premiere a week away holds no slot and
+  survives restarts. yt-dlp gets `--live-from-start --wait-for-video 30-300`.
+- The streams-tab sweep runs during a normal check when the subscription wants
+  streams and the last sweep is 30+ min old; entries only it found are recorded
+  if live/upcoming, otherwise skipped ("Found on the streams tab after it
+  ended"), so enabling streams later never back-downloads stream history.
+- Interrupted downloads fail on restart (Retry by hand); interrupted
+  recordings are queued again automatically.
+- Subscription jobs start with the feed/probe title, so scheduled recordings
+  show a name before yt-dlp runs.
+
 ## Open items
+
+- The `layout.spec.ts` "dark mode also darkens native controls" test failed
+  once on mobile in a full run (passed 15/15 on repeat). Watch for flakiness.
 
 - Docker image is 784 MB, mostly Debian's ffmpeg. A static ffmpeg build could
   shrink it a lot.
@@ -204,5 +222,12 @@ Subscriptions already record such videos as `upcoming` (with `release_at`) or
   Parser unit tests, 3 page tests, 3 E2E tests (desktop + mobile), screenshots
   checked in light and dark.
 
-**Next session:** ask about backfill-on-edit (M5 step 7), then milestone 5
-step 1. Playlist step 3 (queue progress) can wait. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
+- **2026-10-30 · Deployed + Milestone 5.** Deployed on the maintainer's server.
+  Fixed a UI race found by a flaky E2E run: the subscription video list stopped
+  polling when a check ended and could miss its last videos. Live recording:
+  job kinds, scheduled status, live scheduler, separate recording queue and
+  limit (`YTDLPZ_MAX_CONCURRENT_RECORDINGS`), streams-tab sweep, auto-restart of
+  interrupted recordings. 225 backend tests (96%), 176 unit tests (98%), 73 E2E.
+
+**Next session:** M5 "still open" item 1 (real-YouTube check), then
+milestone 6. `cd ~/dev/yt-dlp-z && git pull && npm run check`. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
