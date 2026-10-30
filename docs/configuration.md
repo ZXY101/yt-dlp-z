@@ -19,6 +19,7 @@ command-line flags. Flags win over environment variables.
 | `YTDLPZ_EXTRA_DOWNLOAD_ROOTS`      | `[]`                        | `[]`                   | Extra absolute folders downloads may use, as a JSON list, e.g. `["/media/music"]`                                   |
 | `YTDLPZ_ALLOW_UNSAFE_OPTIONS`      | `false`                     | `false`                | Allows the unsafe yt-dlp options listed below. Only for trusted setups.                                             |
 | `YTDLPZ_YTDLP_COMMAND`             | the bundled yt-dlp          | the bundled yt-dlp     | Command that runs yt-dlp, as a JSON list (mainly for tests)                                                         |
+| `YTDLPZ_YTDLP_PIP_COMMAND`         | the app's own pip           | the app's own pip      | pip used for yt-dlp updates, as a JSON list (only for tests)                                                        |
 | `YTDLPZ_YOUTUBE_FEED_URL`          | YouTube's channel feed      | YouTube's channel feed | Feed polled for new uploads; `{channel_id}` is filled in (only for tests)                                           |
 | `YTDLPZ_FRONTEND_DIST`             | `frontend/dist` in the repo | `/app/frontend`        | Folder with the built web UI                                                                                        |
 
@@ -75,6 +76,17 @@ videos need a member's cookies, set on the subscription or its preset.
 
 The Settings page limits how many channels can be watched (5 by default).
 Many channels polled from one IP can get it rate-limited or flagged by YouTube.
+
+### Updating yt-dlp
+
+YouTube changes often break older yt-dlp versions. Settings → yt-dlp updates it
+without a new app release: **Update now** pip-installs the newest
+`yt-dlp[default]` (Stable, or Nightly pre-releases) into `<config>/ytdlp`. That
+folder comes first on `PYTHONPATH` for every yt-dlp run, so the update survives
+container rebuilds and app updates. Downloads already running keep the version
+they started with. **Use bundled version** deletes the folder. The install goes
+to a staging folder first, so a failed update never breaks the yt-dlp in use.
+Updating needs internet access to PyPI.
 
 ### Blocked yt-dlp options
 
