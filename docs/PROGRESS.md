@@ -6,7 +6,9 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 5 (live): done** (a real scheduled stream starting on time is still unchecked, see below). Next up: **Milestone 6 (ops).**
+**Milestone 6 (ops): in progress.** Step 1 (yt-dlp updater) has its backend;
+the Settings UI is next. Milestone 5 is done (a real scheduled stream starting
+on time is still unchecked, see below).
 
 | Milestone                 | Status      |
 | ------------------------- | ----------- |
@@ -16,7 +18,7 @@ Design and milestones: [PLAN.md](PLAN.md).
 | 3. Presets & cookies      | Done        |
 | 4. Watching               | Done        |
 | 5. Live                   | Done        |
-| 6. Ops (incl. proxy pool) | Not started |
+| 6. Ops (incl. proxy pool) | In progress |
 | 7. Release                | Not started |
 
 What exists: FastAPI backend with first-run setup, login/logout, rate limiting,
@@ -29,6 +31,44 @@ own queue, live scheduler, streams-tab sweep). React frontend: Download (home, w
 searchable editor for every yt-dlp option), Queue, Subscriptions, Presets,
 Cookies, Settings.
 Vitest, pytest and Playwright suites; Docker image; CI for all of it.
+
+## Milestone 6 steps
+
+1. **yt-dlp updater.** Backend done 2026-10-31 (`services/ytdlp/updater.py`,
+   `/api/ytdlp`): pip installs `yt-dlp[default]` (with `--pre` on the nightly
+   channel) into `<config>/ytdlp` via a staging folder, which is first on
+   PYTHONPATH for every yt-dlp subprocess; `DELETE /api/ytdlp/update` goes back
+   to the bundled version. `pip` is now a dependency (uv venvs have none).
+   Next: Settings → yt-dlp section (version, channel, Update, Use bundled),
+   E2E with `e2e/stub/fake_pip.py` (`YTDLPZ_YTDLP_PIP_COMMAND` in
+   `start-server.sh`), docs.
+2. Daily auto-update (optional) and "update available" (PyPI JSON).
+3. ntfy notifications (PLAN.md §10).
+4. Media-server output per preset (PLAN.md §8).
+5. Proxy pool (PLAN.md §9).
+6. PO-token provider (bgutil) recipe.
+7. Docs: configuration.md, ops; healthcheck review.
+
+## Link check on the download form (done 2026-10-31)
+
+Asked by the maintainer: no more blind submits. Typing a link checks it with
+yt-dlp after a 0.6 s pause (`POST /api/media/probe`: `-J --flat-playlist`,
+first 50 entries, with the chosen cookies) and shows a card (thumbnail, title,
+uploader, site, duration / count / start time). Download stays disabled until
+the check passes; failures show yt-dlp's message (members-only explains it
+needs a member's cookies). The answer picks the form: playlists and channels
+show what will be downloaded (with the real count), YouTube videos opened from
+a playlist keep the "just this video / whole playlist" choice (the check looks
+at whichever is picked), live streams offer "from the start / from now" and a
+**Record** button, upcoming streams **Schedule recording**. Recordings use
+`POST /api/jobs` with `recording`. A real channel link answers with its tabs
+(Videos, Live, Shorts), so a playlist of playlists is reported as a channel.
+`--ignore-no-formats-error` is only added on a retry when yt-dlp says the
+stream "will begin" / "premieres in": on every run it turned unavailable videos
+and ended streams into empty results that passed (found on real YouTube
+2026-10-31). Verified on real YouTube: video, live (`@LofiGirl/live`), ended
+stream, made-up id, playlist (150), channel. Known gap: the check doesn't pass
+the form's options, so a link that only works through `--proxy` fails the check.
 
 ## Playlist downloads (steps 1–2 done 2026-10-30)
 
@@ -265,5 +305,12 @@ Still open:
   dialog with group tabs (picker on phones) and search across groups. 247
   backend tests, 179 unit, 76 E2E.
 
-**Next session:** milestone 6 (ops), plan in PLAN.md. Still unverified: a real
-scheduled stream starting on time. `cd ~/dev/yt-dlp-z && git pull && npm run check`. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
+- **2026-10-31 · Link check and updater backend.** Checkbox labels line up
+  with the box (`leading-5`); the header name links home. Download form checks
+  links before downloading and records live/upcoming streams (see "Link
+  check"). yt-dlp updater backend (M6 step 1). Fixed a race the updater tests
+  found: `GET /api/ytdlp` read the version before the status.
+
+**Next session:** M6 step 1 frontend (Settings → yt-dlp), see "Milestone 6
+steps". Still unverified: a real scheduled stream starting on time.
+`cd ~/dev/yt-dlp-z && git pull && npm run check`.
