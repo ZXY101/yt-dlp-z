@@ -20,8 +20,10 @@ COPY backend/src/ src/
 RUN uv sync --frozen --no-dev --no-editable
 
 FROM python:3.12-slim
+# yt-dlp needs ffmpeg to merge and convert, and Deno to solve YouTube's JS challenges.
+COPY --from=denoland/deno:bin-2.9.8 /deno /usr/local/bin/deno
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gosu \
+    && apt-get install -y --no-install-recommends ffmpeg gosu \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 1000 app \
     && mkdir -p /config /downloads
