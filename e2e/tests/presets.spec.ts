@@ -15,8 +15,7 @@ test.describe("presets", () => {
 
   test("a default preset fills in the download form", async ({ page }) => {
     await page.goto("/presets");
-    await expect(page.getByText("No presets yet")).toBeVisible();
-    await page.getByRole("link", { name: "New preset" }).click();
+    await page.getByRole("link", { name: /No presets yet/ }).click();
     await page.getByLabel("Name", { exact: true }).fill("Audio");
     await page.getByLabel("Use by default").check();
     await page.getByLabel("Quality").selectOption("audio-mp3");

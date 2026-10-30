@@ -6,10 +6,11 @@ import { broadcast } from "@/test/fake-socket";
 import { renderApp } from "@/test/render";
 
 describe("QueuePage", () => {
-  it("shows an empty state", async () => {
+  it("shows an empty state that links to the download page", async () => {
     installFakeApi(createFakeServer());
-    renderApp("/queue");
-    expect(await screen.findByText("No downloads yet")).toBeInTheDocument();
+    const { user, router } = renderApp("/queue");
+    await user.click(await screen.findByRole("link", { name: /No downloads yet/ }));
+    expect(router.state.location.pathname).toBe("/");
   });
 
   it("groups jobs and updates progress live", async () => {

@@ -20,7 +20,9 @@ describe("Cookies", () => {
     installFakeApi(server);
     const { user } = renderApp("/cookies");
 
-    expect(await screen.findByText("No cookies yet")).toBeInTheDocument();
+    // The empty state jumps to the upload form above it.
+    await user.click(await screen.findByRole("button", { name: /No cookies yet/ }));
+    expect(screen.getByLabelText("Name")).toHaveFocus();
     await user.type(screen.getByLabelText("Name"), "YouTube");
     await user.upload(screen.getByLabelText("Cookies file"), cookiesFile());
     await user.click(screen.getByRole("button", { name: "Upload" }));

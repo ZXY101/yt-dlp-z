@@ -35,6 +35,7 @@ function QueueContent({ jobs }: { jobs: UseQueryResult<Job[]> }) {
         icon={ListVideo}
         title="No downloads yet"
         description="Downloads you start show up here with their progress."
+        action={{ label: "Start a download", to: "/" }}
       />
     );
   }

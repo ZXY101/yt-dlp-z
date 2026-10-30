@@ -5,10 +5,11 @@ import { makeCookieFile, makePreset } from "@/test/fake-library";
 import { renderApp } from "@/test/render";
 
 describe("Presets", () => {
-  it("explains presets when there are none", async () => {
+  it("explains presets when there are none, and links to the editor", async () => {
     installFakeApi(createFakeServer());
-    renderApp("/presets");
-    expect(await screen.findByText("No presets yet")).toBeInTheDocument();
+    const { user, router } = renderApp("/presets");
+    await user.click(await screen.findByRole("link", { name: /No presets yet/ }));
+    expect(router.state.location.pathname).toBe("/presets/new");
   });
 
   it("creates a preset from the editor", async () => {

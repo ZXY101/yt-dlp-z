@@ -35,6 +35,7 @@ function SubscriptionList({ subscriptions }: { subscriptions: UseQueryResult<Sub
         icon={Rss}
         title="No channels watched yet"
         description="Add a YouTube channel and its new uploads are downloaded automatically, filtered the way you choose."
+        action={{ label: "Add your first channel", to: "/subscriptions/new" }}
       />
     );
   }
