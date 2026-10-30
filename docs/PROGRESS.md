@@ -6,36 +6,44 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 2 (downloads): done.** Next up: **Milestone 3 (presets & cookies).**
+**Milestone 3 (presets & cookies): done.** Next up: **Milestone 4 (watching).**
 
 | Milestone                 | Status      |
 | ------------------------- | ----------- |
 | 0. Repo foundation        | Done        |
 | 1. Skeleton               | Done        |
 | 2. Downloads              | Done        |
-| 3. Presets & cookies      | Not started |
+| 3. Presets & cookies      | Done        |
 | 4. Watching               | Not started |
 | 5. Live                   | Not started |
 | 6. Ops (incl. proxy pool) | Not started |
 | 7. Release                | Not started |
 
-What exists: FastAPI backend with first-run setup (admin password + default
-download folder), login/logout, rate limiting, `AUTH_MODE=none`, and a
-`reset-password` command. React frontend with setup, login, a responsive app
-shell and an empty dashboard. Vitest, pytest and Playwright suites; Docker
-image; CI for all of it.
+What exists: FastAPI backend with first-run setup, login/logout, rate limiting,
+`AUTH_MODE=none` and a `reset-password` command; download jobs (queue, live
+progress over WebSocket, cancel/retry/log); presets; cookies files (upload,
+test, per download/preset); runtime settings (download folder, download
+limit). React frontend: Download (home, with preset/cookies pickers and a
+searchable editor for every yt-dlp option), Queue, Presets, Cookies, Settings.
+Vitest, pytest and Playwright suites; Docker image; CI for all of it.
 
-## Next steps (Milestone 3)
+## Next steps (Milestone 4)
 
-1. Presets: `presets` table + migration, CRUD API, options stored by long flag
-   (same format as jobs), default preset, pick a preset on the download page.
-2. Full options editor generated from `GET /api/options/schema`: grouped,
-   searchable, help text, blocked options shown disabled with the reason.
-3. Cookies: upload Netscape `cookies.txt` (stored in `/config/cookies`, never
-   returned in full), name, test button, choose per preset/download; the app
-   passes `--cookies` itself (users can't).
-4. Settings page: download folder, max concurrent downloads.
-5. E2E for every new flow; regression tests for any bug found.
+See PLAN.md "YouTube channel watching" and "Subscription filters".
+
+1. `subscriptions` table: channel id/name/url, preset_id, filters JSON, poll
+   interval, enabled, last_checked. Add by URL or @handle, resolving the channel
+   id with `yt-dlp --flat-playlist -J` (the stub needs a fake for this).
+2. `videos` table (seen entries, live_status, release_timestamp, state), so a
+   video is only queued once. Jobs get an optional video/subscription link.
+3. Poller: channel RSS feed every 10 min with jitter and a floor; new entry →
+   probe with `yt-dlp -J` → filters → queue a download with the preset. Live and
+   upcoming entries are only recorded as such here (recording is milestone 5).
+4. Filters: content type, title include/exclude regex, duration, after date,
+   members-only; backfill on first add ("last N" or "only new").
+5. Watched-channel limit (default 5, raisable in Settings with a warning).
+6. Subscriptions page (add, filters, check now, enable/disable), E2E for every
+   flow. No real network in tests: fake RSS served by the test server or stub.
 
 ## Decisions not obvious from the code
 
@@ -56,13 +64,27 @@ image; CI for all of it.
   `YTDLPZ_ADMIN_PASSWORD` is set; then setup must enter that password (it is
   verified and rate-limited), so setup can't be used to bypass it.
 - Default port is 9742 (8080 clashes with qBittorrent and others).
+- No dashboard page: it only repeated the queue. Download is the home page.
+- The download form applies a preset by copying its values into the form; jobs
+  store the resolved options, not a preset reference, so editing a preset never
+  changes past or queued downloads.
+- The curated choices (quality, subtitles, metadata, SponsorBlock) are views
+  over the same options map as the full editor, so both always agree.
+- Cookies: each yt-dlp run gets a private temporary copy (yt-dlp writes cookies
+  back on exit). Jobs keep `cookie_id` without a foreign key; a deleted file
+  fails the retry with a clear message, and presets using it are unlinked.
+- The download limit set in Settings is stored in the DB and overrides
+  `YTDLPZ_MAX_CONCURRENT_DOWNLOADS`. Lowering it lets running downloads finish.
+- Rules for all coding agents live in `AGENTS.md`; `CLAUDE.md` imports it.
 
 ## Open items
 
 - Docker image is 784 MB, mostly Debian's ffmpeg. A static ffmpeg build could
   shrink it a lot.
-- release-please fails until "Allow GitHub Actions to create and approve pull
-  requests" is enabled in the repo settings (waiting on the maintainer).
+- release-please works (Actions may open PRs since 2026-10-30) and releases
+  start at 0.1.0. CI doesn't run on its PRs by itself: GITHUB_TOKEN-created PRs
+  don't trigger workflows (shown as "action required"). Fine for now; a PAT or
+  GitHub App token would fix it if needed.
 - PO tokens: YouTube is enforcing them for some clients. The usual fix is the
   bgutil-ytdlp-pot-provider plugin (a helper container) — milestone 6.
 
@@ -117,3 +139,10 @@ image; CI for all of it.
   `CLAUDE.md` to `AGENTS.md` for all agents; `CLAUDE.md` imports it and keeps
   only Claude-specific notes (skills). release-please still needs "Allow GitHub
   Actions to create and approve pull requests" in the repo settings.
+- **2026-10-30 · Milestone 3 done.** Dashboard dropped (Download is home),
+  AGENTS.md, dark-mode native controls fix. Presets, cookies and settings APIs
+  (153 backend tests, 96%), frontend pages and the generated options editor
+  (127 unit tests, 98%), 49 E2E tests incl. presets/cookies/settings. The job
+  manager now uses a dispatcher with an adjustable limit instead of a fixed
+  worker pool. The oxlint hook no longer fails on commits that only stage
+  lint-ignored files. Screenshots checked at desktop, mobile and dark mode.

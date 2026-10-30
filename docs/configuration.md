@@ -9,12 +9,12 @@ command-line flags. Flags win over environment variables.
 | --------------------------------- | --------------------------- | ------------------ | ----------------------------------------------------------------------------------------------- |
 | `YTDLPZ_HOST`                     | `127.0.0.1`                 | `0.0.0.0`          | Address to listen on                                                                            |
 | `YTDLPZ_PORT`                     | `9742`                      | `9742`             | Port to listen on                                                                               |
-| `YTDLPZ_CONFIG_DIR`               | your user data folder¹      | `/config`          | Database and secret key                                                                         |
+| `YTDLPZ_CONFIG_DIR`               | your user data folder¹      | `/config`          | Database, secret key, job logs and uploaded cookies                                             |
 | `YTDLPZ_DEFAULT_DOWNLOAD_DIR`     | `~/Downloads/yt-dlp-z`      | `/downloads`       | Suggested download folder in first-run setup                                                    |
 | `YTDLPZ_AUTH_MODE`                | `password`                  | `password`         | `password`, or `none` to turn off login. **Only use `none` behind a proxy that handles login.** |
 | `YTDLPZ_ADMIN_PASSWORD`           | unset                       | unset              | Sets the admin password up front (see below)                                                    |
 | `YTDLPZ_SESSION_DAYS`             | `30`                        | `30`               | How long a sign-in lasts                                                                        |
-| `YTDLPZ_MAX_CONCURRENT_DOWNLOADS` | `3`                         | `3`                | How many downloads run at once; the rest wait in the queue                                      |
+| `YTDLPZ_MAX_CONCURRENT_DOWNLOADS` | `3`                         | `3`                | How many downloads run at once; the rest wait. Changing it on the Settings page overrides this  |
 | `YTDLPZ_EXTRA_DOWNLOAD_ROOTS`     | `[]`                        | `[]`               | Extra absolute folders downloads may use, as a JSON list, e.g. `["/media/music"]`               |
 | `YTDLPZ_ALLOW_UNSAFE_OPTIONS`     | `false`                     | `false`            | Allows the unsafe yt-dlp options listed below. Only for trusted setups.                         |
 | `YTDLPZ_YTDLP_COMMAND`            | the bundled yt-dlp          | the bundled yt-dlp | Command that runs yt-dlp, as a JSON list (mainly for tests)                                     |
@@ -46,6 +46,16 @@ folder is given for that download:
 Paths are resolved (including `..` and symlinks) before this check, so a
 download can't escape these folders. File name templates (`--output`) must be
 relative for the same reason.
+
+### Cookies
+
+Upload a Netscape-format `cookies.txt` on the Cookies page to download
+members-only, private or age-restricted videos. yt-dlp-z stores it in
+`<config>/cookies/` readable only by its own user, never returns it through the
+API, and passes `--cookies` itself (users can't). Each download gets its own
+temporary copy, because yt-dlp writes cookies back when it exits. For YouTube,
+export from a private window you then close, so the browser doesn't rotate the
+session and invalidate the file.
 
 ### Blocked yt-dlp options
 
@@ -87,10 +97,10 @@ In Docker: `docker exec -it yt-dlp-z yt-dlp-z reset-password`.
 
 ## Volumes (Docker)
 
-| Path         | Contents                                                                |
-| ------------ | ----------------------------------------------------------------------- |
-| `/config`    | `yt-dlp-z.db` (settings, password hash) and `secret.key`. Back this up. |
-| `/downloads` | Default download location chosen in first-run setup                     |
+| Path         | Contents                                                                                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/config`    | `yt-dlp-z.db` (settings, presets, password hash), `secret.key`, `logs/` and `cookies/`. Back this up, and keep it private: `cookies/` holds sign-in sessions. |
+| `/downloads` | Default download location chosen in first-run setup                                                                                                           |
 
 ## Security notes
 
