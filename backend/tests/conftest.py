@@ -10,7 +10,9 @@ from fastapi.testclient import TestClient
 from yt_dlp_z.core.config import AuthMode, Settings
 from yt_dlp_z.main import create_app
 
-FAKE_YTDLP = Path(__file__).resolve().parents[2] / "e2e" / "stub" / "fake_yt_dlp.py"
+STUB_DIR = Path(__file__).resolve().parents[2] / "e2e" / "stub"
+FAKE_YTDLP = STUB_DIR / "fake_yt_dlp.py"
+FAKE_PIP = STUB_DIR / "fake_pip.py"
 TEST_PASSWORD = "correct-horse-battery"  # noqa: S105  (test fixture, not a real secret)
 
 MakeClient = Callable[..., TestClient]
@@ -35,6 +37,7 @@ def make_settings(tmp_path: Path, frontend_dist: Path) -> Callable[..., Settings
             "auth_mode": AuthMode.PASSWORD,
             "test_mode": True,
             "ytdlp_command": [sys.executable, str(FAKE_YTDLP)],
+            "ytdlp_pip_command": [sys.executable, str(FAKE_PIP)],
         }
         values.update(overrides)
         return Settings.model_validate(values)

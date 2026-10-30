@@ -3,6 +3,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from yt_dlp_z.schemas.app_settings import DEFAULT_RECORDING, RecordingSettings
+from yt_dlp_z.schemas.ytdlp import YtdlpChannel
 from yt_dlp_z.services.settings_store import get_value, set_values
 
 MAX_CONCURRENT_DOWNLOADS = "max_concurrent_downloads"
@@ -63,3 +64,15 @@ async def set_recording_settings(session: AsyncSession, recording: RecordingSett
     values = {key: str(stored[field] or "") for field, key in RECORDING_KEYS.items()}
     values[LONG_STREAMS] = recording.long_streams
     await set_values(session, values)
+
+
+YTDLP_CHANNEL = "ytdlp_channel"
+
+
+async def get_ytdlp_channel(session: AsyncSession) -> YtdlpChannel:
+    value = await get_value(session, YTDLP_CHANNEL)
+    return "nightly" if value == "nightly" else "stable"
+
+
+async def set_ytdlp_channel(session: AsyncSession, channel: YtdlpChannel) -> None:
+    await set_values(session, {YTDLP_CHANNEL: channel})

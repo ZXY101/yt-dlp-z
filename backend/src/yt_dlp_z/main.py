@@ -18,6 +18,7 @@ from yt_dlp_z.api.routes import (
     system,
     testing,
     ws,
+    ytdlp,
 )
 from yt_dlp_z.api.state import AppState
 from yt_dlp_z.core.config import AuthMode, Settings, get_settings
@@ -36,6 +37,7 @@ from yt_dlp_z.services.live.scheduler import LiveScheduler
 from yt_dlp_z.services.watch.enqueue import WatchContext
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
+from yt_dlp_z.services.ytdlp.updater import YtdlpUpdater, ytdlp_python_path
 from yt_dlp_z.web import mount_spa
 
 SECONDS_PER_DAY = 86_400
@@ -63,6 +65,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         job_queues = JobQueues(job_context, download_limit, recording_limit)
         live = LiveScheduler(job_context, job_queues)
         watcher = SubscriptionWatcher(WatchContext(session_factory, settings, hub, job_queues))
+        updater = YtdlpUpdater(
+            settings.ytdlp_pip_command, settings.ytdlp_update_dir, schemas.invalidate
+        )
         app.state.app_state = AppState(
             settings=settings,
             engine=engine,
@@ -73,17 +78,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             jobs=job_queues,
             live=live,
             watcher=watcher,
+            updater=updater,
         )
         if settings.admin_password and settings.auth_mode is AuthMode.PASSWORD:
             async with session_factory() as session:
                 await sync_admin_password(session, settings.admin_password.get_secret_value())
-        await job_queues.start()
-        live.start()
-        watcher.start()
-        yield
-        await watcher.stop()
-        await live.stop()
-        await job_queues.stop()
+        with ytdlp_python_path(settings.ytdlp_update_dir):
+            await job_queues.start()
+            live.start()
+            watcher.start()
+            yield
+            await updater.stop()
+            await watcher.stop()
+            await live.stop()
+            await job_queues.stop()
         await engine.dispose()
 
     app = FastAPI(title="yt-dlp-z", lifespan=lifespan)
@@ -100,6 +108,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         subscriptions,
         system,
         ws,
+        ytdlp,
     ):
         app.include_router(module.router)
     if settings.test_mode:

@@ -40,6 +40,8 @@ class Settings(BaseSettings):
     allow_unsafe_options: bool = False
     # Command that runs yt-dlp. Defaults to the yt-dlp installed next to this app.
     ytdlp_command: list[str] = [sys.executable, "-m", "yt_dlp"]
+    # pip used to install yt-dlp updates into <config_dir>/ytdlp. Tests swap in a stub.
+    ytdlp_pip_command: list[str] = [sys.executable, "-m", "pip"]
     # Channel feed polled for new uploads. {channel_id} is replaced. Tests point it elsewhere.
     youtube_feed_url: str = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     # Enables /api/test/* endpoints used by the E2E suite. Never set in production.
@@ -48,6 +50,10 @@ class Settings(BaseSettings):
     @property
     def database_path(self) -> Path:
         return self.config_dir / "yt-dlp-z.db"
+
+    @property
+    def ytdlp_update_dir(self) -> Path:
+        return self.config_dir / "ytdlp"
 
     @property
     def secret_key_path(self) -> Path:
