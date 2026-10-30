@@ -9,8 +9,20 @@ from yt_dlp_z.schemas.common import WebUrl, as_utc_iso
 OptionValue = bool | int | float | str | list[str]
 
 
+class RecordingRequest(BaseModel):
+    """Records a live or upcoming stream instead of downloading. Part length and maximum
+    length come from the recording settings."""
+
+    from_start: bool
+    # Upcoming streams: when they start (from the link check). The recording waits until then.
+    starts_at: datetime | None = None
+
+
 class JobCreate(BaseModel):
     url: WebUrl
+    # Known from the link check; shown until yt-dlp reports its own.
+    title: str | None = Field(default=None, max_length=500)
+    recording: RecordingRequest | None = None
     # Keyed by yt-dlp long flag, e.g. {"--format": "bv*+ba", "--embed-subs": true}.
     options: dict[str, OptionValue] = {}
     extra_args: str = Field(default="", max_length=4000)

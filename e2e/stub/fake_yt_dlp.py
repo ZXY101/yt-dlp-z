@@ -9,8 +9,8 @@ The URL picks the behaviour:
   ...stubborn...  slow, and ignores SIGTERM (for the force-kill fallback)
   anything else   finishes in about a quarter of a second
 With --simulate (the cookies check) it prints the title, or fails for ...fail... URLs.
-With -J it prints metadata instead (see metadata()): a channel for /@handle URLs, the
-streams tab for /channel/<id>/streams URLs (entries for ids containing "streamer",
+With -J it prints metadata instead (see metadata()): a channel (its tabs) for /@handle
+URLs, a playlist of 24 for ?list= URLs (unless --no-playlist), the streams tab for /channel/<id>/streams URLs (entries for ids containing "streamer",
 an error for "broken"),
 otherwise a video whose id picks its kind (short, upcoming, live, members, broken, long);
 upcoming ones fail without --ignore-no-formats-error, as with real yt-dlp;
@@ -36,6 +36,7 @@ PROGRESS = "[ytdlpz:progress]"
 INFO = "[ytdlpz:info]"
 FILE = "[ytdlpz:file]"
 TOTAL_BYTES = 1_000_000
+TABS = ["Videos", "Live", "Shorts"]
 
 
 def values_of(args: list[str], flag: str) -> list[str]:
@@ -66,7 +67,19 @@ def channel_metadata(url: str) -> int:
     channel_id = f"UC{handle}"
     channel_url = f"https://www.youtube.com/channel/{channel_id}"
     data = {"id": channel_id, "channel_id": channel_id, "channel": f"Fake {handle}"}
-    emit(json.dumps({**data, "channel_url": channel_url, "entries": []}))
+    # Like real yt-dlp, a channel's home page lists its tabs as playlists.
+    tabs = [{"_type": "playlist", "title": f"Fake {handle} - {tab}"} for tab in TABS]
+    emit(json.dumps({**data, "_type": "playlist", "channel_url": channel_url, "entries": tabs}))
+    return 0
+
+
+def playlist_metadata(url: str) -> int:
+    playlist_id = parse_qs(urlparse(url).query).get("list", ["PLfake"])[0]
+    if "broken" in playlist_id:
+        return fail_json("The playlist does not exist.")
+    entries = [{"_type": "url", "id": f"item{n}", "title": f"Item {n}"} for n in range(1, 4)]
+    data = {"_type": "playlist", "id": playlist_id, "title": f"Fake playlist {playlist_id}"}
+    emit(json.dumps({**data, "playlist_count": 24, "entries": entries}))
     return 0
 
 
@@ -86,6 +99,8 @@ def video_metadata(video_id: str, args: list[str]) -> int:
         "live_status": "not_live",
         "media_type": "short" if "short" in video_id else "video",
         "webpage_url": f"https://www.youtube.com/watch?v={video_id}",
+        "uploader": "Fake channel",
+        "extractor_key": "Youtube",
     }
     if "members" in video_id:
         data["availability"] = "subscriber_only"
@@ -118,6 +133,8 @@ def metadata(url: str, args: list[str]) -> int:
         return streams_tab(url)
     if "/@" in url:
         return channel_metadata(url)
+    if "list=" in url and "--no-playlist" not in args:
+        return playlist_metadata(url)
     return video_metadata(video_id_of(url), args)
 
 
