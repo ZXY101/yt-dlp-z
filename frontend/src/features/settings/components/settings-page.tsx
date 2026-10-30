@@ -14,6 +14,7 @@ import {
   useLiveStreamFields,
 } from "@/features/settings/components/live-stream-fields";
 import { type LimitField, useLimitField } from "@/features/settings/hooks/use-limit-field";
+import { YtdlpSection } from "@/features/settings/components/ytdlp-section";
 import type { AppSettings } from "@/features/settings/types";
 
 const MAX_DOWNLOADS = 10;
@@ -124,6 +125,7 @@ export function SettingsPage() {
       {settings.isPending && <p className="text-sm text-muted-foreground">Loading settings…</p>}
       {settings.isError && <FormError message={describeError(settings.error)} />}
       {settings.data && <SettingsForm settings={settings.data} />}
+      <YtdlpSection />
     </>
   );
 }

@@ -17,6 +17,9 @@ export interface FakeServer {
   subscriptions: components["schemas"]["SubscriptionOut"][];
   /** Recent videos by subscription id. */
   videos: Record<number, components["schemas"]["VideoOut"][]>;
+  ytdlp: components["schemas"]["YtdlpInfo"];
+  /** Makes the next yt-dlp update fail. */
+  ytdlpUpdateFails: boolean;
   /** Folder suggestions by parent path. */
   folders: Record<string, string[]>;
 }

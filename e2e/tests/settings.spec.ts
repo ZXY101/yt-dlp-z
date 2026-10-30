@@ -51,4 +51,18 @@ test.describe("settings", () => {
     await page.getByRole("button", { name: "Save settings" }).click();
     await expect(page.getByText(/must be an absolute path/)).toBeVisible();
   });
+
+  test("yt-dlp can be updated and put back to the bundled version", async ({ page }) => {
+    const section = page.getByRole("region", { name: "yt-dlp" });
+    await expect(section.getByText(/bundled with the app/)).toBeVisible();
+    await section.getByLabel("Update channel").selectOption("nightly");
+    await section.getByRole("button", { name: "Update now" }).click();
+    await expect(section.getByText("Updated yt-dlp to 2099.1.2.dev0.")).toBeVisible();
+    await expect(section.getByText(/Version 2099.1.2.dev0, updated/)).toBeVisible();
+    await expectNoHorizontalScroll(page);
+
+    await section.getByRole("button", { name: "Use bundled version" }).click();
+    await expect(section.getByText(/bundled with the app/)).toBeVisible();
+    await section.getByLabel("Update channel").selectOption("stable");
+  });
 });
