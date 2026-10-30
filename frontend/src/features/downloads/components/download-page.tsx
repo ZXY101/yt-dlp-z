@@ -52,6 +52,23 @@ function SubmitButton({ form }: { form: DownloadForm }) {
   );
 }
 
+function LinkField({ form }: { form: DownloadForm }) {
+  return (
+    <FormField
+      label="Link"
+      type="url"
+      inputMode="url"
+      placeholder="https://www.youtube.com/watch?v=…"
+      hint="A video, playlist or channel from any site yt-dlp supports."
+      required
+      value={form.url}
+      error={form.check.status === "invalid" ? form.check.message : undefined}
+      onPaste={form.markPaste}
+      onChange={(event) => form.setUrl(event.target.value)}
+    />
+  );
+}
+
 export function DownloadPage() {
   const form = useDownloadForm();
   const cookieFiles = useCookieFiles().data ?? [];
@@ -67,17 +84,7 @@ export function DownloadPage() {
       <SystemWarnings />
       <form className="space-y-6" onSubmit={handleSubmit} noValidate>
         <FormError message={form.createJob.isError ? describeError(form.createJob.error) : null} />
-        <FormField
-          label="Link"
-          type="url"
-          inputMode="url"
-          placeholder="https://www.youtube.com/watch?v=…"
-          hint="A video, playlist or channel from any site yt-dlp supports."
-          required
-          value={form.url}
-          error={form.check.status === "invalid" ? form.check.message : undefined}
-          onChange={(event) => form.setUrl(event.target.value)}
-        />
+        <LinkField form={form} />
         <MediaPreview check={form.check} />
         <PlaylistChoice
           videoInPlaylist={form.videoInPlaylist}

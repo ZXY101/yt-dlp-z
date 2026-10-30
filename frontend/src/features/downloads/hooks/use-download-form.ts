@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 
 import { useCreateJob } from "@/features/downloads/api";
@@ -51,44 +51,80 @@ function useSettingsState() {
   return { settings, setSettings, settingsVersion, presetChoice };
 }
 
-export function useDownloadForm() {
+interface JobBodyInput {
+  url: string;
+  media: MediaInfo;
+  settings: DownloadSettings;
+  fromStart: boolean;
+  wholePlaylist: boolean;
+  videoInPlaylist: boolean;
+}
+
+function jobBody(input: JobBodyInput): JobCreate {
+  const { settings, wholePlaylist } = input;
+  const options = input.videoInPlaylist
+    ? withPlaylistChoice(settings.options, wholePlaylist)
+    : settings.options;
+  return {
+    url: input.url.trim(),
+    title: input.media.title,
+    recording: recordingFor(input.media, input.fromStart),
+    ...settingsForApi({ ...settings, options }),
+  };
+}
+
+/** The link field. A pasted link is checked at once; typing waits for a pause. */
+function useUrlInput(onChange: () => void) {
   const [url, setUrl] = useState("");
+  const [pastedUrl, setPastedUrl] = useState<string | null>(null);
+  const pasting = useRef(false);
+
+  function changeUrl(next: string) {
+    setUrl(next);
+    setPastedUrl(pasting.current ? next : null);
+    pasting.current = false;
+    onChange();
+  }
+
+  /** Called before the change a paste causes. */
+  function markPaste() {
+    pasting.current = true;
+  }
+
+  return { url, changeUrl, markPaste, pasted: url === pastedUrl };
+}
+
+export function useDownloadForm() {
   const { settings, setSettings, settingsVersion, presetChoice } = useSettingsState();
   const [wholePlaylist, setWholePlaylist] = useState(false);
   // null: what the recording settings suggest for this stream.
   const [fromStartChoice, setFromStart] = useState<boolean | null>(null);
+  const { url, changeUrl, markPaste, pasted } = useUrlInput(() => setFromStart(null));
   const videoInPlaylist = isVideoInPlaylist(url);
   const noPlaylist = videoInPlaylist && !wholePlaylist;
-  const check = useLinkCheck({ url, cookieId: settings.cookieId, noPlaylist });
+  const check = useLinkCheck({
+    url,
+    cookieId: settings.cookieId,
+    noPlaylist,
+    immediate: pasted,
+  });
   const media = readyMedia(check);
   const fromStart = fromStartChoice ?? media?.record_from_start ?? true;
   const createJob = useCreateJob();
   const navigate = useNavigate();
 
-  function changeUrl(next: string) {
-    setUrl(next);
-    setFromStart(null);
-  }
-
   function submit() {
     if (!media) {
       return;
     }
-    const options = videoInPlaylist
-      ? withPlaylistChoice(settings.options, wholePlaylist)
-      : settings.options;
-    const body: JobCreate = {
-      url: url.trim(),
-      title: media.title,
-      recording: recordingFor(media, fromStart),
-      ...settingsForApi({ ...settings, options }),
-    };
+    const body = jobBody({ url, media, settings, fromStart, wholePlaylist, videoInPlaylist });
     createJob.mutate(body, { onSuccess: () => void navigate("/queue") });
   }
 
   return {
     url,
     setUrl: changeUrl,
+    markPaste,
     settings,
     setSettings,
     settingsVersion,

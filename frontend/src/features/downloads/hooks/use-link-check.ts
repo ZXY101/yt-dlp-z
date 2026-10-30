@@ -18,15 +18,12 @@ interface LinkCheckInput {
   url: string;
   cookieId: number | null;
   noPlaylist: boolean;
+  /** Check without waiting, e.g. for a pasted link (the wait is only for typing). */
+  immediate: boolean;
 }
 
-function probeRequest({ url, cookieId, noPlaylist }: LinkCheckInput) {
-  const request: MediaProbeRequest = {
-    url: url.trim(),
-    cookie_id: cookieId,
-    no_playlist: noPlaylist,
-  };
-  return request;
+function probeRequest({ url, cookieId, noPlaylist }: LinkCheckInput): MediaProbeRequest {
+  return { url: url.trim(), cookie_id: cookieId, no_playlist: noPlaylist };
 }
 
 /** The probe request as a string, or "" when there is nothing valid to check. Debounced as
@@ -49,8 +46,10 @@ function probeResult(probe: ReturnType<typeof useMediaProbe>): LinkCheck {
 export function useLinkCheck(input: LinkCheckInput): LinkCheck {
   const invalid = input.url.trim() ? validateUrl(input.url) : undefined;
   const key = requestKey(input, invalid);
-  const settledKey = useDebouncedValue(key, CHECK_DELAY_MS);
-  const settledInvalid = useDebouncedValue(invalid, CHECK_DELAY_MS);
+  const debouncedKey = useDebouncedValue(key, CHECK_DELAY_MS);
+  const debouncedInvalid = useDebouncedValue(invalid, CHECK_DELAY_MS);
+  const settledKey = input.immediate ? key : debouncedKey;
+  const settledInvalid = input.immediate ? invalid : debouncedInvalid;
   const probe = useMediaProbe(settledKey ? (JSON.parse(settledKey) as MediaProbeRequest) : null);
 
   if (invalid) {

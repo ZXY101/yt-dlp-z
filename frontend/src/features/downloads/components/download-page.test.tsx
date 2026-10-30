@@ -59,6 +59,17 @@ describe("DownloadPage", () => {
     expect(screen.getByRole("button", { name: "Download" })).toBeEnabled();
   });
 
+  it("checks a pasted link without waiting", async () => {
+    installFakeApi(createFakeServer());
+    const { user } = renderApp("/");
+
+    await user.click(await screen.findByLabelText("Link"));
+    await user.paste("https://example.com/watch/abc");
+
+    // Typed links wait 0.6 s for typing to pause; a paste is checked at once.
+    expect(await screen.findByLabelText("Media details", {}, { timeout: 400 })).toBeInTheDocument();
+  });
+
   it("explains links yt-dlp can't open", async () => {
     const server = createFakeServer();
     installFakeApi(server);
