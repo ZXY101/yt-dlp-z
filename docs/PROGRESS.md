@@ -29,24 +29,19 @@ searchable editor for every yt-dlp option), Queue, Subscriptions, Presets,
 Cookies, Settings.
 Vitest, pytest and Playwright suites; Docker image; CI for all of it.
 
-## Do first: playlist downloads (before Milestone 5)
+## Playlist downloads (steps 1–2 done 2026-10-30)
 
-Reported 2026-10-30: pasting a playlist link downloads every video without
-warning. yt-dlp-z passes the URL as-is and yt-dlp takes the whole playlist by
-default, even for `watch?v=…&list=…` links copied from inside a playlist.
+Reported 2026-10-30: pasting a playlist link downloaded every video without
+warning. Now (`features/downloads/playlist-link.ts`, URL parsing, YouTube only):
 
-1. Video link that also has a playlist (`watch?v=…&list=…`): a choice under the
-   link field, "Just this video" (default, passes `--no-playlist`) / "The whole
-   playlist".
-2. Playlist or channel link (`/playlist?list=…`, `/@channel`, `/videos`): a
-   notice before downloading that every video in it will be downloaded. No
-   count for now (a `--flat-playlist` probe would add seconds per link).
+1. Done: `watch?v=…&list=…` / `youtu.be/…?list=…` links show "Just this video"
+   (default, `--no-playlist`) / "The whole playlist" (`--yes-playlist`). The
+   choice overrides either flag set in the options.
+2. Done: `/playlist?list=…` and channel links (`/@x`, `/channel/`, `/c/`,
+   `/user/`, any tab) show a notice that every video will be downloaded.
 3. Later: the queue card says "playlist" and which item it is on
-   ("video 3 of 24"), from yt-dlp's playlist_index / n_entries.
-
-Detection is URL parsing in the frontend (generic: other sites' playlists get
-the notice only if yt-dlp-z can recognise them; YouTube first). Unit tests for
-the parser, E2E for both flows (the stub needs a playlist URL behaviour).
+   ("video 3 of 24"), from yt-dlp's playlist_index / n_entries. Needs the stub
+   to emit several items for a playlist URL.
 
 ## Next steps (Milestone 5)
 
@@ -204,5 +199,10 @@ Subscriptions already record such videos as `upcoming` (with `release_at`) or
   turned out to be the browser's network path, not the app (no requests reached
   the container); fixed on the user's side.
 
-**Next session:** build "Do first: playlist downloads" steps 1–2. Then ask
-about backfill-on-edit (M5 step 7), then milestone 5 step 1. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
+- **2026-10-30 · Playlist links.** Video-in-playlist links ask "Just this
+  video" / "The whole playlist"; playlist and channel links show a notice.
+  Parser unit tests, 3 page tests, 3 E2E tests (desktop + mobile), screenshots
+  checked in light and dark.
+
+**Next session:** ask about backfill-on-edit (M5 step 7), then milestone 5
+step 1. Playlist step 3 (queue progress) can wait. `cd ~/dev/yt-dlp-z && git pull && npm run check`.
