@@ -51,9 +51,9 @@ function PresetList({ presets }: { presets: UseQueryResult<Preset[]> }) {
 export function PresetsPage() {
   const presets = usePresets();
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <>
       <PageHeader title="Presets" action={<NewPresetButton />} />
       <PresetList presets={presets} />
-    </div>
+    </>
   );
 }

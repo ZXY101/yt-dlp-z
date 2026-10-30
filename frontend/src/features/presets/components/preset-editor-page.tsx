@@ -76,9 +76,9 @@ export function PresetEditorPage() {
   const { presetId } = useParams();
   const id = presetId === undefined ? null : Number(presetId);
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <>
       <PageHeader title={id === null ? "New preset" : "Edit preset"} />
       <EditorContent presetId={id} />
-    </div>
+    </>
   );
 }

@@ -43,7 +43,10 @@ export function AppLayout() {
           <NavLinks />
         </aside>
         <main className="min-w-0 flex-1 p-4 md:p-6">
-          <Outlet />
+          {/* Every page shares one width, so pages line up as you move between them. */}
+          <div className="mx-auto max-w-2xl space-y-6">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

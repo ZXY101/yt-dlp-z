@@ -51,9 +51,9 @@ function QueueContent({ jobs }: { jobs: UseQueryResult<Job[]> }) {
 export function QueuePage() {
   const jobs = useJobs();
   return (
-    <div className="space-y-6">
+    <>
       <PageHeader title="Queue" />
       <QueueContent jobs={jobs} />
-    </div>
+    </>
   );
 }

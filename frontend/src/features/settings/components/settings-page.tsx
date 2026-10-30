@@ -10,9 +10,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useAppSettings, useSaveAppSettings } from "@/features/settings/api";
 import {
-  RecordingFields,
-  useRecordingFields,
-} from "@/features/settings/components/recording-fields";
+  LiveStreamFields,
+  useLiveStreamFields,
+} from "@/features/settings/components/live-stream-fields";
 import { type LimitField, useLimitField } from "@/features/settings/hooks/use-limit-field";
 import type { AppSettings } from "@/features/settings/types";
 
@@ -55,32 +55,16 @@ function ChannelLimitWarning() {
   );
 }
 
-function ConcurrencyFields({
-  downloads,
-  recordings,
-}: {
-  downloads: LimitField;
-  recordings: LimitField;
-}) {
+function DownloadLimitField({ field }: { field: LimitField }) {
   return (
-    <>
-      <FormField
-        label="Downloads at the same time"
-        inputMode="numeric"
-        hint="More parallel downloads finish a queue faster but make rate limits more likely."
-        value={downloads.value}
-        error={downloads.error}
-        onChange={(event) => downloads.setValue(event.target.value)}
-      />
-      <FormField
-        label="Recordings at the same time"
-        inputMode="numeric"
-        hint="Live streams being recorded. Counted apart from downloads, so they never wait behind them."
-        value={recordings.value}
-        error={recordings.error}
-        onChange={(event) => recordings.setValue(event.target.value)}
-      />
-    </>
+    <FormField
+      label="Downloads at the same time"
+      inputMode="numeric"
+      hint="More parallel downloads finish a queue faster but make rate limits more likely."
+      value={field.value}
+      error={field.error}
+      onChange={(event) => field.setValue(event.target.value)}
+    />
   );
 }
 
@@ -89,7 +73,7 @@ function SettingsForm({ settings }: { settings: AppSettings }) {
   const downloads = useLimitField(settings.max_concurrent_downloads, { max: MAX_DOWNLOADS });
   const recordings = useLimitField(settings.max_concurrent_recordings, { max: MAX_DOWNLOADS });
   const channels = useLimitField(settings.max_subscriptions, { max: MAX_CHANNELS });
-  const recording = useRecordingFields(settings.recording);
+  const recording = useLiveStreamFields(settings.recording);
   const save = useSaveAppSettings();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -118,13 +102,13 @@ function SettingsForm({ settings }: { settings: AppSettings }) {
         value={downloadDir}
         onChange={(event) => setDownloadDir(event.target.value)}
       />
-      <ConcurrencyFields downloads={downloads} recordings={recordings} />
+      <DownloadLimitField field={downloads} />
       <ChannelLimitField
         value={channels.value}
         error={channels.error}
         onChange={channels.setValue}
       />
-      <RecordingFields recording={recording} />
+      <LiveStreamFields recording={recording} concurrent={recordings} />
       <Button type="submit" size="lg" className="h-10" disabled={save.isPending}>
         {save.isPending ? "Saving…" : "Save settings"}
       </Button>
@@ -135,11 +119,11 @@ function SettingsForm({ settings }: { settings: AppSettings }) {
 export function SettingsPage() {
   const settings = useAppSettings();
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <>
       <PageHeader title="Settings" />
       {settings.isPending && <p className="text-sm text-muted-foreground">Loading settings…</p>}
       {settings.isError && <FormError message={describeError(settings.error)} />}
       {settings.data && <SettingsForm settings={settings.data} />}
-    </div>
+    </>
   );
 }

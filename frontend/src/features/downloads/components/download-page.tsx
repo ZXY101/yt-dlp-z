@@ -38,7 +38,7 @@ export function DownloadPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <>
       <PageHeader title="Download" />
       <SystemWarnings />
       <form className="space-y-6" onSubmit={handleSubmit} noValidate>
@@ -75,6 +75,6 @@ export function DownloadPage() {
           {form.createJob.isPending ? "Starting…" : "Download"}
         </Button>
       </form>
-    </div>
+    </>
   );
 }

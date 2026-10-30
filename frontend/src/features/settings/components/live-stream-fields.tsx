@@ -11,7 +11,7 @@ const MAX_HOURS = 168;
 type RecordingSettings = AppSettings["recording"];
 type LongStreams = RecordingSettings["long_streams"];
 
-export function useRecordingFields(recording: RecordingSettings) {
+export function useLiveStreamFields(recording: RecordingSettings) {
   const options = { max: MAX_HOURS, optional: true };
   const fields = {
     part: useLimitField(recording.part_hours, options),
@@ -38,7 +38,7 @@ export function useRecordingFields(recording: RecordingSettings) {
   return { fields, longStreams, setLongStreams, check, values };
 }
 
-type RecordingFieldsState = ReturnType<typeof useRecordingFields>;
+type LiveStreamFieldsState = ReturnType<typeof useLiveStreamFields>;
 
 function HoursField({ label, hint, field }: { label: string; hint: string; field: LimitField }) {
   return (
@@ -87,13 +87,27 @@ function LongStreamsChoice({ hours, value, onChange }: LongStreamsChoiceProps) {
   );
 }
 
+interface LiveStreamFieldsProps {
+  recording: LiveStreamFieldsState;
+  // Recordings at the same time; saved apart from the other recording settings.
+  concurrent: LimitField;
+}
+
 /** How live streams are recorded. Each recording keeps the values it started with. */
-export function RecordingFields({ recording }: { recording: RecordingFieldsState }) {
+export function LiveStreamFields({ recording, concurrent }: LiveStreamFieldsProps) {
   const { part, max, fromStart } = recording.fields;
   const fromStartHours = typedHours(fromStart);
   return (
     <fieldset className="space-y-6">
-      <legend className="mb-4 text-lg font-medium">Recordings</legend>
+      <legend className="mb-4 text-lg font-medium">Live streams</legend>
+      <FormField
+        label="Recordings at the same time"
+        inputMode="numeric"
+        hint="Counted apart from downloads, so recordings never wait behind them."
+        value={concurrent.value}
+        error={concurrent.error}
+        onChange={(event) => concurrent.setValue(event.target.value)}
+      />
       <HoursField
         label="New file every (hours)"
         hint="Splits long streams into parts, so endless streams stay manageable. Empty: one file per stream."

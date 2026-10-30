@@ -51,9 +51,9 @@ function SubscriptionList({ subscriptions }: { subscriptions: UseQueryResult<Sub
 export function SubscriptionsPage() {
   const subscriptions = useSubscriptions();
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <>
       <PageHeader title="Subscriptions" action={<AddButton />} />
       <SubscriptionList subscriptions={subscriptions} />
-    </div>
+    </>
   );
 }

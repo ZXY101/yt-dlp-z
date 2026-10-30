@@ -20,6 +20,23 @@ test.describe("app layout", () => {
     await expectNoHorizontalScroll(page);
   });
 
+  test("every page has the same width", async ({ page }, testInfo) => {
+    // Regression: the queue spread across the whole window while other pages stayed narrow.
+    test.skip(testInfo.project.name !== "desktop", "only differs on wide screens");
+    async function headingBox(name: string) {
+      // The header row spans the page; the heading itself is only as wide as its text.
+      const heading = page.getByRole("heading", { name, exact: true, level: 1 });
+      const box = await heading.locator("..").boundingBox();
+      return { x: box?.x, width: box?.width };
+    }
+    const download = await headingBox("Download");
+    await page
+      .getByRole("navigation", { name: "Main" })
+      .getByRole("link", { name: "Queue" })
+      .click();
+    expect(await headingBox("Queue")).toEqual(download);
+  });
+
   test("buttons show a pointer cursor", async ({ page }) => {
     // Regression: Tailwind v4 resets buttons to the default arrow cursor.
     const cursor = await page
