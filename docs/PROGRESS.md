@@ -70,7 +70,11 @@ Still open:
    from now). Each part is its own yt-dlp run stopped with SIGINT, so parts
    are merged files; there is a gap of a few seconds between parts. Cancel,
    shutdown and restart keep the file (restart continues as the next part).
-   Skipping 24/7 streams is done with title filters.
+   Skipping 24/7 streams is done with title filters. Also a choice for those
+   long streams: "Record their first N hours" (from the start, stopped after
+   N hours of the stream). The maximum length counts hours of the stream:
+   from the start, yt-dlp downloads faster than real time, so it's worked
+   out from fragment numbers (`services/live/stream_clock.py`).
 3. A stream rescheduled _earlier_ after we scheduled it is only caught if a
    later check re-probes it (it doesn't today: videos with a job are done).
    Later yt-dlp `--wait-for-video` covers streams that start late.
@@ -251,5 +255,11 @@ Still open:
   maximum length, from-start limit); graceful SIGINT stops; ffmpeg progress
   for from-now parts. Verified on real YouTube. 240 backend tests, 75 E2E.
   Deployed ff62e83 on the maintainer's server.
+
+- **2026-10-30 · Settings and options UI.** "Record their first N hours" for
+  long streams; Settings section renamed "Live streams"; page width moved into
+  the app layout (the queue was full width); all yt-dlp options now open in a
+  dialog with group tabs (picker on phones) and search across groups. 247
+  backend tests, 179 unit, 76 E2E.
 
 **Next session:** milestone 6 (ops). `cd ~/dev/yt-dlp-z && git pull && npm run check`.
