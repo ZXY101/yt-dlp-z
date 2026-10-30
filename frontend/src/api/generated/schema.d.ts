@@ -166,6 +166,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/folders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Folders
+         * @description Sub-folders of `parent` (empty: the default download folder), for autocomplete.
+         *     Only folders inside the allowed download roots are listed; files never are.
+         */
+        get: operations["list_folders_api_folders_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/jobs": {
         parameters: {
             query?: never;
@@ -398,6 +419,11 @@ export interface components {
             name: string;
             /** Content */
             content?: string | null;
+        };
+        /** FolderSuggestions */
+        FolderSuggestions: {
+            /** Folders */
+            folders: string[];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -932,6 +958,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CookieCheckResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_folders_api_folders_get: {
+        parameters: {
+            query?: {
+                parent?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FolderSuggestions"];
                 };
             };
             /** @description Validation Error */

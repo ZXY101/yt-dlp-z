@@ -1,5 +1,6 @@
 import { Disclosure } from "@/components/disclosure";
 import { CommonOptions } from "@/components/download-options/common-options";
+import { FolderField } from "@/components/download-options/folder-field";
 import { OptionsEditor } from "@/components/download-options/options-editor";
 import { FormField, SelectField, TextareaField } from "@/components/form-field";
 import { type DownloadSettings, setOption } from "@/lib/download-options";
@@ -46,12 +47,9 @@ export function DownloadSettingsFields(props: DownloadSettingsFieldsProps) {
 
   return (
     <>
-      <FormField
-        label="Save to"
-        placeholder="Default download folder"
-        hint="Leave empty for the default folder. A relative path creates a sub-folder in it."
+      <FolderField
         value={value.outputDir}
-        onChange={(event) => onChange({ ...value, outputDir: event.target.value })}
+        onChange={(outputDir) => onChange({ ...value, outputDir })}
       />
       <CookiesField {...props} />
       <CommonOptions options={options} onChange={setOptions} />

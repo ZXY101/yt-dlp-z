@@ -68,6 +68,7 @@ export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
     presets: [],
     cookieFiles: [],
     settings: { download_dir: "/downloads", max_concurrent_downloads: 3 },
+    folders: {},
   };
 }
 
@@ -82,7 +83,7 @@ function findRoute(method: string, pathname: string) {
 }
 
 async function handle(server: FakeServer, request: Request) {
-  const { pathname } = new URL(request.url);
+  const { pathname, searchParams } = new URL(request.url);
   server.requests.push(`${request.method} ${pathname}`);
   if (server.failWith) {
     return json({ detail: "Server error" }, server.failWith);
@@ -92,7 +93,11 @@ async function handle(server: FakeServer, request: Request) {
     return json({ detail: "Not Found" }, 404);
   }
   const text = await request.text();
-  return found.route.handle(server, { body: text ? JSON.parse(text) : {}, params: found.params });
+  return found.route.handle(server, {
+    body: text ? JSON.parse(text) : {},
+    params: found.params,
+    query: searchParams,
+  });
 }
 
 export function installFakeApi(server: FakeServer) {

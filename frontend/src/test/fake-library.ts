@@ -141,6 +141,12 @@ export const libraryRoutes: Route[] = [
     path: /^\/api\/cookies\/(\d+)\/check$/,
     handle: (_s, { body }) => checkCookieFile(body),
   },
+  {
+    method: "GET",
+    path: /^\/api\/folders$/,
+    handle: (server, { query }) =>
+      json({ folders: server.folders[query.get("parent") ?? ""] ?? [] }),
+  },
   { method: "GET", path: /^\/api\/settings$/, handle: (server) => json(server.settings) },
   { method: "PUT", path: /^\/api\/settings$/, handle: (s, { body }) => saveSettings(s, body) },
 ];
