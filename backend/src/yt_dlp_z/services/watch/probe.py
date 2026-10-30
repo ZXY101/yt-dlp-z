@@ -62,7 +62,9 @@ def info_from_json(data: dict[str, Any]) -> VideoInfo:
 
 
 async def probe_video(ytdlp_command: list[str], video_id: str, cookies: Path | None) -> VideoInfo:
-    args = ["--no-playlist"]
+    # Upcoming streams have no formats yet; without this yt-dlp fails on them
+    # ("This live event will begin in …") instead of reporting their start time.
+    args = ["--no-playlist", "--ignore-no-formats-error"]
     if cookies is not None:
         args += ["--cookies", str(cookies)]
     try:

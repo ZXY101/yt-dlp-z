@@ -13,6 +13,7 @@ With -J it prints metadata instead (see metadata()): a channel for /@handle URLs
 streams tab for /channel/<id>/streams URLs (entries for ids containing "streamer",
 an error for "broken"),
 otherwise a video whose id picks its kind (short, upcoming, live, members, broken, long);
+upcoming ones fail without --ignore-no-formats-error, as with real yt-dlp;
 members-only videos only open with --cookies.
 With --cookies it reports how many cookie lines the file had, so tests can see it was passed.
 With --live-from-start (recordings) progress has no total size, like a live stream;
@@ -64,7 +65,11 @@ def channel_metadata(url: str) -> int:
     return 0
 
 
-def video_metadata(video_id: str, has_cookies: bool) -> int:
+def video_metadata(video_id: str, args: list[str]) -> int:
+    has_cookies = "--cookies" in args
+    if "upcoming" in video_id and "--ignore-no-formats-error" not in args:
+        # Like real yt-dlp: an upcoming stream has no formats yet.
+        return fail_json("This live event will begin in 125 days.")
     if "members" in video_id and not has_cookies:
         return fail_json("Join this channel to get access to members-only content like this video")
     if "broken" in video_id:
@@ -106,7 +111,7 @@ def metadata(url: str, args: list[str]) -> int:
         return streams_tab(url)
     if "/@" in url:
         return channel_metadata(url)
-    return video_metadata(video_id_of(url), has_cookies="--cookies" in args)
+    return video_metadata(video_id_of(url), args)
 
 
 def video_id_of(url: str) -> str:
