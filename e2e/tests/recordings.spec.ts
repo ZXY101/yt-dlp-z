@@ -88,7 +88,8 @@ test.describe("recordings", () => {
     await page.goto("/queue");
     const inProgress = page.getByRole("list", { name: "In progress" });
     await expect(inProgress.getByText("Recording", { exact: true })).toBeVisible();
-    await expect(inProgress.getByText(/^Part 1 · /)).toBeVisible();
+    // Wait until something is recorded: before that, Cancel stops without saving.
+    await expect(inProgress.getByText(/^Part 1 · \d/)).toBeVisible();
     await inProgress.getByRole("button", { name: "Cancel Fake video slow-live1" }).click();
     const finished = page.getByRole("list", { name: "Finished" });
     await expect(finished.getByText(/Saved to .*Fake video slow-live1.*\.mp4/)).toBeVisible();

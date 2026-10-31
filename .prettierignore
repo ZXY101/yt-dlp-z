@@ -10,3 +10,4 @@ CHANGELOG.md
 .claude/skills/writing-guidelines/
 frontend/src/api/generated/
 backend/
+.release-please-manifest.json

@@ -231,13 +231,45 @@ def test_a_maximum_length_counts_hours_of_the_stream(watch_client: TestClient) -
     assert saved_files(watch_client) == ["Fake video slow-old-live [slow-old-live].mp4"]
 
 
+def wait_for_recorded_bytes(client: TestClient, job_id: int) -> None:
+    deadline = time.monotonic() + 15
+    while not client.get(f"/api/jobs/{job_id}").json()["downloaded_bytes"]:
+        assert time.monotonic() < deadline, f"job {job_id} recorded nothing"
+        time.sleep(0.05)
+
+
 def test_a_stopped_recording_keeps_what_it_recorded(watch_client: TestClient) -> None:
     job_id = start_recording(watch_client, watch_url("slow-live"))
-    wait_for_job(watch_client, job_id, {"running"})
+    wait_for_recorded_bytes(watch_client, job_id)
     response = watch_client.post(f"/api/jobs/{job_id}/cancel")
     assert response.json()["status"] == "cancelled"
     assert response.json()["filepath"].endswith("Fake video slow-live [slow-live].mp4")
     assert saved_files(watch_client) == ["Fake video slow-live [slow-live].mp4"]
+
+
+def test_a_recording_still_waiting_for_its_stream_stops_at_once(
+    watch_client: TestClient,
+) -> None:
+    job_id = start_recording(watch_client, watch_url("waiting-live"))
+    deadline = time.monotonic() + 15
+    while "[wait]" not in watch_client.get(f"/api/jobs/{job_id}/log").text:
+        assert time.monotonic() < deadline, "yt-dlp never started waiting"
+        time.sleep(0.05)
+    started = time.monotonic()
+    response = watch_client.post(f"/api/jobs/{job_id}/cancel")
+    assert response.json()["status"] == "cancelled"
+    assert time.monotonic() - started < 10
+    assert saved_files(watch_client) == []
+
+
+def test_missing_fragments_at_the_end_of_a_stream_are_not_an_error(
+    watch_client: TestClient,
+) -> None:
+    job_id = start_recording(watch_client, watch_url("gaps-live"))
+    job = wait_for_job(watch_client, job_id, FINISHED)
+    assert job["status"] == "completed"
+    assert job["error"] is None
+    assert saved_files(watch_client) == ["Fake video gaps-live [gaps-live].mp4"]
 
 
 def test_streams_live_for_hours_are_recorded_from_now(
