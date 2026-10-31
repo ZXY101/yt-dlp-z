@@ -1,6 +1,7 @@
 import { Disclosure } from "@/components/disclosure";
 import { CommonOptions } from "@/components/download-options/common-options";
 import { FolderField } from "@/components/download-options/folder-field";
+import { MediaLayoutField } from "@/components/download-options/media-layout-field";
 import { OptionsDialog } from "@/components/download-options/options-dialog";
 import { FormField, SelectField, TextareaField } from "@/components/form-field";
 import { type DownloadSettings, setOption } from "@/lib/download-options";
@@ -53,11 +54,19 @@ export function DownloadSettingsFields(props: DownloadSettingsFieldsProps) {
       />
       <CookiesField {...props} />
       <CommonOptions options={options} onChange={setOptions} />
+      <MediaLayoutField
+        value={value.mediaLayout}
+        onChange={(mediaLayout) => onChange({ ...value, mediaLayout })}
+      />
       <Disclosure title="Advanced options">
         <FormField
           label="File name template"
           placeholder="%(title)s [%(id)s].%(ext)s"
-          hint="A yt-dlp output template. Sub-folders are allowed, e.g. %(uploader)s/%(title)s.%(ext)s."
+          hint={
+            value.mediaLayout
+              ? "Not used: the media-server layout names the files."
+              : "A yt-dlp output template. Sub-folders are allowed, e.g. %(uploader)s/%(title)s.%(ext)s."
+          }
           value={template}
           onChange={(event) => setOptions(setOption(options, "--output", event.target.value))}
         />

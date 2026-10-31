@@ -6,6 +6,7 @@ from sqlalchemy import JSON, Boolean, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from yt_dlp_z.db.base import Base
+from yt_dlp_z.schemas.common import MediaLayout
 
 
 class JobStatus(StrEnum):
@@ -54,6 +55,8 @@ class Job(Base):
     # Set for downloads queued by a channel subscription (no foreign key, like cookie_id).
     subscription_id: Mapped[int | None] = mapped_column(Integer, default=None, index=True)
     output_dir: Mapped[str] = mapped_column(Text)
+    # Media-server output (services/media_server), copied from the preset; None: off.
+    media_layout: Mapped[MediaLayout | None] = mapped_column(String(20), default=None)
     title: Mapped[str | None] = mapped_column(Text, default=None)
     progress: Mapped[float | None] = mapped_column(Float, default=None)
     downloaded_bytes: Mapped[int | None] = mapped_column(Integer, default=None)

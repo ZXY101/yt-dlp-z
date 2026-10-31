@@ -3,6 +3,8 @@ import type { components } from "@/api/generated/schema";
 /** yt-dlp options keyed by long flag, the format the API stores for jobs and presets. */
 export type OptionValues = NonNullable<components["schemas"]["JobCreate"]["options"]>;
 export type OptionValue = OptionValues[string];
+/** Media-server output: a folder per channel, with or without season folders. */
+export type MediaLayout = NonNullable<components["schemas"]["JobCreate"]["media_layout"]>;
 
 /** Everything about how to download, shared by the download form and presets. */
 export interface DownloadSettings {
@@ -10,6 +12,7 @@ export interface DownloadSettings {
   extraArgs: string;
   outputDir: string;
   cookieId: number | null;
+  mediaLayout: MediaLayout | null;
 }
 
 export const DEFAULT_SETTINGS: DownloadSettings = {
@@ -17,6 +20,7 @@ export const DEFAULT_SETTINGS: DownloadSettings = {
   extraArgs: "",
   outputDir: "",
   cookieId: null,
+  mediaLayout: null,
 };
 
 export type Quality = "best" | "1080p" | "720p" | "audio" | "audio-mp3" | "custom";
@@ -96,6 +100,7 @@ interface ApiDownloadSettings {
   extra_args?: string;
   output_dir?: string | null;
   cookie_id?: number | null;
+  media_layout?: MediaLayout | null;
 }
 
 export function settingsFromApi(source: ApiDownloadSettings): DownloadSettings {
@@ -104,6 +109,7 @@ export function settingsFromApi(source: ApiDownloadSettings): DownloadSettings {
     extraArgs: source.extra_args ?? "",
     outputDir: source.output_dir ?? "",
     cookieId: source.cookie_id ?? null,
+    mediaLayout: source.media_layout ?? null,
   };
 }
 
@@ -118,5 +124,6 @@ export function settingsForApi(settings: DownloadSettings) {
     extra_args: settings.extraArgs,
     output_dir: settings.outputDir.trim() || null,
     cookie_id: settings.cookieId,
+    media_layout: settings.mediaLayout,
   };
 }

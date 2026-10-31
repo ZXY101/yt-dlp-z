@@ -2,10 +2,16 @@
 
 import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
 
-from yt_dlp_z.services.ytdlp.command import FILE_MARKER, INFO_MARKER, PROGRESS_MARKER
+from yt_dlp_z.services.ytdlp.command import (
+    FILE_MARKER,
+    INFO_MARKER,
+    NFO_MARKER,
+    PROGRESS_MARKER,
+)
 
 PERCENT = 100
 # When yt-dlp downloads several streams at once (live-from-start recordings fetch video and
@@ -49,7 +55,14 @@ class FileUpdate:
     filepath: str
 
 
-Update = ProgressUpdate | InfoUpdate | FileUpdate
+@dataclass(frozen=True)
+class NfoUpdate:
+    """A finished file's details, for its .nfo (media-server output)."""
+
+    info: dict[str, Any]
+
+
+Update = ProgressUpdate | InfoUpdate | FileUpdate | NfoUpdate
 
 
 def _number(data: dict[str, Any], key: str) -> float | None:
@@ -123,22 +136,40 @@ def parse_line(line: str) -> Update | None:
     return _ffmpeg_progress(line) or _marker_update(line)
 
 
-def _marker_update(line: str) -> Update | None:
-    try:
-        if line.startswith(PROGRESS_MARKER):
-            data = json.loads(line.removeprefix(PROGRESS_MARKER))
-            return _progress(data) if isinstance(data, dict) else None
-        if line.startswith(INFO_MARKER):
-            data = json.loads(line.removeprefix(INFO_MARKER))
-            if not isinstance(data, dict):
-                return None
-            title = data.get("title")
-            return InfoUpdate(title=title if isinstance(title, str) else None)
-        if line.startswith(FILE_MARKER):
-            path = json.loads(line.removeprefix(FILE_MARKER))
-            return FileUpdate(filepath=path) if isinstance(path, str) else None
-    except json.JSONDecodeError:
+def _parse_progress(data: object) -> Update | None:
+    return _progress(data) if isinstance(data, dict) else None
+
+
+def _parse_info(data: object) -> Update | None:
+    if not isinstance(data, dict):
         return None
+    title = data.get("title")
+    return InfoUpdate(title=title if isinstance(title, str) else None)
+
+
+def _parse_file(data: object) -> Update | None:
+    return FileUpdate(filepath=data) if isinstance(data, str) else None
+
+
+def _parse_nfo(data: object) -> Update | None:
+    return NfoUpdate(info=data) if isinstance(data, dict) else None
+
+
+MARKER_PARSERS: dict[str, Callable[[object], Update | None]] = {
+    PROGRESS_MARKER: _parse_progress,
+    INFO_MARKER: _parse_info,
+    FILE_MARKER: _parse_file,
+    NFO_MARKER: _parse_nfo,
+}
+
+
+def _marker_update(line: str) -> Update | None:
+    for marker, parse in MARKER_PARSERS.items():
+        if line.startswith(marker):
+            try:
+                return parse(json.loads(line.removeprefix(marker)))
+            except json.JSONDecodeError:
+                return None
     return None
 
 

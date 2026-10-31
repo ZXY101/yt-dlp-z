@@ -690,6 +690,8 @@ export interface components {
             output_dir?: string | null;
             /** Cookie Id */
             cookie_id?: number | null;
+            /** Media Layout */
+            media_layout?: ("season" | "flat") | null;
         };
         /**
          * JobKind
@@ -722,6 +724,8 @@ export interface components {
             extra_args: string;
             /** Output Dir */
             output_dir: string;
+            /** Media Layout */
+            media_layout: ("season" | "flat") | null;
             /** Cookie Id */
             cookie_id: number | null;
             /** Subscription Id */
@@ -888,6 +892,8 @@ export interface components {
             output_dir?: string | null;
             /** Cookie Id */
             cookie_id?: number | null;
+            /** Media Layout */
+            media_layout?: ("season" | "flat") | null;
             /**
              * Kind
              * @default any
@@ -921,6 +927,8 @@ export interface components {
             output_dir?: string | null;
             /** Cookie Id */
             cookie_id?: number | null;
+            /** Media Layout */
+            media_layout?: ("season" | "flat") | null;
             /**
              * Kind
              * @default any

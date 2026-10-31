@@ -41,6 +41,27 @@ test.describe("presets", () => {
     ).toBeVisible();
   });
 
+  test("a media-server preset saves videos as episodes of a show", async ({ page }) => {
+    await page.goto("/presets/new");
+    await page.getByLabel("Name", { exact: true }).fill("Jellyfin");
+    await page.getByLabel("Media server").selectOption("season");
+    await page.getByRole("button", { name: "Save preset" }).click();
+    const preset = page.getByRole("listitem").filter({ hasText: "Jellyfin" });
+    await expect(preset.getByText(/for media servers/)).toBeVisible();
+
+    await page.goto("/");
+    await page.getByLabel("Preset").selectOption({ label: "Jellyfin" });
+    await expect(page.getByLabel("Media server")).toHaveValue("season");
+    await page.getByLabel("Link").fill("https://example.com/watch/show");
+    await page.getByRole("button", { name: "Download" }).click();
+
+    const finished = page.getByRole("list", { name: "Finished" });
+    const episode = /Saved to .*\/Fake channel\/Season 2026\/Fake channel - S2026E1001 - /;
+    await expect(finished.getByText(episode)).toBeVisible();
+    await finished.getByRole("button", { name: "Log" }).click();
+    await expect(page.getByRole("dialog").getByText(/--write-thumbnail/)).toBeVisible();
+  });
+
   test("presets can be edited and deleted", async ({ page }) => {
     await page.goto("/presets/new");
     await page.getByLabel("Name", { exact: true }).fill("Clips");

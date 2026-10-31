@@ -25,18 +25,21 @@ describe("Presets", () => {
     await user.selectOptions(screen.getByLabelText("Quality"), "audio");
     await user.type(screen.getByLabelText("Save to"), "podcasts");
     await user.selectOptions(await screen.findByLabelText("Cookies"), "4");
+    await user.selectOptions(screen.getByLabelText("Media server"), "season");
     await user.click(screen.getByRole("button", { name: "Save preset" }));
 
     const list = await screen.findByRole("list", { name: "Presets" });
     expect(router.state.location.pathname).toBe("/presets");
     expect(within(list).getByText("Podcasts")).toBeInTheDocument();
     expect(within(list).getByText("Default")).toBeInTheDocument();
-    expect(within(list).getByText(/Saves to podcasts · 3 options · with cookies/)).toBeVisible();
+    const summary = /Saves to podcasts · 3 options · with cookies · for media servers/;
+    expect(within(list).getByText(summary)).toBeVisible();
     expect(server.presets[0]).toMatchObject({
       name: "Podcasts",
       is_default: true,
       output_dir: "podcasts",
       cookie_id: 4,
+      media_layout: "season",
       options: { "--extract-audio": true, "--embed-metadata": true, "--embed-thumbnail": true },
     });
   });

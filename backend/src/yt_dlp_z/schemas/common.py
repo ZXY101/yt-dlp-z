@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import Annotated, overload
+from typing import Annotated, Literal, overload
 from urllib.parse import urlparse
 
 from pydantic import AfterValidator, Field
@@ -33,3 +33,7 @@ def _name(name: str) -> str:
 
 WebUrl = Annotated[str, Field(max_length=4096), AfterValidator(_web_url)]
 Name = Annotated[str, Field(min_length=1, max_length=100), AfterValidator(_name)]
+
+# Media-server output (services/media_server): a folder per channel, with or without
+# a "Season YYYY" folder per upload year.
+MediaLayout = Literal["season", "flat"]

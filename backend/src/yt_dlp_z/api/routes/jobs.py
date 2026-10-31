@@ -47,6 +47,7 @@ async def create_job(body: JobCreate, state: State, db: Db) -> JobOut:
         options=body.options,
         extra_args=body.extra_args,
         output_dir=str(output_dir),
+        media_layout=body.media_layout,
         cookie_id=body.cookie_id,
     )
     db.add(job)

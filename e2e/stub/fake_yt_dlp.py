@@ -22,12 +22,15 @@ Recordings (--wait-for-video) have no total size, like a live stream, and stop c
 SIGINT, saving the file. With --live-from-start progress comes as two numbered streams
 ("0: …" video, "1: …" audio at a tenth of the size); without it (recording from now)
 ffmpeg writes the file and prints its own "size=… time=…" progress ended by \r, like
-real yt-dlp. --output is honoured
-for %(title)s, %(id)s and %(ext)s;
+real yt-dlp. --output is honoured for any %(field)s, with fake values for the
+fields media-server output uses (channel, upload_date with a >%Y or >%m%d format,
+a .150B length); with --write-thumbnail it saves a .jpg next to the video; a
+--print after_move:[ytdlpz:nfo] template gets the NFO fields;
 ...upcoming... URLs first print yt-dlp's wait message.
 """
 
 import json
+import re
 import signal
 import sys
 import time
@@ -37,6 +40,11 @@ from urllib.parse import parse_qs, urlparse
 PROGRESS = "[ytdlpz:progress]"
 INFO = "[ytdlpz:info]"
 FILE = "[ytdlpz:file]"
+NFO = "[ytdlpz:nfo]"
+# %(name)s, %(a,b|default)s, %(upload_date>%Y)s, %(title).150B …
+TEMPLATE_FIELD = re.compile(r"%\((?P<names>[\w,]+)(?:>(?P<format>[^|)]+))?(?:\|[^)]*)?\)[.\d]*[sB]")
+FAKE_CHANNEL = "Fake channel"
+FAKE_UPLOAD_DATE = "20261001"
 TOTAL_BYTES = 1_000_000
 TABS = ["Videos", "Live", "Shorts"]
 # Upload time of every fake video: 2026-10-01 12:00 UTC.
@@ -173,13 +181,46 @@ def report_cookies(args: list[str]) -> None:
         emit(f"[fake] cookies: {len(cookies)}")
 
 
+def fake_fields(title: str, video_id: str) -> dict[str, str]:
+    return {
+        "title": title,
+        "id": video_id,
+        "ext": "mp4",
+        "channel": FAKE_CHANNEL,
+        "upload_date": FAKE_UPLOAD_DATE,
+    }
+
+
+def date_part(value: str, date_format: str) -> str:
+    parts = {"%Y": value[:4], "%m": value[4:6], "%d": value[6:]}
+    for code, part in parts.items():
+        date_format = date_format.replace(code, part)
+    return date_format
+
+
 def output_name(args: list[str], title: str, video_id: str) -> str:
     templates = values_of(args, "--output")
     template = templates[-1] if templates else "%(title)s [%(id)s].%(ext)s"
-    names = {"%(title)s": title, "%(id)s": video_id, "%(ext)s": "mp4"}
-    for field, value in names.items():
-        template = template.replace(field, value)
-    return template
+    fields = fake_fields(title, video_id)
+
+    def render(match: re.Match[str]) -> str:
+        name = match["names"].split(",")[0]
+        value = fields.get(name, "NA")
+        return date_part(value, match["format"]) if match["format"] else value
+
+    return TEMPLATE_FIELD.sub(render, template)
+
+
+def emit_nfo(args: list[str], target: Path, title: str, video_id: str) -> None:
+    if not any(value.startswith(f"after_move:{NFO}") for value in values_of(args, "--print")):
+        return
+    info = fake_fields(title, video_id) | {
+        "filepath": str(target),
+        "channel_id": "UCfakechannel",
+        "description": "A fake video's description.",
+        "duration": 125,
+    }
+    emit(NFO + json.dumps(info))
 
 
 class Recording:
@@ -254,9 +295,13 @@ def main() -> int:
         time.sleep(delay)
 
     target = home / output_name(args, title, video_id)
+    target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(b"fake video")
+    if "--write-thumbnail" in args:
+        target.with_suffix(".jpg").write_bytes(b"fake thumbnail")
     emit(PROGRESS + json.dumps({"status": "finished", "downloaded_bytes": TOTAL_BYTES}))
     emit(FILE + json.dumps(str(target)))
+    emit_nfo(args, target, title, video_id)
     emit("[fake] done")
     return 0
 
