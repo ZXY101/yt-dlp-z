@@ -6,8 +6,8 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 6 (ops): in progress.** Steps 1–3 (yt-dlp updates, ntfy) done. Next:
-M6 step 4 (media-server output per preset). Milestone 5 is done (a real scheduled stream starting
+**Milestone 6 (ops): in progress.** Steps 1–4 (yt-dlp updates, ntfy, media-server
+output) done. Next: M6 step 5 (proxy pool). Milestone 5 is done (a real scheduled stream starting
 on time is still unchecked, see below).
 
 | Milestone                 | Status      |
@@ -63,7 +63,15 @@ Vitest, pytest and Playwright suites; Docker image; CI for all of it.
    token, events, Send test message (uses the unsaved values). API:
    `GET/PUT /api/notifications`, `POST /api/notifications/test`. Checked
    against real ntfy.sh. E2E posts to `/api/test/ntfy`.
-4. Media-server output per preset (PLAN.md §8).
+4. ~~Media-server output per preset (PLAN.md §8).~~ Done: presets, downloads and jobs
+   have `media_layout` (`season`, `flat` or null). When set, yt-dlp-z adds its own
+   `--output` (`Channel/Season 2026/Channel - S2026E1031 - Title [id].ext`, or no
+   season folder), `--write-thumbnail --convert-thumbnails jpg --embed-metadata`
+   and a `--print after_move:[ytdlpz:nfo]…` line; each finished file (also every
+   recording part) gets an episode `.nfo`, the channel folder a `tvshow.nfo`
+   (written once, never overwritten). Code: `services/media_server/`. Checked
+   against real YouTube. Not done: a channel poster (`poster.jpg`); media servers
+   fall back to an episode image.
 5. Proxy pool (PLAN.md §9).
 6. PO-token provider (bgutil) recipe.
 7. Docs: configuration.md, ops; healthcheck review.
@@ -182,8 +190,11 @@ Still open:
 
 - Inner handlers in components use `function handleX()`, not `const` arrows
   (confirmed by the maintainer; enforced by `func-style`).
-- Recording settings are global and copied onto each live job when it is
-  created; per-subscription overrides could come later.
+- Recording settings come from a live-stream preset and are copied onto each
+  live job when it is created.
+- Media-server output replaces the user's `--output` template (its own options come
+  after the user's, so it wins) and numbers episodes by upload date
+  (S2026E1031), not a running count, so nothing needs renumbering.
 - Downloads: any yt-dlp site. Channel watching: YouTube only (Twitch later).
 - The watched-channel limit of 5 counts subscriptions, not concurrent downloads.
 - No import of existing archives. The download folder is chosen at first-run
@@ -384,5 +395,9 @@ Still open:
 - **2026-10-31 · ntfy notifications.** M6 step 3. Also: the pre-push hook needs
   nvm loaded (`npm` isn't on a plain shell's PATH).
 
-**Next session:** M6 step 4 (media-server output per preset). Still unverified: a real scheduled stream starting on time.
+- **2026-10-31 · Media-server output.** M6 step 4 (see the step). Marker parsing
+  in `output.py` is now a lookup table. The E2E stub renders any `%(field)s`.
+  Flaky under load (passed 5/5 alone): `test_websocket_streams_job_events`.
+
+**Next session:** M6 step 5 (proxy pool). Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.
