@@ -70,4 +70,33 @@ test.describe("settings", () => {
     await autoUpdate.click();
     await expect(autoUpdate).not.toBeChecked();
   });
+
+  test("ntfy notifications are tested, saved and sent", async ({ page, request }) => {
+    const section = page.getByRole("region", { name: "Notifications" });
+    const server = `${new URL(page.url()).origin}/api/test/ntfy`;
+    await section.getByLabel("Server").fill(server);
+    await section.getByLabel("Topic").fill("e2e-downloads");
+    await section.getByLabel("Access token").fill("tk_e2e");
+    await section.getByRole("button", { name: "Send test message" }).click();
+    await expect(section.getByText("Test message sent. Check your phone.")).toBeVisible();
+    await section.getByLabel("Recording started").click();
+    await section.getByRole("button", { name: "Save notifications" }).click();
+    await expect(section.getByText("Notification settings saved.")).toBeVisible();
+    await expect(
+      section.getByText("A token is saved. Type a new one to replace it."),
+    ).toBeVisible();
+    await expectNoHorizontalScroll(page);
+
+    await page.goto("/");
+    await page.getByLabel("Link").fill("https://example.com/watch/notified");
+    await page.getByRole("button", { name: "Download" }).click();
+    await expect(page.getByText(/Saved to /)).toBeVisible();
+
+    await expect
+      .poll(async () => (await request.get("/api/test/ntfy")).json())
+      .toEqual([
+        expect.objectContaining({ topic: "e2e-downloads", message: "Notifications work." }),
+        expect.objectContaining({ title: "Download finished", message: "Fake video notified" }),
+      ]);
+  });
 });

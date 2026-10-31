@@ -5,6 +5,7 @@ import { libraryRoutes } from "@/test/fake-library";
 import { mediaRoutes } from "@/test/fake-media";
 import { subscriptionRoutes } from "@/test/fake-subscriptions";
 import { installFakeSocket } from "@/test/fake-socket";
+import { makeNotifications, notificationRoutes } from "@/test/fake-notifications";
 import { makeYtdlpInfo, ytdlpRoutes } from "@/test/fake-ytdlp";
 
 export type { FakeServer } from "@/test/fake-http";
@@ -52,6 +53,7 @@ const routes = [
   ...libraryRoutes,
   ...subscriptionRoutes,
   ...ytdlpRoutes,
+  ...notificationRoutes,
 ];
 
 export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
@@ -86,6 +88,7 @@ export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
     folders: {},
     ytdlp: makeYtdlpInfo(),
     ytdlpUpdateFails: false,
+    ...makeNotifications(),
     subscriptions: [],
     videos: {},
   };

@@ -13,6 +13,7 @@ from yt_dlp_z.api.routes import (
     job_actions,
     jobs,
     media,
+    notifications,
     options,
     presets,
     subscriptions,
@@ -37,6 +38,8 @@ from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs.job_run import JobContext
 from yt_dlp_z.services.jobs.queues import JobQueues
 from yt_dlp_z.services.live.scheduler import LiveScheduler
+from yt_dlp_z.services.notify.notifier import Notifier
+from yt_dlp_z.services.notify.store import load_config
 from yt_dlp_z.services.watch.enqueue import WatchContext
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
@@ -65,6 +68,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             recording_limit = await get_max_concurrent_recordings(
                 session, settings.max_concurrent_recordings
             )
+            notifier = Notifier(await load_config(session))
+        hub.listen(notifier.on_event)
         job_context = JobContext(session_factory, hub, settings, schemas)
         job_queues = JobQueues(job_context, download_limit, recording_limit)
         live = LiveScheduler(job_context, job_queues)
@@ -90,6 +95,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             watcher=watcher,
             updater=updater,
             update_checker=update_checker,
+            notifier=notifier,
         )
         if settings.admin_password and settings.auth_mode is AuthMode.PASSWORD:
             async with session_factory() as session:
@@ -105,6 +111,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             await watcher.stop()
             await live.stop()
             await job_queues.stop()
+            await notifier.stop()
         await engine.dispose()
 
     app = FastAPI(title="yt-dlp-z", lifespan=lifespan)
@@ -117,6 +124,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         jobs,
         job_actions,
         media,
+        notifications,
         options,
         presets,
         subscriptions,

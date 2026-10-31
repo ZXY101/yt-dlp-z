@@ -8,6 +8,7 @@ from yt_dlp_z.core.security import SessionSigner
 from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs.queues import JobQueues
 from yt_dlp_z.services.live.scheduler import LiveScheduler
+from yt_dlp_z.services.notify.notifier import Notifier
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
 from yt_dlp_z.services.ytdlp.update_check import UpdateChecker
@@ -27,4 +28,5 @@ class AppState:
     watcher: SubscriptionWatcher
     updater: YtdlpUpdater
     update_checker: UpdateChecker
+    notifier: Notifier
     login_limiter: FailureRateLimiter = field(default_factory=FailureRateLimiter)
