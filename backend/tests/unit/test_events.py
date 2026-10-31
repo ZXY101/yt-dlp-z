@@ -24,3 +24,11 @@ def test_stuck_subscribers_are_dropped() -> None:
     hub.publish({"n": "after"})
     assert stuck.qsize() == QUEUE_SIZE
     assert stuck not in hub._subscribers
+
+
+def test_listeners_get_every_event() -> None:
+    hub = EventHub()
+    seen: list[dict[str, object]] = []
+    hub.listen(seen.append)
+    hub.publish({"type": "job"})
+    assert seen == [{"type": "job"}]

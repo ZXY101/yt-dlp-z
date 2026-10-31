@@ -20,6 +20,12 @@ export interface FakeServer {
   ytdlp: components["schemas"]["YtdlpInfo"];
   /** Makes the next yt-dlp update fail. */
   ytdlpUpdateFails: boolean;
+  notifications: components["schemas"]["NotificationSettingsOut"];
+  /** The saved ntfy token, never sent back by the real server. */
+  notificationToken: string;
+  /** Test messages sent, and the error the next one gets (null = it works). */
+  sentTests: components["schemas"]["NotificationSettingsIn"][];
+  testError: string | null;
   /** Folder suggestions by parent path. */
   folders: Record<string, string[]>;
 }

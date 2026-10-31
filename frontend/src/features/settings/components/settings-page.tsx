@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useAppSettings, useSaveAppSettings } from "@/features/settings/api";
 import { type LimitField, useLimitField } from "@/hooks/use-limit-field";
+import { NotificationsSection } from "@/features/settings/components/notifications-section";
 import { YtdlpSection } from "@/features/settings/components/ytdlp-section";
 import type { AppSettings } from "@/features/settings/types";
 
@@ -146,6 +147,7 @@ export function SettingsPage() {
       {settings.isPending && <p className="text-sm text-muted-foreground">Loading settings…</p>}
       {settings.isError && <FormError message={describeError(settings.error)} />}
       {settings.data && <SettingsForm settings={settings.data} />}
+      <NotificationsSection />
       <YtdlpSection />
     </>
   );

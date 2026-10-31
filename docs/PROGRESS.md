@@ -6,8 +6,8 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 6 (ops): in progress.** Steps 1–2 (yt-dlp updates) done. Next:
-presets per kind of link (below), then M6 step 3 (ntfy notifications). Milestone 5 is done (a real scheduled stream starting
+**Milestone 6 (ops): in progress.** Steps 1–3 (yt-dlp updates, ntfy) done. Next:
+M6 step 4 (media-server output per preset). Milestone 5 is done (a real scheduled stream starting
 on time is still unchecked, see below).
 
 | Milestone                 | Status      |
@@ -52,7 +52,17 @@ Vitest, pytest and Playwright suites; Docker image; CI for all of it.
    by default: an update changes what every later download runs). API:
    `PUT /api/ytdlp/preferences` (channel + auto_update; replaced
    `/channel`), `POST /api/ytdlp/check`.
-3. ntfy notifications (PLAN.md §10).
+3. **ntfy notifications: done 2026-10-31.** `services/notify/`: a `Notifier`
+   listens to the event hub (`EventHub.listen`, called in the publisher's task)
+   and sends in the background; failures are only logged. Events, each can be
+   turned off: recording started (once per recording), finished, failed (with
+   the error), problems (cookie errors such as "Sign in to confirm", or 3
+   failures in a row, once per streak). JSON publishing to the server root, so
+   any title text works; optional bearer token, never sent back
+   (`has_token`). Settings → Notifications: server, topic (empty = off),
+   token, events, Send test message (uses the unsaved values). API:
+   `GET/PUT /api/notifications`, `POST /api/notifications/test`. Checked
+   against real ntfy.sh. E2E posts to `/api/test/ntfy`.
 4. Media-server output per preset (PLAN.md §8).
 5. Proxy pool (PLAN.md §9).
 6. PO-token provider (bgutil) recipe.
@@ -365,5 +375,8 @@ Still open:
   tests incl. a migration test, unit and E2E tests updated; screenshots
   checked desktop/mobile, light/dark.
 
-**Next session:** M6 step 3 (ntfy). Still unverified: a real scheduled stream starting on time.
+- **2026-10-31 · ntfy notifications.** M6 step 3. Also: the pre-push hook needs
+  nvm loaded (`npm` isn't on a plain shell's PATH).
+
+**Next session:** M6 step 4 (media-server output per preset). Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.
