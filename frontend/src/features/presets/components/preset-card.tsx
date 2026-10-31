@@ -35,6 +35,9 @@ function describePreset(preset: Preset) {
   if (preset.cookie_id !== null) {
     parts.push("with cookies");
   }
+  if (preset.media_layout) {
+    parts.push("for media servers");
+  }
   if (preset.recording) {
     parts.push(describeRecording(preset.recording).toLowerCase());
   }

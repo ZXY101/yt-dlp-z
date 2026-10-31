@@ -58,6 +58,7 @@ describe("API conversion", () => {
       extraArgs: "--limit-rate 2M",
       outputDir: "  music  ",
       cookieId: 3,
+      mediaLayout: "season" as const,
     };
     const body = settingsForApi(settings);
     expect(body).toEqual({
@@ -65,6 +66,7 @@ describe("API conversion", () => {
       extra_args: "--limit-rate 2M",
       output_dir: "music",
       cookie_id: 3,
+      media_layout: "season",
     });
     expect(settingsFromApi(body)).toEqual({ ...settings, ...settingsFromApi(body) });
     expect(settingsFromApi({})).toEqual({
@@ -72,6 +74,7 @@ describe("API conversion", () => {
       extraArgs: "",
       outputDir: "",
       cookieId: null,
+      mediaLayout: null,
     });
   });
 

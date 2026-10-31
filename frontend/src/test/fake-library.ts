@@ -15,6 +15,7 @@ export function makePreset(overrides: Partial<Preset> = {}): Preset {
     extra_args: "",
     output_dir: null,
     cookie_id: null,
+    media_layout: null,
     kind: "any",
     is_default: false,
     recording: null,

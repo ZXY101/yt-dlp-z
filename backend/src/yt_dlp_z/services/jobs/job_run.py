@@ -3,6 +3,7 @@
 import asyncio
 import contextlib
 import dataclasses
+import logging
 import time
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
@@ -25,17 +26,22 @@ from yt_dlp_z.services.live.recorder import (
     part_args,
     record,
 )
+from yt_dlp_z.services.media_server.layout import job_media_args
+from yt_dlp_z.services.media_server.nfo import write_nfo_files
 from yt_dlp_z.services.ytdlp.args import build_user_args
 from yt_dlp_z.services.ytdlp.command import build_command
 from yt_dlp_z.services.ytdlp.errors import ArgumentError, SchemaUnavailableError
 from yt_dlp_z.services.ytdlp.output import (
     FileUpdate,
     InfoUpdate,
+    NfoUpdate,
     ProgressUpdate,
     Update,
     combine_parts,
 )
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
+
+logger = logging.getLogger(__name__)
 
 PUBLISH_INTERVAL_SECONDS = 0.5
 # Each recording part starts its progress afresh.
@@ -65,6 +71,8 @@ def _changes_for(update: Update) -> dict[str, Any]:
         return changes
     if isinstance(update, InfoUpdate):
         return {"title": update.title} if update.title else {}
+    if isinstance(update, NfoUpdate):
+        return {}
     return {"filepath": update.filepath}
 
 
@@ -80,6 +88,9 @@ class ProgressTracker:
         self._parts: dict[int, ProgressUpdate] = {}
 
     async def apply(self, update: Update) -> None:
+        if isinstance(update, NfoUpdate):
+            await self._write_nfo(update)
+            return
         if isinstance(update, ProgressUpdate):
             self._parts[update.part] = update
             update = combine_parts(self._parts)
@@ -88,6 +99,17 @@ class ProgressTracker:
         due = time.monotonic() - self._last_flush >= PUBLISH_INTERVAL_SECONDS
         if due or isinstance(update, InfoUpdate | FileUpdate):
             await self.flush()
+
+    async def _write_nfo(self, update: NfoUpdate) -> None:
+        layout = self._job.media_layout
+        if layout is None:
+            return
+        download_dir = Path(self._job.output_dir)
+        try:
+            await asyncio.to_thread(write_nfo_files, update.info, layout, download_dir)
+        except OSError:
+            # The video itself is saved; a missing .nfo shouldn't fail the download.
+            logger.warning("Couldn't write the .nfo files for job %s", self._job.id, exc_info=True)
 
     async def flush(self) -> None:
         self._job.revision += 1
@@ -157,7 +179,9 @@ class Running:
 
 
 def _first_app_args(job: Job) -> list[str]:
-    return part_args(job, (job.part or 0) + 1) if job.kind == JobKind.LIVE else []
+    if job.kind == JobKind.LIVE:
+        return [*job_media_args(job), *part_args(job, (job.part or 0) + 1)]
+    return job_media_args(job)
 
 
 async def _record(running: Running, cookie_args: list[str]) -> Outcome:
@@ -165,7 +189,7 @@ async def _record(running: Running, cookie_args: list[str]) -> Outcome:
     log_path = job_log_path(context.settings, job.id)
 
     async def run_part(app_args: list[str], watch: PartWatch) -> ProcessResult:
-        command = await _command_for(context, job, cookie_args, app_args)
+        command = await _command_for(context, job, cookie_args, [*job_media_args(job), *app_args])
         tracker = ProgressTracker(context, session, job)
 
         async def on_update(update: Update) -> None:

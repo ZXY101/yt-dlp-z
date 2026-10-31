@@ -5,6 +5,8 @@ from pathlib import Path
 PROGRESS_MARKER = "[ytdlpz:progress]"
 INFO_MARKER = "[ytdlpz:info]"
 FILE_MARKER = "[ytdlpz:file]"
+# Only printed for media-server output (services/media_server).
+NFO_MARKER = "[ytdlpz:nfo]"
 
 INFO_FIELDS = "id,title,uploader,duration,webpage_url"
 

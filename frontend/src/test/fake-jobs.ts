@@ -16,6 +16,7 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     options: {},
     extra_args: "",
     output_dir: "/downloads",
+    media_layout: null,
     cookie_id: null,
     subscription_id: null,
     title: null,
@@ -63,6 +64,16 @@ function recordingFields(recording: JobCreate["recording"]): Partial<Job> {
   };
 }
 
+function settingsFields(body: Record<string, unknown>): Partial<Job> {
+  return {
+    options: (body.options as JobOptions | undefined) ?? {},
+    extra_args: String(body.extra_args ?? ""),
+    output_dir: (body.output_dir as string | null) ?? "/downloads",
+    cookie_id: (body.cookie_id as number | null | undefined) ?? null,
+    media_layout: (body.media_layout as Job["media_layout"] | undefined) ?? null,
+  };
+}
+
 function createJob(server: FakeServer, body: Record<string, unknown>) {
   const url = String(body.url ?? "");
   if (!/^https?:\/\//.test(url)) {
@@ -75,11 +86,8 @@ function createJob(server: FakeServer, body: Record<string, unknown>) {
   const job = makeJob({
     id: server.nextJobId,
     url,
-    options: (body.options as JobOptions | undefined) ?? {},
-    extra_args: String(body.extra_args ?? ""),
-    output_dir: (body.output_dir as string | null) ?? "/downloads",
-    cookie_id: (body.cookie_id as number | null | undefined) ?? null,
     title: (body.title as string | null | undefined) ?? null,
+    ...settingsFields(body),
     ...recordingFields(body.recording as JobCreate["recording"]),
   });
   server.nextJobId += 1;

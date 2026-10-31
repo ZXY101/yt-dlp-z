@@ -103,6 +103,7 @@ async def enqueue_video(
         extra_args=preset.extra_args if preset else "",
         cookie_id=effective_cookie_id(subscription, preset),
         output_dir=await _output_dir(context, session, requested_dir),
+        media_layout=preset.media_layout if preset else None,
         subscription_id=subscription.id,
     )
     session.add(job)

@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from yt_dlp_z.db.models.job import Job, JobStatus
 from yt_dlp_z.services.jobs.process import ProcessResult, interrupt_process
 from yt_dlp_z.services.live.stream_clock import StreamClock, as_utc
+from yt_dlp_z.services.media_server.layout import output_template
 from yt_dlp_z.services.ytdlp.output import ProgressUpdate
 
 # yt-dlp's own default file name.
@@ -51,8 +52,7 @@ def part_args(job: Job, part: int) -> list[str]:
     # Numbered files when splitting, and after a restart (part > 1), so a continued
     # recording never collides with the file already saved.
     if job.part_seconds or part > 1:
-        template = job.options.get("--output")
-        args += ["--output", part_template(template if isinstance(template, str) else None, part)]
+        args += ["--output", part_template(output_template(job), part)]
     return args
 
 
