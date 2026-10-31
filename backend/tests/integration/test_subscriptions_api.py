@@ -112,14 +112,30 @@ def test_the_preset_and_folder_shape_the_download(watch_client: TestClient, feed
     assert job["output_dir"].endswith("/downloads/channel")
 
 
+def test_the_videos_tab_stands_in_for_a_missing_feed(watch_client: TestClient) -> None:
+    created = subscribe(watch_client, channel="@uploader", backfill=1)
+    subscription = wait_for_check(watch_client, created["id"])
+    assert subscription["last_error"] is None
+    assert subscription["last_checked_at"] is not None
+    assert video_states(watch_client, created["id"]) == {
+        "tab-new": ("queued", None),
+        "tab-old": ("skipped", BEFORE),
+    }
+    videos = watch_client.get(f"/api/subscriptions/{created['id']}/videos").json()
+    # The tab has no dates; the probe's upload time fills it in.
+    assert videos[0]["published_at"].startswith("2026-10-01T12:00:00")
+
+
 def test_a_broken_feed_is_reported(watch_client: TestClient, feeds: Path) -> None:
-    created = subscribe(watch_client)
+    created = subscribe(watch_client, channel="@broken")
     subscription = wait_for_check(watch_client, created["id"])
     assert subscription["last_checked_at"] is None
-    assert "Couldn't load the channel feed" in subscription["last_error"]
+    error = subscription["last_error"]
+    assert "Couldn't load the channel feed" in error
+    assert "The videos tab failed too: [fake] This channel has no videos tab" in error
 
     feeds.mkdir()
-    (feeds / f"{CHANNEL_ID}.xml").write_text("<feed>")
+    (feeds / "UCbroken.xml").write_text("<feed>")
     assert "isn't valid XML" in check(watch_client, created["id"])["last_error"]
 
 

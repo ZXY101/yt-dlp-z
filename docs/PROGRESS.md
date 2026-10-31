@@ -375,6 +375,12 @@ Still open:
   tests incl. a migration test, unit and E2E tests updated; screenshots
   checked desktop/mobile, light/dark.
 
+- **2026-10-31 · Feed fallback.** YouTube's RSS feeds return 404 for every
+  channel (reported widely since ~2026-10-27). A failed feed now falls back to
+  the channel's /videos tab via yt-dlp (15 entries, no dates; the probe's
+  `timestamp` fills `published_at`). The tab has no streams or shorts: the
+  streams sweep still catches upcoming/live streams.
+
 - **2026-10-31 · ntfy notifications.** M6 step 3. Also: the pre-push hook needs
   nvm loaded (`npm` isn't on a plain shell's PATH).
 

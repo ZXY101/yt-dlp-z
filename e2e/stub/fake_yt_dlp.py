@@ -11,7 +11,8 @@ The URL picks the behaviour:
 With --simulate (the cookies check) it prints the title, or fails for ...fail... URLs.
 With -J it prints metadata instead (see metadata()): a channel (its tabs) for /@handle
 URLs, a playlist of 24 for ?list= URLs (unless --no-playlist), the streams tab for /channel/<id>/streams URLs (entries for ids containing "streamer",
-an error for "broken"),
+an error for "broken"), the videos tab for /channel/<id>/videos URLs (entries for ids
+containing "uploader", an error for "broken"),
 otherwise a video whose id picks its kind (short, upcoming, live, members, broken, long);
 upcoming ones fail without --ignore-no-formats-error, as with real yt-dlp;
 members-only videos only open with --cookies; "fastfail" ids refuse the link check's
@@ -38,6 +39,8 @@ INFO = "[ytdlpz:info]"
 FILE = "[ytdlpz:file]"
 TOTAL_BYTES = 1_000_000
 TABS = ["Videos", "Live", "Shorts"]
+# Upload time of every fake video: 2026-10-01 12:00 UTC.
+UPLOADED_AT = 1790856000
 
 
 def values_of(args: list[str], flag: str) -> list[str]:
@@ -106,6 +109,7 @@ def video_metadata(video_id: str, args: list[str]) -> int:
         "uploader": "Fake channel",
         "extractor_key": "Youtube",
         "webpage_url_domain": "youtube.com",
+        "timestamp": UPLOADED_AT,
     }
     if "members" in video_id:
         data["availability"] = "subscriber_only"
@@ -116,6 +120,16 @@ def video_metadata(video_id: str, args: list[str]) -> int:
         if "old" in video_id:  # live for 10 hours already
             data["release_timestamp"] = int(time.time()) - 10 * 3600
     emit(json.dumps(data))
+    return 0
+
+
+def videos_tab(url: str) -> int:
+    if "broken" in url:
+        return fail_json("This channel has no videos tab")
+    entries: list[dict[str, str]] = []
+    if "uploader" in url:
+        entries = [{"id": "tab-new", "title": "Tab new"}, {"id": "tab-old", "title": "Tab old"}]
+    emit(json.dumps({"id": "videos", "entries": entries}))
     return 0
 
 
@@ -136,6 +150,8 @@ def streams_tab(url: str) -> int:
 def metadata(url: str, args: list[str]) -> int:
     if url.endswith("/streams"):
         return streams_tab(url)
+    if "/channel/" in url and url.endswith("/videos"):
+        return videos_tab(url)
     if "/@" in url:
         return channel_metadata(url)
     if "list=" in url and "--no-playlist" not in args:
