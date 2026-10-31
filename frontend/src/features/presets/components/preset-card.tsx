@@ -7,7 +7,21 @@ import { FormError } from "@/components/form-error";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useDeletePreset } from "@/features/presets/api";
-import type { Preset } from "@/features/presets/types";
+import { PRESET_KIND_LABELS } from "@/features/presets/kinds";
+import type { Preset, RecordingSettings } from "@/features/presets/types";
+
+function hours(count: number) {
+  return count === 1 ? "1 hour" : `${count} hours`;
+}
+
+/** e.g. "New file every 6 hours · until the stream ends" */
+function describeRecording(recording: RecordingSettings) {
+  const parts = [
+    recording.part_hours ? `New file every ${hours(recording.part_hours)}` : "One file",
+    recording.max_hours ? `stops after ${hours(recording.max_hours)}` : "until the stream ends",
+  ];
+  return parts.join(" · ");
+}
 
 function describePreset(preset: Preset) {
   const optionCount = Object.keys(preset.options ?? {}).length;
@@ -21,6 +35,9 @@ function describePreset(preset: Preset) {
   if (preset.cookie_id !== null) {
     parts.push("with cookies");
   }
+  if (preset.recording) {
+    parts.push(describeRecording(preset.recording).toLowerCase());
+  }
   return parts.join(" · ");
 }
 
@@ -33,7 +50,12 @@ export function PresetCard({ preset }: { preset: Preset }) {
           <p className="truncate font-medium">{preset.name}</p>
           <p className="text-xs break-words text-muted-foreground">{describePreset(preset)}</p>
         </div>
-        {preset.is_default && <Badge variant="secondary">Default</Badge>}
+        <div className="flex shrink-0 flex-wrap justify-end gap-1">
+          {preset.kind !== "any" && (
+            <Badge variant="outline">{PRESET_KIND_LABELS[preset.kind]}</Badge>
+          )}
+          {preset.is_default && <Badge variant="secondary">Default</Badge>}
+        </div>
       </div>
       <FormError message={remove.isError ? describeError(remove.error) : null} />
       <div className="flex flex-wrap justify-end gap-2">

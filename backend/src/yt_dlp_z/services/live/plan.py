@@ -1,9 +1,9 @@
-"""Turns the recording settings into what one recording job does."""
+"""Turns a live-stream preset's recording settings into what one recording job does."""
 
 from dataclasses import dataclass
 from datetime import datetime
 
-from yt_dlp_z.schemas.app_settings import RecordingSettings
+from yt_dlp_z.schemas.recording import RecordingSettings
 
 SECONDS_PER_HOUR = 3600
 
@@ -15,7 +15,7 @@ class RecordingPlan:
     max_seconds: int | None
 
 
-def _seconds(hours: int | None) -> int | None:
+def hours_to_seconds(hours: int | None) -> int | None:
     return hours * SECONDS_PER_HOUR if hours else None
 
 
@@ -30,8 +30,8 @@ def plan_recording(
 ) -> RecordingPlan:
     """`live_since`: when the stream went live, for streams already live when found."""
     from_start = True
-    max_seconds = _seconds(settings.max_hours)
-    limit = _seconds(settings.from_start_max_hours)
+    max_seconds = hours_to_seconds(settings.max_hours)
+    limit = hours_to_seconds(settings.from_start_max_hours)
     if live_since is not None and limit is not None and _live_for(live_since, now) > limit:
         if settings.long_streams == "first_hours":
             max_seconds = min(max_seconds or limit, limit)
@@ -39,6 +39,6 @@ def plan_recording(
             from_start = False
     return RecordingPlan(
         record_from_start=from_start,
-        part_seconds=_seconds(settings.part_hours),
+        part_seconds=hours_to_seconds(settings.part_hours),
         max_seconds=max_seconds,
     )

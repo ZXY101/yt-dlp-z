@@ -10,13 +10,14 @@ from yt_dlp_z.db.models.job import Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.db.models.preset import Preset
 from yt_dlp_z.db.models.subscription import Subscription
 from yt_dlp_z.db.models.video import Video
-from yt_dlp_z.services import app_settings, auth_service
+from yt_dlp_z.services import auth_service
 from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs.job_run import job_log_path, publish_job
 from yt_dlp_z.services.jobs.queues import JobQueues
 from yt_dlp_z.services.live.plan import RecordingPlan, plan_recording
 from yt_dlp_z.services.live.scheduler import recording_status
 from yt_dlp_z.services.paths import InvalidPathError, resolve_job_dir
+from yt_dlp_z.services.presets import default_recording, preset_recording
 from yt_dlp_z.services.watch.probe import video_url
 
 
@@ -32,10 +33,17 @@ class EnqueueError(Exception):
     pass
 
 
-async def preset_for(session: AsyncSession, subscription: Subscription) -> Preset | None:
-    if subscription.preset_id is None:
-        return None
-    return await session.get(Preset, subscription.preset_id)
+async def _get_preset(session: AsyncSession, preset_id: int | None) -> Preset | None:
+    return None if preset_id is None else await session.get(Preset, preset_id)
+
+
+async def preset_for(
+    session: AsyncSession, subscription: Subscription, *, stream: bool = False
+) -> Preset | None:
+    """Streams use the subscription's stream preset when it has one."""
+    if stream and subscription.stream_preset_id is not None:
+        return await _get_preset(session, subscription.stream_preset_id)
+    return await _get_preset(session, subscription.preset_id)
 
 
 def effective_cookie_id(subscription: Subscription, preset: Preset | None) -> int | None:
@@ -66,9 +74,11 @@ def _kind_and_status(video: Video) -> tuple[JobKind, JobStatus]:
     return JobKind.LIVE, recording_status(video.release_at, utcnow())
 
 
-async def _recording_plan(session: AsyncSession, video: Video) -> RecordingPlan:
+async def _recording_plan(
+    session: AsyncSession, video: Video, preset: Preset | None
+) -> RecordingPlan:
     live_since = video.release_at if video.live_status == "is_live" else None
-    settings = await app_settings.get_recording_settings(session)
+    settings = preset_recording(preset) or await default_recording(session)
     return plan_recording(settings, live_since, utcnow())
 
 
@@ -77,10 +87,10 @@ async def enqueue_video(
 ) -> Job:
     """Queues the download, or the recording for a stream. Options are copied from the
     preset, like the download form does."""
-    preset = await preset_for(session, subscription)
-    requested_dir = subscription.output_dir or (preset.output_dir if preset else None)
     kind, status = _kind_and_status(video)
-    plan = await _recording_plan(session, video) if kind == JobKind.LIVE else None
+    preset = await preset_for(session, subscription, stream=kind == JobKind.LIVE)
+    requested_dir = subscription.output_dir or (preset.output_dir if preset else None)
+    plan = await _recording_plan(session, video, preset) if kind == JobKind.LIVE else None
     job = Job(
         url=video_url(video.video_id),
         # Known from the feed or probe; shown until yt-dlp reports its own.

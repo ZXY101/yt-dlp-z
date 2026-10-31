@@ -14,7 +14,6 @@ function media(overrides: Partial<MediaInfo>): MediaInfo {
     starts_at: null,
     live_since: null,
     members_only: false,
-    record_from_start: null,
     ...overrides,
   };
 }
@@ -38,10 +37,13 @@ function probe(body: Record<string, unknown>) {
   }
   if (url.includes("upcoming")) {
     const startsAt = "2100-01-01T00:00:00+00:00";
-    return json(media({ kind: "upcoming", starts_at: startsAt, record_from_start: true }));
+    return json(media({ kind: "upcoming", starts_at: startsAt }));
   }
   if (url.includes("live")) {
-    return json(media({ kind: "live", duration: null, record_from_start: !url.includes("old") }));
+    // "old" streams have been live for 10 hours, the rest for 1.
+    const hours = url.includes("old") ? 10 : 1;
+    const liveSince = new Date(Date.now() - hours * 3600 * 1000).toISOString();
+    return json(media({ kind: "live", duration: null, live_since: liveSince }));
   }
   return json(media({ members_only: url.includes("members") }));
 }

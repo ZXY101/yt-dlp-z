@@ -15,7 +15,9 @@ export function makePreset(overrides: Partial<Preset> = {}): Preset {
     extra_args: "",
     output_dir: null,
     cookie_id: null,
+    kind: "any",
     is_default: false,
+    recording: null,
     created_at: NOW,
     updated_at: NOW,
     ...overrides,
@@ -50,7 +52,9 @@ function savePreset(server: FakeServer, id: number | null, body: Record<string, 
     id: id ?? nextId(server.presets),
   });
   if (saved.is_default) {
-    server.presets = server.presets.map((preset) => ({ ...preset, is_default: false }));
+    server.presets = server.presets.map((preset) =>
+      preset.kind === saved.kind ? { ...preset, is_default: false } : preset,
+    );
   }
   server.presets = [...server.presets.filter((preset) => preset.id !== id), saved];
   return json(saved, id === null ? 201 : 200);

@@ -1,8 +1,9 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 
+import { DEFAULT_RECORDING } from "@/features/presets";
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
 import { makeCookieFile, makePreset } from "@/test/fake-library";
-import { CHECK_TIMEOUT } from "@/test/link-check";
+import { CHECK_TIMEOUT, enterCheckedLink } from "@/test/link-check";
 import { renderApp } from "@/test/render";
 
 function serverWithPresets() {
@@ -70,5 +71,54 @@ describe("DownloadPage presets and cookies", () => {
     installFakeApi(server);
     renderApp("/");
     expect(await screen.findByDisplayValue("Custom (see all options)")).toBeInTheDocument();
+  });
+
+  it("picks the default preset for the kind of link it checked", async () => {
+    const server = serverWithPresets();
+    server.presets.push(
+      makePreset({ id: 3, name: "Lists", kind: "playlist", is_default: true, output_dir: "lists" }),
+      makePreset({
+        id: 4,
+        name: "Streams",
+        kind: "live",
+        is_default: true,
+        output_dir: "streams",
+        recording: { ...DEFAULT_RECORDING, part_hours: 2, max_hours: 8 },
+      }),
+    );
+    installFakeApi(server);
+    const { user } = renderApp("/");
+
+    expect(await screen.findByLabelText("Preset")).toHaveValue("1");
+    await enterCheckedLink(user, "https://www.youtube.com/playlist?list=PL1");
+    expect(screen.getByLabelText("Preset")).toHaveValue("3");
+    const names = within(screen.getByLabelText("Preset"))
+      .getAllByRole("option")
+      .map((option) => option.textContent);
+    expect(names.slice(0, 2)).toEqual(["None", "Lists (playlists and channels)"]);
+
+    await user.clear(screen.getByLabelText("Link"));
+    await enterCheckedLink(user, "https://www.youtube.com/watch?v=live1");
+    expect(screen.getByLabelText("Preset")).toHaveValue("4");
+    expect(screen.getByLabelText("Save to")).toHaveValue("streams");
+    expect(screen.getByLabelText("New file every (hours)")).toHaveValue("2");
+    expect(screen.getByLabelText("Stop after (hours)")).toHaveValue("8");
+
+    // A preset without recording settings records with the default live-stream preset's.
+    await user.selectOptions(screen.getByLabelText("Preset"), "2");
+    expect(screen.getByLabelText("New file every (hours)")).toHaveValue("2");
+  });
+
+  it("records the first hours of long-running streams when the preset says so", async () => {
+    const server = createFakeServer();
+    const recording = { ...DEFAULT_RECORDING, long_streams: "first_hours" as const };
+    server.presets = [makePreset({ kind: "live", is_default: true, recording })];
+    installFakeApi(server);
+    const { user } = renderApp("/");
+
+    await screen.findByLabelText("Preset");
+    await enterCheckedLink(user, "https://www.youtube.com/watch?v=live-old1");
+    expect(screen.getByLabelText("From the start")).toBeChecked();
+    expect(screen.getByLabelText("Stop after (hours)")).toHaveValue("6");
   });
 });

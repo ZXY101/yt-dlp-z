@@ -18,7 +18,7 @@ from tests.integration.watch_helpers import (
 from yt_dlp_z.api.state import AppState
 from yt_dlp_z.db.models.job import Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.db.models.video import Video, VideoState
-from yt_dlp_z.schemas.app_settings import DEFAULT_RECORDING
+from yt_dlp_z.schemas.recording import DEFAULT_RECORDING
 
 FINISHED = {"completed", "failed", "cancelled"}
 STREAMS_TOO = {"content_types": ["video", "stream"]}
@@ -254,12 +254,18 @@ def test_streams_live_for_hours_are_recorded_from_now(
     assert jobs[watch_url("live1")]["part_seconds"] == 6 * 3600
 
 
+def live_preset(client: TestClient) -> dict[str, Any]:
+    presets = client.get("/api/presets").json()
+    preset: dict[str, Any] = next(item for item in presets if item["kind"] == "live")
+    return preset
+
+
 def test_long_streams_can_be_recorded_for_their_first_hours(
     watch_client: TestClient, feeds: Path
 ) -> None:
-    settings = watch_client.get("/api/settings").json()
-    settings["recording"] = {**DEFAULT_RECORDING.model_dump(), "long_streams": "first_hours"}
-    assert watch_client.put("/api/settings", json=settings).is_success
+    live = live_preset(watch_client)
+    live["recording"] = {**DEFAULT_RECORDING.model_dump(), "long_streams": "first_hours"}
+    assert watch_client.put(f"/api/presets/{live['id']}", json=live).is_success
     write_feed(feeds, CHANNEL_ID, [])
     created = subscribe(watch_client, filters=STREAMS_TOO)
     wait_for_check(watch_client, created["id"])
@@ -268,3 +274,38 @@ def test_long_streams_can_be_recorded_for_their_first_hours(
     job = jobs_by_url(watch_client)[watch_url("live-old1")]
     assert job["record_from_start"] is True
     assert job["max_seconds"] == 6 * 3600
+
+
+def test_a_subscription_can_record_streams_with_its_own_preset(
+    watch_client: TestClient, feeds: Path
+) -> None:
+    videos = watch_client.post(
+        "/api/presets", json={"name": "Videos", "options": {"--no-mtime": True}}
+    )
+    recording = {**DEFAULT_RECORDING.model_dump(), "part_hours": 2}
+    streams = watch_client.post(
+        "/api/presets",
+        json={
+            "name": "Streams",
+            "kind": "live",
+            "options": {"--embed-chapters": True},
+            "recording": recording,
+        },
+    )
+    write_feed(feeds, CHANNEL_ID, [])
+    created = subscribe(
+        watch_client,
+        filters={"content_types": ["video", "stream"]},
+        preset_id=videos.json()["id"],
+        stream_preset_id=streams.json()["id"],
+    )
+    wait_for_check(watch_client, created["id"])
+    write_feed(feeds, CHANNEL_ID, ["live1", "video1"])
+    check(watch_client, created["id"])
+    jobs = jobs_by_url(watch_client)
+    stream, video = jobs[watch_url("live1")], jobs[watch_url("video1")]
+    assert (stream["options"], stream["part_seconds"]) == ({"--embed-chapters": True}, 2 * 3600)
+    assert (video["options"], video["kind"]) == ({"--no-mtime": True}, "download")
+    watch_client.delete(f"/api/presets/{streams.json()['id']}")
+    updated = watch_client.get(f"/api/subscriptions/{created['id']}").json()
+    assert updated["stream_preset_id"] is None

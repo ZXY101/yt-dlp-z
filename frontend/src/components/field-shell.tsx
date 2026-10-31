@@ -10,7 +10,7 @@ interface FieldControlProps {
 
 interface FieldShellProps {
   label: string;
-  hint?: string;
+  hint?: React.ReactNode;
   error?: string;
   children: (control: FieldControlProps) => React.ReactNode;
 }

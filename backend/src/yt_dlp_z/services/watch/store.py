@@ -49,6 +49,7 @@ async def check_not_subscribed(session: AsyncSession, channel_id: str) -> None:
 
 def _apply(subscription: Subscription, values: SubscriptionUpdate) -> None:
     subscription.preset_id = values.preset_id
+    subscription.stream_preset_id = values.stream_preset_id
     subscription.cookie_id = values.cookie_id
     subscription.output_dir = values.output_dir
     subscription.filters = values.filters.model_dump(mode="json")
@@ -102,6 +103,11 @@ async def list_videos(session: AsyncSession, subscription_id: int) -> Sequence[V
 async def unlink_preset(session: AsyncSession, preset_id: int) -> None:
     await session.execute(
         update(Subscription).where(Subscription.preset_id == preset_id).values(preset_id=None)
+    )
+    await session.execute(
+        update(Subscription)
+        .where(Subscription.stream_preset_id == preset_id)
+        .values(stream_preset_id=None)
     )
 
 

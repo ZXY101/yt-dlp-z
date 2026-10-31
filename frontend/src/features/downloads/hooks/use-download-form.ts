@@ -4,8 +4,13 @@ import { useNavigate } from "react-router";
 import { useCreateJob } from "@/features/downloads/api";
 import { type LinkCheck, useLinkCheck } from "@/features/downloads/hooks/use-link-check";
 import { usePresetChoice } from "@/features/downloads/hooks/use-preset-choice";
+import {
+  type RecordingChoiceState,
+  useRecordingChoice,
+} from "@/features/downloads/hooks/use-recording-choice";
 import { isVideoInPlaylist } from "@/features/downloads/playlist-link";
 import type { JobCreate, MediaInfo } from "@/features/downloads/types";
+import { type PresetKind, presetKindFor } from "@/features/presets";
 import {
   DEFAULT_SETTINGS,
   type DownloadSettings,
@@ -20,23 +25,11 @@ function withPlaylistChoice(options: OptionValues, wholePlaylist: boolean) {
   return setOption(withYes, "--no-playlist", !wholePlaylist);
 }
 
-function isStream(media: MediaInfo | undefined) {
-  return media?.kind === "live" || media?.kind === "upcoming";
-}
-
-function recordingFor(media: MediaInfo, fromStart: boolean): JobCreate["recording"] {
-  if (!isStream(media)) {
-    return null;
-  }
-  // Upcoming streams are always recorded from their start.
-  return { from_start: media.kind === "upcoming" || fromStart, starts_at: media.starts_at };
-}
-
 function readyMedia(check: LinkCheck) {
   return check.status === "ready" ? check.media : undefined;
 }
 
-function useSettingsState() {
+function useSettingsState(linkKind: PresetKind | null) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   // Remounts the option fields when a preset replaces the settings wholesale,
   // so fields that keep their own text (one value per line) start fresh.
@@ -47,7 +40,7 @@ function useSettingsState() {
     setSettingsVersion((version) => version + 1);
   }
 
-  const presetChoice = usePresetChoice(replaceSettings);
+  const presetChoice = usePresetChoice(replaceSettings, linkKind);
   return { settings, setSettings, settingsVersion, presetChoice };
 }
 
@@ -55,7 +48,7 @@ interface JobBodyInput {
   url: string;
   media: MediaInfo;
   settings: DownloadSettings;
-  fromStart: boolean;
+  recording: JobCreate["recording"];
   wholePlaylist: boolean;
   videoInPlaylist: boolean;
 }
@@ -68,13 +61,13 @@ function jobBody(input: JobBodyInput): JobCreate {
   return {
     url: input.url.trim(),
     title: input.media.title,
-    recording: recordingFor(input.media, input.fromStart),
+    recording: input.recording,
     ...settingsForApi({ ...settings, options }),
   };
 }
 
 /** The link field. A pasted link is checked at once; typing waits for a pause. */
-function useUrlInput(onChange: () => void) {
+function useUrlInput() {
   const [url, setUrl] = useState("");
   const [pastedUrl, setPastedUrl] = useState<string | null>(null);
   const pasting = useRef(false);
@@ -83,7 +76,6 @@ function useUrlInput(onChange: () => void) {
     setUrl(next);
     setPastedUrl(pasting.current ? next : null);
     pasting.current = false;
-    onChange();
   }
 
   /** Called before the change a paste causes. */
@@ -94,37 +86,56 @@ function useUrlInput(onChange: () => void) {
   return { url, changeUrl, markPaste, pasted: url === pastedUrl };
 }
 
-export function useDownloadForm() {
-  const { settings, setSettings, settingsVersion, presetChoice } = useSettingsState();
+/** The checked link, and the settings that depend on what it is. */
+function useCheckedLink(cookieId: number | null) {
   const [wholePlaylist, setWholePlaylist] = useState(false);
-  // null: what the recording settings suggest for this stream.
-  const [fromStartChoice, setFromStart] = useState<boolean | null>(null);
-  const { url, changeUrl, markPaste, pasted } = useUrlInput(() => setFromStart(null));
+  const { url, changeUrl, markPaste, pasted } = useUrlInput();
   const videoInPlaylist = isVideoInPlaylist(url);
   const noPlaylist = videoInPlaylist && !wholePlaylist;
-  const check = useLinkCheck({
-    url,
-    cookieId: settings.cookieId,
-    noPlaylist,
-    immediate: pasted,
-  });
+  const check = useLinkCheck({ url, cookieId, noPlaylist, immediate: pasted });
+  return { url, changeUrl, markPaste, check, videoInPlaylist, wholePlaylist, setWholePlaylist };
+}
+
+export function useDownloadForm() {
+  // The cookies field is part of the settings, and the link check needs it; the preset
+  // picker in turn needs to know what the link is. The kind is kept from the last check.
+  const [linkKind, setLinkKind] = useState<PresetKind | null>(null);
+  const { settings, setSettings, settingsVersion, presetChoice } = useSettingsState(linkKind);
+  const link = useCheckedLink(settings.cookieId);
+  const { url, check, videoInPlaylist, wholePlaylist } = link;
   const media = readyMedia(check);
-  const fromStart = fromStartChoice ?? media?.record_from_start ?? true;
+  const mediaKind = media ? presetKindFor(media.kind) : null;
+  if (mediaKind !== null && mediaKind !== linkKind) {
+    setLinkKind(mediaKind);
+  }
+  const recording: RecordingChoiceState = useRecordingChoice({
+    media,
+    checkedAt: check.status === "ready" ? check.checkedAt : 0,
+    recording: presetChoice.recording,
+    presetId: presetChoice.presetId,
+  });
   const createJob = useCreateJob();
   const navigate = useNavigate();
 
   function submit() {
-    if (!media) {
+    if (!media || !recording.check()) {
       return;
     }
-    const body = jobBody({ url, media, settings, fromStart, wholePlaylist, videoInPlaylist });
+    const body = jobBody({
+      url,
+      media,
+      settings,
+      recording: recording.request(),
+      wholePlaylist,
+      videoInPlaylist,
+    });
     createJob.mutate(body, { onSuccess: () => void navigate("/queue") });
   }
 
   return {
     url,
-    setUrl: changeUrl,
-    markPaste,
+    setUrl: link.changeUrl,
+    markPaste: link.markPaste,
     settings,
     setSettings,
     settingsVersion,
@@ -133,9 +144,8 @@ export function useDownloadForm() {
     media,
     videoInPlaylist,
     wholePlaylist,
-    setWholePlaylist,
-    fromStart,
-    setFromStart,
+    setWholePlaylist: link.setWholePlaylist,
+    recording,
     submit,
     createJob,
   };

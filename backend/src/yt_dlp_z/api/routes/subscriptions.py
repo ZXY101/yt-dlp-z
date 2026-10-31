@@ -33,8 +33,9 @@ async def find_subscription(db: Db, subscription_id: int) -> Subscription:
 
 
 async def check_references(state: AppState, db: Db, body: SubscriptionUpdate) -> None:
-    if body.preset_id is not None and await get_preset(db, body.preset_id) is None:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "That preset doesn't exist")
+    for preset_id in (body.preset_id, body.stream_preset_id):
+        if preset_id is not None and await get_preset(db, preset_id) is None:
+            raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "That preset doesn't exist")
     await check_cookie_id(db, body.cookie_id)
     await check_output_dir(state, db, body.output_dir)
 

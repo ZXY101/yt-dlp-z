@@ -20,9 +20,6 @@ test.describe("settings", () => {
     await folder.fill(newFolder);
     await page.getByLabel("Downloads at the same time").fill("1");
     await page.getByLabel("Recordings at the same time").fill("3");
-    await page.getByLabel("New file every (hours)").fill("");
-    await page.getByLabel("Stop after (hours)").fill("12");
-    await page.getByRole("radio", { name: "Record their first 6 hours" }).check();
     await page.getByRole("button", { name: "Save settings" }).click();
     await expect(page.getByText("Settings saved.")).toBeVisible();
     await expectNoHorizontalScroll(page);
@@ -31,9 +28,6 @@ test.describe("settings", () => {
     await expect(page.getByLabel("Download folder")).toHaveValue(newFolder);
     await expect(page.getByLabel("Downloads at the same time")).toHaveValue("1");
     await expect(page.getByLabel("Recordings at the same time")).toHaveValue("3");
-    await expect(page.getByLabel("New file every (hours)")).toHaveValue("");
-    await expect(page.getByLabel("Stop after (hours)")).toHaveValue("12");
-    await expect(page.getByRole("radio", { name: "Record their first 6 hours" })).toBeChecked();
 
     await page.goto("/");
     await page.getByLabel("Link").fill("https://example.com/watch/moved");

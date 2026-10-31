@@ -1,14 +1,13 @@
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from yt_dlp_z.schemas.app_settings import DEFAULT_RECORDING
 from yt_dlp_z.services.ytdlp.media import ENTRY_LIMIT, media_info, probe_args
 
 NOW = datetime(2026, 10, 31, 12, tzinfo=UTC)
 
 
 def info(data: dict[str, Any]) -> Any:
-    return media_info(data, DEFAULT_RECORDING, NOW)
+    return media_info(data)
 
 
 def test_a_plain_video() -> None:
@@ -26,7 +25,6 @@ def test_a_plain_video() -> None:
     assert result.thumbnail == "https://img.example/1.jpg"
     assert result.duration == 61
     assert result.entry_count is None
-    assert result.record_from_start is None
 
 
 def test_playlist_count_comes_from_the_site() -> None:
@@ -66,15 +64,12 @@ def test_upcoming_stream_reports_its_start() -> None:
     start = NOW + timedelta(days=1)
     result = info({"live_status": "is_upcoming", "release_timestamp": start.timestamp()})
     assert (result.kind, result.starts_at, result.live_since) == ("upcoming", start, None)
-    assert result.record_from_start is True
 
 
-def test_live_stream_follows_the_recording_settings() -> None:
-    recent = info({"live_status": "is_live", "release_timestamp": NOW.timestamp() - 3600})
-    old = info({"live_status": "is_live", "release_timestamp": NOW.timestamp() - 10 * 3600})
-    assert recent.kind == "live"
-    assert recent.live_since == NOW - timedelta(hours=1)
-    assert (recent.record_from_start, old.record_from_start) == (True, False)
+def test_live_stream_reports_when_it_went_live() -> None:
+    result = info({"live_status": "is_live", "release_timestamp": NOW.timestamp() - 3600})
+    assert (result.kind, result.starts_at) == ("live", None)
+    assert result.live_since == NOW - timedelta(hours=1)
 
 
 def test_finished_streams_are_videos_and_members_only_is_flagged() -> None:

@@ -34,5 +34,3 @@ class MediaInfo(BaseModel):
     # Live streams: when they went live, if known.
     live_since: datetime | None
     members_only: bool
-    # Live streams: whether the recording settings would record from the start.
-    record_from_start: bool | None

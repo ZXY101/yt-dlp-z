@@ -9,7 +9,18 @@ import { MediaPreview } from "@/features/downloads/components/media-preview";
 import { PlaylistChoice } from "@/features/downloads/components/playlist-choice";
 import { RecordingChoice } from "@/features/downloads/components/recording-choice";
 import { type DownloadForm, useDownloadForm } from "@/features/downloads/hooks/use-download-form";
+import { PRESET_KIND_LABELS, type Preset } from "@/features/presets";
 import { SystemWarnings } from "@/features/system";
+
+/** e.g. "Concerts (live streams)"; presets for any link, or named after their kind, show
+ * just their name. */
+function presetLabel(preset: Preset) {
+  const kind = PRESET_KIND_LABELS[preset.kind].toLowerCase();
+  if (preset.kind === "any" || preset.name.toLowerCase() === kind) {
+    return preset.name;
+  }
+  return `${preset.name} (${kind})`;
+}
 
 function PresetField({ choice }: { choice: DownloadForm["presetChoice"] }) {
   if (choice.presets.length === 0) {
@@ -17,7 +28,7 @@ function PresetField({ choice }: { choice: DownloadForm["presetChoice"] }) {
   }
   const choices = [
     { value: "", label: "None" },
-    ...choice.presets.map((preset) => ({ value: String(preset.id), label: preset.name })),
+    ...choice.presets.map((preset) => ({ value: String(preset.id), label: presetLabel(preset) })),
   ];
   return (
     <SelectField
@@ -92,14 +103,8 @@ export function DownloadPage() {
           wholePlaylist={form.wholePlaylist}
           onWholePlaylistChange={form.setWholePlaylist}
         />
-        {(form.media?.kind === "live" || form.media?.kind === "upcoming") && (
-          <RecordingChoice
-            media={form.media}
-            fromStart={form.fromStart}
-            onFromStartChange={form.setFromStart}
-          />
-        )}
         <PresetField choice={form.presetChoice} />
+        <RecordingChoice recording={form.recording} />
         <DownloadSettingsFields
           key={form.settingsVersion}
           value={form.settings}

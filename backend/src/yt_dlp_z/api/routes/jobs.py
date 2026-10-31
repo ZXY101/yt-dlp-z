@@ -6,10 +6,9 @@ from yt_dlp_z.api.deps import Db, State, require_auth
 from yt_dlp_z.api.validation import check_cookie_id, check_user_args, output_dir_for_job
 from yt_dlp_z.db.models.job import FINISHED_STATUSES, Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.schemas.jobs import JobCreate, JobDeletedEvent, JobOut, RecordingRequest
-from yt_dlp_z.services import app_settings
 from yt_dlp_z.services.jobs import repository
 from yt_dlp_z.services.jobs.job_run import job_log_path, publish_job
-from yt_dlp_z.services.live.plan import plan_recording
+from yt_dlp_z.services.live.plan import hours_to_seconds
 from yt_dlp_z.services.live.scheduler import recording_status
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"], dependencies=[Depends(require_auth)])
@@ -22,16 +21,14 @@ async def find_job(db: Db, job_id: int) -> Job:
     return job
 
 
-async def _recording_fields(db: Db, recording: RecordingRequest) -> dict[str, Any]:
-    now = utcnow()
-    plan = plan_recording(await app_settings.get_recording_settings(db), None, now)
+def _recording_fields(recording: RecordingRequest) -> dict[str, Any]:
     return {
         "kind": JobKind.LIVE,
-        "status": recording_status(recording.starts_at, now),
+        "status": recording_status(recording.starts_at, utcnow()),
         "scheduled_at": recording.starts_at,
         "record_from_start": recording.from_start,
-        "part_seconds": plan.part_seconds,
-        "max_seconds": plan.max_seconds,
+        "part_seconds": hours_to_seconds(recording.part_hours),
+        "max_seconds": hours_to_seconds(recording.max_hours),
     }
 
 
@@ -42,7 +39,7 @@ async def create_job(body: JobCreate, state: State, db: Db) -> JobOut:
     output_dir = await output_dir_for_job(state, db, body.output_dir)
     kind_fields: dict[str, Any] = {"status": JobStatus.QUEUED}
     if body.recording is not None:
-        kind_fields = await _recording_fields(db, body.recording)
+        kind_fields = _recording_fields(body.recording)
     job = Job(
         url=body.url,
         title=body.title,

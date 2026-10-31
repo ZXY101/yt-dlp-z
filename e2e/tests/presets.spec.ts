@@ -14,8 +14,7 @@ test.describe("presets", () => {
   });
 
   test("a default preset fills in the download form", async ({ page }) => {
-    await page.goto("/presets");
-    await page.getByRole("link", { name: /No presets yet/ }).click();
+    await page.goto("/presets/new");
     await page.getByLabel("Name", { exact: true }).fill("Audio");
     await page.getByLabel("Use by default").check();
     await page.getByLabel("Quality").selectOption("audio-mp3");
@@ -23,11 +22,10 @@ test.describe("presets", () => {
     await expectNoHorizontalScroll(page);
     await page.getByRole("button", { name: "Save preset" }).click();
 
-    const list = page.getByRole("list", { name: "Presets" });
-    await expect(list.getByText("Audio", { exact: true })).toBeVisible();
-    await expect(list.getByText("Default")).toBeVisible();
+    const audio = page.getByRole("listitem").filter({ hasText: "Audio" });
+    await expect(audio.getByText("Default")).toBeVisible();
     await page.reload();
-    await expect(list.getByText(/Saves to audio · 4 options/)).toBeVisible();
+    await expect(audio.getByText(/Saves to audio · 4 options/)).toBeVisible();
 
     await page.goto("/");
     await expect(page.getByLabel("Preset")).toHaveValue(/\d+/);
@@ -57,7 +55,7 @@ test.describe("presets", () => {
     await expectNoHorizontalScroll(page);
     await list.getByRole("button", { name: "Delete Short clips" }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Delete" }).click();
-    await expect(page.getByText("No presets yet")).toBeVisible();
+    await expect(list.getByText("Short clips")).toBeHidden();
   });
 
   test("names must be unique and options allowed", async ({ page }) => {
@@ -76,5 +74,37 @@ test.describe("presets", () => {
     await page.getByLabel("Extra yt-dlp options").fill("--exec ls");
     await page.getByRole("button", { name: "Save preset" }).click();
     await expect(page.getByText(/--exec isn't allowed/)).toBeVisible();
+  });
+
+  test("a live-stream preset decides how streams are recorded", async ({ page }) => {
+    // The test reset removes the "Live streams" preset a fresh install starts with.
+    await page.goto("/presets/new");
+    await page.getByLabel("Name", { exact: true }).fill("Live streams");
+    await page.getByLabel("Use for").selectOption("live");
+    await page.getByLabel("Use by default for live streams").check();
+    await page.getByLabel("New file every (hours)").fill("");
+    await page.getByLabel("Stop after (hours)").fill("12");
+    await page.getByRole("radio", { name: "Record their first 6 hours" }).check();
+    await expectNoHorizontalScroll(page);
+    await page.getByRole("button", { name: "Save preset" }).click();
+    const live = page.getByRole("listitem").filter({ hasText: "Live streams" });
+    await expect(live.getByText(/one file · stops after 12 hours/)).toBeVisible();
+
+    await page.getByRole("link", { name: "Edit Live streams" }).click();
+    await expect(page.getByLabel("Stop after (hours)")).toHaveValue("12");
+    await expect(page.getByRole("radio", { name: "Record their first 6 hours" })).toBeChecked();
+
+    await page.goto("/");
+    await page.getByLabel("Link").fill("https://www.youtube.com/watch?v=live-preset");
+    await expect(page.getByLabel("Media details")).toContainText("Live now");
+    await expect(page.getByLabel("Preset")).toHaveValue(/\d+/);
+    await expect(page.getByLabel("New file every (hours)")).toHaveValue("");
+    await expect(page.getByLabel("Stop after (hours)")).toHaveValue("12");
+    await page.getByLabel("Stop after (hours)").fill("2");
+    await page.getByRole("button", { name: "Record" }).click();
+
+    await expect(page).toHaveURL(/\/queue$/);
+    await expect(page.getByText("Recording", { exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Cancel Fake video live-preset" }).click();
   });
 });

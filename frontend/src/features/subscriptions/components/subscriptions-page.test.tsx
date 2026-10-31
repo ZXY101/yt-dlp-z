@@ -1,5 +1,6 @@
 import { screen, within } from "@testing-library/react";
 
+import { DEFAULT_RECORDING } from "@/features/presets";
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
 import { makeCookieFile, makePreset } from "@/test/fake-library";
 import { makeSubscription, makeVideo } from "@/test/fake-subscriptions";
@@ -78,7 +79,12 @@ describe("Subscriptions", () => {
   it("checks, pauses and deletes from the list", async () => {
     const server = createFakeServer();
     server.subscriptions = [
-      makeSubscription({ id: 1, name: "Demo", last_error: "Couldn't load the channel feed" }),
+      makeSubscription({
+        id: 1,
+        name: "Demo",
+        stream_preset_id: 3,
+        last_error: "Couldn't load the channel feed",
+      }),
     ];
     installFakeApi(server);
     const { user } = renderApp("/subscriptions");
@@ -90,7 +96,7 @@ describe("Subscriptions", () => {
 
     await user.click(screen.getByRole("button", { name: "Pause Demo" }));
     expect(await screen.findByText("Paused")).toBeVisible();
-    expect(server.subscriptions[0]!.enabled).toBe(false);
+    expect(server.subscriptions[0]).toMatchObject({ enabled: false, stream_preset_id: 3 });
     await user.click(screen.getByRole("button", { name: "Resume Demo" }));
     expect(await screen.findByRole("button", { name: "Pause Demo" })).toBeVisible();
 
@@ -140,5 +146,29 @@ describe("Subscriptions", () => {
     installFakeApi(createFakeServer());
     renderApp("/subscriptions/9");
     expect(await screen.findByText("This subscription doesn't exist any more.")).toBeVisible();
+  });
+
+  it("records a channel's streams with their own preset", async () => {
+    const server = createFakeServer();
+    server.presets = [
+      makePreset({ id: 1, name: "Archive" }),
+      makePreset({ id: 2, name: "Concerts", kind: "live", recording: DEFAULT_RECORDING }),
+    ];
+    server.subscriptions = [makeSubscription({ id: 1, name: "Demo" })];
+    installFakeApi(server);
+    const { user } = renderApp("/subscriptions/1");
+
+    await screen.findByLabelText("Videos");
+    expect(screen.queryByLabelText("Preset for live streams")).not.toBeInTheDocument();
+    await user.click(screen.getByLabelText("Live streams and premieres"));
+    const streamPreset = screen.getByLabelText("Preset for live streams");
+    const names = within(streamPreset)
+      .getAllByRole("option")
+      .map((option) => option.textContent);
+    expect(names).toEqual(["Default", "Concerts", "Archive"]);
+    await user.selectOptions(streamPreset, "2");
+    await user.click(screen.getByRole("button", { name: /Save/ }));
+    await screen.findByRole("heading", { name: "Subscriptions" });
+    expect(server.subscriptions[0]?.stream_preset_id).toBe(2);
   });
 });

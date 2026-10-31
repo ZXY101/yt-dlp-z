@@ -4,13 +4,54 @@ import { describeError } from "@/api/errors";
 import { CheckboxField } from "@/components/checkbox-field";
 import { DownloadSettingsFields } from "@/components/download-options/download-settings-fields";
 import { FormError } from "@/components/form-error";
-import { FormField } from "@/components/form-field";
+import { FormField, SelectField } from "@/components/form-field";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { useCookieFiles } from "@/features/cookies";
 import { usePresets } from "@/features/presets/api";
+import { RecordingFields } from "@/features/presets/components/recording-fields";
 import { usePresetForm } from "@/features/presets/hooks/use-preset-form";
-import type { Preset } from "@/features/presets/types";
+import { PRESET_KIND_LABELS } from "@/features/presets/kinds";
+import type { Preset, PresetKind } from "@/features/presets/types";
+
+type PresetForm = ReturnType<typeof usePresetForm>;
+
+const KIND_CHOICES = Object.entries(PRESET_KIND_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
+
+function defaultLabel(kind: PresetKind) {
+  if (kind === "any") {
+    return "Use by default";
+  }
+  return `Use by default for ${PRESET_KIND_LABELS[kind].toLowerCase()}`;
+}
+
+function KindFields({ form }: { form: PresetForm }) {
+  const { kind, isDefault } = form.fields;
+  return (
+    <>
+      <SelectField
+        label="Use for"
+        hint="The download page offers presets made for the kind of link it checked first."
+        value={kind}
+        choices={KIND_CHOICES}
+        onValueChange={(value) => form.setters.setKind(value as PresetKind)}
+      />
+      <CheckboxField
+        label={defaultLabel(kind)}
+        description={
+          kind === "any"
+            ? "Picked on the download page when no preset is the default for that kind of link."
+            : "Picked on the download page when the link is one of these."
+        }
+        checked={isDefault}
+        onCheckedChange={form.setters.setIsDefault}
+      />
+    </>
+  );
+}
 
 function PresetForm({ preset }: { preset: Preset | null }) {
   const form = usePresetForm(preset);
@@ -31,12 +72,8 @@ function PresetForm({ preset }: { preset: Preset | null }) {
         error={form.nameError}
         onChange={(event) => form.setters.setName(event.target.value)}
       />
-      <CheckboxField
-        label="Use by default"
-        description="Picked automatically on the download page."
-        checked={form.fields.isDefault}
-        onCheckedChange={form.setters.setIsDefault}
-      />
+      <KindFields form={form} />
+      {form.fields.kind === "live" && <RecordingFields recording={form.recording} />}
       <DownloadSettingsFields
         value={form.fields.settings}
         onChange={form.setters.setSettings}

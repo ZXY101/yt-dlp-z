@@ -41,9 +41,8 @@ def test_upcoming_and_live_streams(setup_client: TestClient) -> None:
     _, live = probe(setup_client, "https://www.youtube.com/watch?v=live-old1")
     assert upcoming["kind"] == "upcoming"
     assert upcoming["starts_at"] == "2100-01-01T00:00:00Z"
-    assert upcoming["record_from_start"] is True
     assert live["kind"] == "live"
-    assert live["record_from_start"] is False
+    assert live["live_since"] is not None
 
 
 def test_failure_reports_the_ytdlp_error(setup_client: TestClient) -> None:
