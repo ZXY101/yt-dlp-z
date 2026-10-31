@@ -35,5 +35,8 @@ class JobQueues:
         self._manager(job.kind).submit(job.id)
 
     async def cancel(self, job: Job) -> None:
-        # A stopped recording keeps what it recorded so far.
-        await self._manager(job.kind).cancel(job.id, graceful=job.kind == JobKind.LIVE)
+        # A stopped recording keeps what it recorded so far. One still waiting for its
+        # stream stops at once: yt-dlp answers SIGINT during --wait-for-video by checking
+        # the stream again, not by exiting, so a graceful stop would hang.
+        graceful = job.kind == JobKind.LIVE and bool(job.downloaded_bytes)
+        await self._manager(job.kind).cancel(job.id, graceful=graceful)

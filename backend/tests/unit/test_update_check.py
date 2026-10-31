@@ -28,10 +28,12 @@ def test_check_command_is_a_dry_run(tmp_path: Path) -> None:
     [
         ("not json", "unexpected format"),
         ('{"install": []}', "didn't find yt-dlp"),
+        ("import sys; sys.exit(1)", "Couldn't check"),
     ],
 )
 async def test_unexpected_pip_answers_are_errors(tmp_path: Path, output: str, message: str) -> None:
-    pip = [sys.executable, "-c", f"print({output!r})"]
+    code = output if output.startswith("import") else f"print({output!r})"
+    pip = [sys.executable, "-c", code]
     checker = UpdateChecker(make_updater(tmp_path, pip), _preferences(auto_update=False))
     with pytest.raises(UpdateError, match=message):
         await checker.check("stable")
@@ -47,13 +49,26 @@ def _preferences(*, auto_update: bool) -> Preferences:
 async def test_the_loop_checks_after_its_first_delay_and_survives_failures(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    # No real pip here: stopping the loop while it spawns a process can leave
+    # asyncio waiting on a pipe that never connected, which hung CI.
+    attempts = 0
+    third_attempt = asyncio.Event()
+
+    async def failing_check(*_args: object) -> str:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 3:
+            third_attempt.set()
+        raise UpdateError("pip is down")
+
+    monkeypatch.setattr(update_check, "find_latest_version", failing_check)
     monkeypatch.setattr(update_check, "CHECK_INTERVAL_SECONDS", 0.01)
-    failing = [sys.executable, "-c", "import sys; sys.exit(1)"]
     checker = UpdateChecker(
-        make_updater(tmp_path, failing), _preferences(auto_update=True), first_check_seconds=0
+        make_updater(tmp_path), _preferences(auto_update=True), first_check_seconds=0
     )
     checker.start()
-    await asyncio.sleep(0.5)
+    async with asyncio.timeout(5):
+        await third_attempt.wait()
     await checker.stop()
     assert checker.latest_version is None
     await checker.stop()  # stopping twice is fine

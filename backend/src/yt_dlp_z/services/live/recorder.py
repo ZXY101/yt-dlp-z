@@ -31,6 +31,8 @@ class PartWatch:
 
     on_start: Callable[[asyncio.subprocess.Process], None]
     on_progress: Callable[[ProgressUpdate], None]
+    # The part's finished file was saved (yt-dlp's after_move print).
+    on_file: Callable[[], None]
 
 
 RunPart = Callable[[list[str], PartWatch], Awaitable[ProcessResult]]
@@ -98,10 +100,12 @@ def _clock(job: Job, part: int) -> StreamClock:
     return StreamClock(job.scheduled_at if from_start and was_live else None)
 
 
-def _part_outcome(result: ProcessResult, cancelled: bool) -> Outcome:
+def _part_outcome(result: ProcessResult, cancelled: bool, saved_file: bool) -> Outcome:
     if cancelled:
         return JobStatus.CANCELLED, None
-    if result.returncode == 0:
+    # When a stream ends, its last fragments are often gone: yt-dlp logs "Did not get any
+    # data blocks" and exits with an error after saving the file. The recording is fine.
+    if result.returncode == 0 or saved_file:
         return JobStatus.COMPLETED, None
     return JobStatus.FAILED, result.error or f"yt-dlp exited with code {result.returncode}."
 
@@ -124,9 +128,13 @@ class _Part:
     # Seconds of the stream still to save, when the recording has a maximum length.
     left: float | None
     on_process: Callable[[asyncio.subprocess.Process], None]
+    saved_file: bool = False
 
     def watch(self) -> PartWatch:
-        return PartWatch(self._on_start, self._on_progress)
+        return PartWatch(self._on_start, self._on_progress, self._on_file)
+
+    def _on_file(self) -> None:
+        self.saved_file = True
 
     def _on_start(self, process: asyncio.subprocess.Process) -> None:
         self.on_process(process)
@@ -153,7 +161,7 @@ async def record(job: Job, hooks: RecordingHooks) -> Outcome:
         saved += running.clock.seconds()
         # A part stopped by its timer ends normally; anything else ends the recording.
         if hooks.is_cancelled() or not running.timer.timed_out:
-            return _part_outcome(result, hooks.is_cancelled())
+            return _part_outcome(result, hooks.is_cancelled(), running.saved_file)
         if job.max_seconds and saved >= job.max_seconds:
             return JobStatus.COMPLETED, None
         part += 1

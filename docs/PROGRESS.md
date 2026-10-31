@@ -422,5 +422,19 @@ Still open:
   frontend unit tests (Settings → Proxies, preset/queue), 8 E2E runs; screenshots
   checked desktop/mobile, light/dark. Not deployed to :9743 yet.
 
+- **2026-10-31 · CI and recording fixes.** CI was red three ways: prettier
+  flagged release-please's `.release-please-manifest.json` (now ignored); the
+  update-check loop test hung CI for 40 min (stopping the loop while it spawned
+  pip can leave asyncio waiting on a pipe that never connected; the test no
+  longer spawns processes, and pytest-timeout (120 s) plus 20-min job timeouts
+  now cap any hang); "a stopped recording keeps what it recorded" was flaky
+  (SIGINT could land before the stub set its handler). Real-YouTube recording
+  bugs: (1) recordings were marked failed when the stream ended: yt-dlp exits
+  with "Did not get any data blocks" for the last, already-gone fragments after
+  saving the file. A part that saved its file now counts as completed. (2)
+  Cancelling a recording still waiting for its stream hung for up to 10 min:
+  yt-dlp answers SIGINT during `--wait-for-video` by checking again. Cancel now
+  stops gracefully only once something was recorded. Stub: `waiting`, `gaps` ids.
+
 **Next session:** M6 step 6 (PO-token provider recipe). Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.

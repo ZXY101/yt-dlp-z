@@ -28,7 +28,7 @@ from yt_dlp_z.services.proxies.pool import NoProxyError
 from yt_dlp_z.services.ytdlp.args import build_user_args
 from yt_dlp_z.services.ytdlp.command import build_command
 from yt_dlp_z.services.ytdlp.errors import ArgumentError, SchemaUnavailableError
-from yt_dlp_z.services.ytdlp.output import ProgressUpdate, Update
+from yt_dlp_z.services.ytdlp.output import FileUpdate, ProgressUpdate, Update
 
 # Proxies a download tries before giving up. Each one YouTube blocks goes on cooldown.
 MAX_PROXY_ATTEMPTS = 3
@@ -116,6 +116,8 @@ async def _record(running: Running, proxy_args: list[str]) -> Outcome:
         async def on_update(update: Update) -> None:
             if isinstance(update, ProgressUpdate):
                 watch.on_progress(update)
+            if isinstance(update, FileUpdate):
+                watch.on_file()
             await tracker.apply(update)
 
         hooks = ProcessHooks(on_update, watch.on_start, graceful=True)

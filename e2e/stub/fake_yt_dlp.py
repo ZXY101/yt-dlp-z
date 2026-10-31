@@ -28,7 +28,10 @@ real yt-dlp. --output is honoured for any %(field)s, with fake values for the
 fields media-server output uses (channel, upload_date with a >%Y or >%m%d format,
 a .150B length); with --write-thumbnail it saves a .jpg next to the video; a
 --print after_move:[ytdlpz:nfo] template gets the NFO fields;
-...upcoming... URLs first print yt-dlp's wait message.
+...upcoming... URLs first print yt-dlp's wait message. ...waiting... recordings keep
+waiting for the stream and, like real yt-dlp, treat SIGINT as "check again" (only SIGTERM
+stops them). ...gaps... recordings save the file but exit with yt-dlp's "Did not get any
+data blocks" error, like a stream whose last fragments are gone when it ends.
 """
 
 import json
@@ -235,6 +238,14 @@ class Recording:
         cls.stopped = True
 
 
+def wait_forever() -> None:
+    """yt-dlp's --wait-for-video loop: Ctrl+C only makes it check the stream again."""
+    signal.signal(signal.SIGINT, lambda *_args: emit("[wait] Interrupted by user"))
+    while True:
+        emit("[wait] Remaining time until next attempt: 00:04:59")
+        time.sleep(0.1)
+
+
 def emit_progress(downloaded: int, eta: int, args: list[str]) -> None:
     live = "--wait-for-video" in args
     parallel = "--live-from-start" in args
@@ -291,6 +302,8 @@ def main() -> int:
         signal.signal(signal.SIGINT, Recording.stop)
     if live and "upcoming" in url:
         emit("[wait] Waiting for the stream to start")
+    if live and "waiting" in url:
+        wait_forever()
 
     emit(INFO + json.dumps({"id": video_id, "title": title, "webpage_url": url}))
     for step in range(1, steps + 1):
@@ -307,6 +320,9 @@ def main() -> int:
     emit(PROGRESS + json.dumps({"status": "finished", "downloaded_bytes": TOTAL_BYTES}))
     emit(FILE + json.dumps(str(target)))
     emit_nfo(args, target, title, video_id)
+    if live and "gaps" in url:
+        emit("ERROR: Did not get any data blocks")
+        return 1
     emit("[fake] done")
     return 0
 
