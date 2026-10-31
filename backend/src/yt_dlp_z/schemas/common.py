@@ -37,3 +37,7 @@ Name = Annotated[str, Field(min_length=1, max_length=100), AfterValidator(_name)
 # Media-server output (services/media_server): a folder per channel, with or without
 # a "Season YYYY" folder per upload year.
 MediaLayout = Literal["season", "flat"]
+
+# How a preset's downloads use the proxy pool (services/proxies): not at all, each
+# download on the next proxy in turn, on a random one, or on the same one per channel.
+ProxyMode = Literal["off", "rotate", "random", "sticky"]

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from yt_dlp_z.db.base import Base
 from yt_dlp_z.db.models.job import utcnow
-from yt_dlp_z.schemas.common import MediaLayout
+from yt_dlp_z.schemas.common import MediaLayout, ProxyMode
 
 
 class Preset(Base):
@@ -30,6 +30,7 @@ class Preset(Base):
     recording: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
     # Media-server output: schemas/common.py MediaLayout, or None for off.
     media_layout: Mapped[MediaLayout | None] = mapped_column(String(20), default=None)
+    proxy_mode: Mapped[ProxyMode] = mapped_column(String(20), default="off", server_default="off")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow

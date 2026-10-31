@@ -6,8 +6,8 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 6 (ops): in progress.** Steps 1–4 (yt-dlp updates, ntfy, media-server
-output) done. Next: M6 step 5 (proxy pool). Milestone 5 is done (a real scheduled stream starting
+**Milestone 6 (ops): in progress.** Steps 1–5 (yt-dlp updates, ntfy, media-server
+output, proxy pool) done. Next: M6 step 6 (PO-token provider recipe). Milestone 5 is done (a real scheduled stream starting
 on time is still unchecked, see below).
 
 | Milestone                 | Status      |
@@ -72,7 +72,26 @@ Vitest, pytest and Playwright suites; Docker image; CI for all of it.
    (written once, never overwritten). Code: `services/media_server/`. Checked
    against real YouTube. Not done: a channel poster (`poster.jpg`); media servers
    fall back to an episode image.
-5. Proxy pool (PLAN.md §9).
+5. ~~Proxy pool (PLAN.md §9).~~ Done 2026-10-31: `proxies` table and
+   `/api/proxies` (CRUD, `POST /{id}/check`, `GET/PUT /settings` with
+   `send_cookies`); URLs come back with the password as `****` and an update
+   without `url` keeps it. Presets and jobs have `proxy_mode`
+   (`off`/`rotate`/`random`/`sticky`); jobs get `proxy_id` when they start
+   (`services/proxies/pool.py`, `services/jobs/job_proxy.py`). Decisions:
+   - Pinned per job; rotation counter in memory (restarts at 0). Sticky =
+     `subscription_id % free proxies`; one-off downloads rotate.
+   - Bot check / 429 / proxy connection errors (`blocks.py`) → 30 min
+     cooldown, downloads retry on the next proxy (max 3); recordings only
+     cool down. A working Test ends a cooldown.
+   - No free proxy → the job fails, never goes direct (hides the server IP).
+   - Cookies jobs skip the pool unless `send_cookies` (default off).
+   - Test = `check_script.py` subprocess using yt-dlp's networking, address on
+     stdin (not argv); Cloudflare trace for exit IP + `generate_204`. Errors
+     have passwords masked; job errors too.
+     Not done: periodic health checks; watcher polls / link check through the
+     pool. Checked for real through gluetun (Proton FR): Test shows the exit IP;
+     YouTube answered the VPN IP with the bot check and the job moved on.
+     `job_run.py` was split (`context.py`, `progress.py`).
 6. PO-token provider (bgutil) recipe.
 7. Docs: configuration.md, ops; healthcheck review.
 
@@ -399,5 +418,9 @@ Still open:
   in `output.py` is now a lookup table. The E2E stub renders any `%(field)s`.
   Flaky under load (passed 5/5 alone): `test_websocket_streams_job_events`.
 
-**Next session:** M6 step 5 (proxy pool). Still unverified: a real scheduled stream starting on time.
+- **2026-10-31 · Proxy pool.** M6 step 5 (see the step). 23 backend tests,
+  frontend unit tests (Settings → Proxies, preset/queue), 8 E2E runs; screenshots
+  checked desktop/mobile, light/dark. Not deployed to :9743 yet.
+
+**Next session:** M6 step 6 (PO-token provider recipe). Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.

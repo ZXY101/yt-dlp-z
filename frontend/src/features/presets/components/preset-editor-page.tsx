@@ -8,6 +8,7 @@ import { FormField, SelectField } from "@/components/form-field";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { useCookieFiles } from "@/features/cookies";
+import { useProxies } from "@/features/proxies";
 import { usePresets } from "@/features/presets/api";
 import { RecordingFields } from "@/features/presets/components/recording-fields";
 import { usePresetForm } from "@/features/presets/hooks/use-preset-form";
@@ -56,6 +57,7 @@ function KindFields({ form }: { form: PresetForm }) {
 function PresetForm({ preset }: { preset: Preset | null }) {
   const form = usePresetForm(preset);
   const cookieFiles = useCookieFiles().data ?? [];
+  const proxyCount = useProxies().data?.length ?? 0;
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -78,6 +80,7 @@ function PresetForm({ preset }: { preset: Preset | null }) {
         value={form.fields.settings}
         onChange={form.setters.setSettings}
         cookieFiles={cookieFiles}
+        proxyCount={proxyCount}
       />
       <div className="flex flex-wrap gap-2">
         <Button type="submit" size="lg" className="h-10" disabled={form.save.isPending}>

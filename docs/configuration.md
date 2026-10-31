@@ -20,6 +20,7 @@ command-line flags. Flags win over environment variables.
 | `YTDLPZ_ALLOW_UNSAFE_OPTIONS`      | `false`                     | `false`                | Allows the unsafe yt-dlp options listed below. Only for trusted setups.                                             |
 | `YTDLPZ_YTDLP_COMMAND`             | the bundled yt-dlp          | the bundled yt-dlp     | Command that runs yt-dlp, as a JSON list (mainly for tests)                                                         |
 | `YTDLPZ_YTDLP_PIP_COMMAND`         | the app's own pip           | the app's own pip      | pip used for yt-dlp updates, as a JSON list (only for tests)                                                        |
+| `YTDLPZ_PROXY_CHECK_COMMAND`       | the app's own check         | the app's own check    | Runs a proxy's Test, reading the address on stdin, as a JSON list (only for tests)                                  |
 | `YTDLPZ_YOUTUBE_FEED_URL`          | YouTube's channel feed      | YouTube's channel feed | Feed polled for new uploads; `{channel_id}` is filled in (only for tests)                                           |
 | `YTDLPZ_FRONTEND_DIST`             | `frontend/dist` in the repo | `/app/frontend`        | Folder with the built web UI                                                                                        |
 
@@ -76,6 +77,51 @@ videos need a member's cookies, set on the subscription or its preset.
 
 The Settings page limits how many channels can be watched (5 by default).
 Many channels polled from one IP can get it rate-limited or flagged by YouTube.
+
+### Proxy pool
+
+Settings → **Proxies** holds HTTP or SOCKS proxies (`http://`, `https://`,
+`socks4://`, `socks4a://`, `socks5://`, `socks5h://`, with `user:password@` if
+needed). Passwords are stored in the database but never shown again. **Test**
+opens a page through the proxy with yt-dlp's own networking and shows the IP
+address sites see (from Cloudflare's `/cdn-cgi/trace`), then checks that
+YouTube answers.
+
+A preset (or a single download) picks how its downloads use the pool: **Off**,
+**Next proxy in turn**, **Random proxy**, or **Same proxy per channel**
+(subscriptions keep one proxy; one-off downloads take turns). The proxy is
+picked when a download starts and kept until it ends. If yt-dlp fails with
+YouTube's "confirm you're not a bot", HTTP 429 or a proxy connection error,
+that proxy is skipped for 30 minutes and the download tries the next one (up
+to 3). Recordings aren't retried, but the proxy still cools down. A download
+that should use the pool never falls back to a direct connection: with no
+proxy free it fails, and can be retried.
+
+Downloads with cookies connect directly unless **Send downloads with cookies
+through proxies** is on: one account seen from many IP addresses can get
+flagged, and the cookies identify it anyway. Channel checks (feeds, link
+checks) don't use the pool yet.
+
+YouTube often asks VPN and data-centre addresses to sign in, so a VPN proxy may
+work better for other sites than for YouTube. One way to get several exit IPs:
+one [gluetun](https://github.com/qdm12/gluetun) container per VPN server, each
+with its HTTP proxy on (`HTTPPROXY=on`), on the same Docker network as yt-dlp-z:
+
+```yaml
+services:
+  vpn-1:
+    image: qmcgaw/gluetun
+    cap_add: [NET_ADMIN]
+    devices: [/dev/net/tun:/dev/net/tun]
+    environment:
+      VPN_SERVICE_PROVIDER: your-provider
+      SERVER_COUNTRIES: Netherlands
+      HTTPPROXY: "on"
+      # plus your provider's credentials
+```
+
+Then add `http://vpn-1:8888` as a proxy. yt-dlp-z itself never needs
+`NET_ADMIN` or a VPN of its own.
 
 ### Updating yt-dlp
 

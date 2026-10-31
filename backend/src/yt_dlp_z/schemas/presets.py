@@ -10,7 +10,7 @@ from pydantic import (
     model_validator,
 )
 
-from yt_dlp_z.schemas.common import MediaLayout, Name, as_utc_iso
+from yt_dlp_z.schemas.common import MediaLayout, Name, ProxyMode, as_utc_iso
 from yt_dlp_z.schemas.jobs import OptionValue
 from yt_dlp_z.schemas.recording import DEFAULT_RECORDING, RecordingSettings
 
@@ -27,6 +27,7 @@ class PresetIn(BaseModel):
     cookie_id: int | None = None
     # Lay files out for a media server (Jellyfin, Plex, Kodi). None: off.
     media_layout: MediaLayout | None = None
+    proxy_mode: ProxyMode = "off"
     kind: PresetKind = "any"
     # The default for its kind of link. Making one preset the default clears the flag on
     # the others of the same kind.

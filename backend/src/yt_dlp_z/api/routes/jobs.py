@@ -7,7 +7,7 @@ from yt_dlp_z.api.validation import check_cookie_id, check_user_args, output_dir
 from yt_dlp_z.db.models.job import FINISHED_STATUSES, Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.schemas.jobs import JobCreate, JobDeletedEvent, JobOut, RecordingRequest
 from yt_dlp_z.services.jobs import repository
-from yt_dlp_z.services.jobs.job_run import job_log_path, publish_job
+from yt_dlp_z.services.jobs.context import job_log_path, publish_job
 from yt_dlp_z.services.live.plan import hours_to_seconds
 from yt_dlp_z.services.live.scheduler import recording_status
 
@@ -48,6 +48,7 @@ async def create_job(body: JobCreate, state: State, db: Db) -> JobOut:
         extra_args=body.extra_args,
         output_dir=str(output_dir),
         media_layout=body.media_layout,
+        proxy_mode=body.proxy_mode,
         cookie_id=body.cookie_id,
     )
     db.add(job)

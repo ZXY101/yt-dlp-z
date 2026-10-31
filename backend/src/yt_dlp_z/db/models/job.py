@@ -6,7 +6,7 @@ from sqlalchemy import JSON, Boolean, DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from yt_dlp_z.db.base import Base
-from yt_dlp_z.schemas.common import MediaLayout
+from yt_dlp_z.schemas.common import MediaLayout, ProxyMode
 
 
 class JobStatus(StrEnum):
@@ -57,6 +57,10 @@ class Job(Base):
     output_dir: Mapped[str] = mapped_column(Text)
     # Media-server output (services/media_server), copied from the preset; None: off.
     media_layout: Mapped[MediaLayout | None] = mapped_column(String(20), default=None)
+    # Copied from the preset. The proxy is picked when the job starts and kept for all of
+    # it: switching mid-download breaks recordings (services/proxies).
+    proxy_mode: Mapped[ProxyMode] = mapped_column(String(20), default="off", server_default="off")
+    proxy_id: Mapped[int | None] = mapped_column(Integer, default=None)
     title: Mapped[str | None] = mapped_column(Text, default=None)
     progress: Mapped[float | None] = mapped_column(Float, default=None)
     downloaded_bytes: Mapped[int | None] = mapped_column(Integer, default=None)

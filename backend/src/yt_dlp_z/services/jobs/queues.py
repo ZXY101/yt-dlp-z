@@ -3,7 +3,7 @@ downloads (and a full download queue never delays a stream that is about to star
 
 from yt_dlp_z.db.models.job import Job, JobKind
 from yt_dlp_z.services.jobs import repository
-from yt_dlp_z.services.jobs.job_run import JobContext
+from yt_dlp_z.services.jobs.context import JobContext
 from yt_dlp_z.services.jobs.manager import JobManager
 
 

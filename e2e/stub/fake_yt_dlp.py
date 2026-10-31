@@ -18,6 +18,8 @@ upcoming ones fail without --ignore-no-formats-error, as with real yt-dlp;
 members-only videos only open with --cookies; "fastfail" ids refuse the link check's
 fast path (player_client=android_vr), so the full check has to answer.
 With --cookies it reports how many cookie lines the file had, so tests can see it was passed.
+A --proxy containing "blocked" fails downloads with YouTube's bot check, like a proxy
+YouTube has flagged.
 Recordings (--wait-for-video) have no total size, like a live stream, and stop cleanly on
 SIGINT, saving the file. With --live-from-start progress comes as two numbered streams
 ("0: …" video, "1: …" audio at a tenth of the size); without it (recording from now)
@@ -277,6 +279,9 @@ def main() -> int:
 
     if "fail" in url:
         emit("ERROR: [fake] This video is unavailable")
+        return 1
+    if any("blocked" in proxy for proxy in values_of(args, "--proxy")):
+        emit(f"ERROR: [youtube] {video_id}: Sign in to confirm you're not a bot")
         return 1
     if "stubborn" in url:
         signal.signal(signal.SIGTERM, signal.SIG_IGN)

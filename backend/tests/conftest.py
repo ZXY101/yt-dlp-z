@@ -13,6 +13,7 @@ from yt_dlp_z.main import create_app
 STUB_DIR = Path(__file__).resolve().parents[2] / "e2e" / "stub"
 FAKE_YTDLP = STUB_DIR / "fake_yt_dlp.py"
 FAKE_PIP = STUB_DIR / "fake_pip.py"
+FAKE_PROXY_CHECK = STUB_DIR / "fake_proxy_check.py"
 TEST_PASSWORD = "correct-horse-battery"  # noqa: S105  (test fixture, not a real secret)
 
 MakeClient = Callable[..., TestClient]
@@ -38,6 +39,7 @@ def make_settings(tmp_path: Path, frontend_dist: Path) -> Callable[..., Settings
             "test_mode": True,
             "ytdlp_command": [sys.executable, str(FAKE_YTDLP)],
             "ytdlp_pip_command": [sys.executable, str(FAKE_PIP)],
+            "proxy_check_command": [sys.executable, str(FAKE_PROXY_CHECK)],
         }
         values.update(overrides)
         return Settings.model_validate(values)

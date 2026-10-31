@@ -3,6 +3,7 @@ import { type FakeServer, type Route, json, noContent } from "@/test/fake-http";
 import { jobRoutes } from "@/test/fake-jobs";
 import { libraryRoutes } from "@/test/fake-library";
 import { mediaRoutes } from "@/test/fake-media";
+import { proxyRoutes } from "@/test/fake-proxies";
 import { subscriptionRoutes } from "@/test/fake-subscriptions";
 import { installFakeSocket } from "@/test/fake-socket";
 import { makeNotifications, notificationRoutes } from "@/test/fake-notifications";
@@ -54,6 +55,7 @@ const routes = [
   ...subscriptionRoutes,
   ...ytdlpRoutes,
   ...notificationRoutes,
+  ...proxyRoutes,
 ];
 
 export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
@@ -91,6 +93,8 @@ export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
     ...makeNotifications(),
     subscriptions: [],
     videos: {},
+    proxies: [],
+    proxySettings: { send_cookies: false },
   };
 }
 

@@ -5,6 +5,7 @@ import { FormField, SelectField } from "@/components/form-field";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { useCookieFiles } from "@/features/cookies";
+import { useProxies } from "@/features/proxies";
 import { MediaPreview } from "@/features/downloads/components/media-preview";
 import { PlaylistChoice } from "@/features/downloads/components/playlist-choice";
 import { RecordingChoice } from "@/features/downloads/components/recording-choice";
@@ -83,6 +84,7 @@ function LinkField({ form }: { form: DownloadForm }) {
 export function DownloadPage() {
   const form = useDownloadForm();
   const cookieFiles = useCookieFiles().data ?? [];
+  const proxyCount = useProxies().data?.length ?? 0;
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -110,6 +112,7 @@ export function DownloadPage() {
           value={form.settings}
           onChange={form.setSettings}
           cookieFiles={cookieFiles}
+          proxyCount={proxyCount}
         />
         <SubmitButton form={form} />
       </form>

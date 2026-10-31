@@ -5,6 +5,8 @@ export type OptionValues = NonNullable<components["schemas"]["JobCreate"]["optio
 export type OptionValue = OptionValues[string];
 /** Media-server output: a folder per channel, with or without season folders. */
 export type MediaLayout = NonNullable<components["schemas"]["JobCreate"]["media_layout"]>;
+/** Whether downloads go through the proxy pool, and how a proxy is picked. */
+export type ProxyMode = NonNullable<components["schemas"]["JobCreate"]["proxy_mode"]>;
 
 /** Everything about how to download, shared by the download form and presets. */
 export interface DownloadSettings {
@@ -13,6 +15,7 @@ export interface DownloadSettings {
   outputDir: string;
   cookieId: number | null;
   mediaLayout: MediaLayout | null;
+  proxyMode: ProxyMode;
 }
 
 export const DEFAULT_SETTINGS: DownloadSettings = {
@@ -21,6 +24,7 @@ export const DEFAULT_SETTINGS: DownloadSettings = {
   outputDir: "",
   cookieId: null,
   mediaLayout: null,
+  proxyMode: "off",
 };
 
 export type Quality = "best" | "1080p" | "720p" | "audio" | "audio-mp3" | "custom";
@@ -101,6 +105,7 @@ interface ApiDownloadSettings {
   output_dir?: string | null;
   cookie_id?: number | null;
   media_layout?: MediaLayout | null;
+  proxy_mode?: ProxyMode;
 }
 
 export function settingsFromApi(source: ApiDownloadSettings): DownloadSettings {
@@ -110,6 +115,7 @@ export function settingsFromApi(source: ApiDownloadSettings): DownloadSettings {
     outputDir: source.output_dir ?? "",
     cookieId: source.cookie_id ?? null,
     mediaLayout: source.media_layout ?? null,
+    proxyMode: source.proxy_mode ?? "off",
   };
 }
 
@@ -125,5 +131,6 @@ export function settingsForApi(settings: DownloadSettings) {
     output_dir: settings.outputDir.trim() || null,
     cookie_id: settings.cookieId,
     media_layout: settings.mediaLayout,
+    proxy_mode: settings.proxyMode,
   };
 }

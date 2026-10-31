@@ -26,6 +26,8 @@ export interface FakeServer {
   /** Test messages sent, and the error the next one gets (null = it works). */
   sentTests: components["schemas"]["NotificationSettingsIn"][];
   testError: string | null;
+  proxies: components["schemas"]["ProxyOut"][];
+  proxySettings: components["schemas"]["ProxySettings"];
   /** Folder suggestions by parent path. */
   folders: Record<string, string[]>;
 }

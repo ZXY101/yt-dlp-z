@@ -16,6 +16,7 @@ from yt_dlp_z.api.routes import (
     notifications,
     options,
     presets,
+    proxies,
     subscriptions,
     system,
     testing,
@@ -35,11 +36,12 @@ from yt_dlp_z.services.app_settings import (
 )
 from yt_dlp_z.services.auth_service import sync_admin_password
 from yt_dlp_z.services.events import EventHub
-from yt_dlp_z.services.jobs.job_run import JobContext
+from yt_dlp_z.services.jobs.context import JobContext
 from yt_dlp_z.services.jobs.queues import JobQueues
 from yt_dlp_z.services.live.scheduler import LiveScheduler
 from yt_dlp_z.services.notify.notifier import Notifier
 from yt_dlp_z.services.notify.store import load_config
+from yt_dlp_z.services.proxies.pool import ProxyPool
 from yt_dlp_z.services.watch.enqueue import WatchContext
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
@@ -70,7 +72,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             )
             notifier = Notifier(await load_config(session))
         hub.listen(notifier.on_event)
-        job_context = JobContext(session_factory, hub, settings, schemas)
+        job_context = JobContext(session_factory, hub, settings, schemas, ProxyPool())
         job_queues = JobQueues(job_context, download_limit, recording_limit)
         live = LiveScheduler(job_context, job_queues)
         watcher = SubscriptionWatcher(WatchContext(session_factory, settings, hub, job_queues))
@@ -127,6 +129,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         notifications,
         options,
         presets,
+        proxies,
         subscriptions,
         system,
         ws,

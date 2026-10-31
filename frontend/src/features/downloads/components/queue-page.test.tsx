@@ -2,6 +2,7 @@ import { act, screen, within } from "@testing-library/react";
 
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
 import { makeJob } from "@/test/fake-jobs";
+import { makeProxy } from "@/test/fake-proxies";
 import { broadcast } from "@/test/fake-socket";
 import { renderApp } from "@/test/render";
 
@@ -11,6 +12,20 @@ describe("QueuePage", () => {
     const { user, router } = renderApp("/queue");
     await user.click(await screen.findByRole("link", { name: /No downloads yet/ }));
     expect(router.state.location.pathname).toBe("/");
+  });
+
+  it("says which proxy a download went through", async () => {
+    const server = createFakeServer();
+    server.proxies = [makeProxy({ id: 4, name: "Amsterdam" })];
+    server.jobs = [
+      makeJob({ id: 1, status: "completed", title: "Through the pool", proxy_id: 4 }),
+      makeJob({ id: 2, status: "completed", title: "Old proxy", proxy_id: 9 }),
+    ];
+    installFakeApi(server);
+    renderApp("/queue");
+
+    expect(await screen.findByText("Through proxy Amsterdam")).toBeVisible();
+    expect(screen.getByText("Through a deleted proxy")).toBeVisible();
   });
 
   it("groups jobs and updates progress live", async () => {

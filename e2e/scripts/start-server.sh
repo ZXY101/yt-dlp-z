@@ -22,5 +22,6 @@ export YTDLPZ_YOUTUBE_FEED_URL="http://127.0.0.1:${PORT:-8765}/api/test/feeds/{c
 export YTDLPZ_YTDLP_COMMAND="[\"python3\", \"$E2E_DIR/stub/fake_yt_dlp.py\"]"
 # The fake pip writes only package metadata, so yt-dlp updates never touch the network.
 export YTDLPZ_YTDLP_PIP_COMMAND="[\"python3\", \"$E2E_DIR/stub/fake_pip.py\"]"
+export YTDLPZ_PROXY_CHECK_COMMAND="[\"python3\", \"$E2E_DIR/stub/fake_proxy_check.py\"]"
 exec uv run --project "$REPO_DIR/backend" yt-dlp-z \
   --port "${PORT:-8765}" --config-dir "$STATE_DIR/config"

@@ -42,6 +42,12 @@ class Settings(BaseSettings):
     ytdlp_command: list[str] = [sys.executable, "-m", "yt_dlp"]
     # pip used to install yt-dlp updates into <config_dir>/ytdlp. Tests swap in a stub.
     ytdlp_pip_command: list[str] = [sys.executable, "-m", "pip"]
+    # Runs a proxy's "Test" (reads the proxy address on stdin). Tests swap in a stub.
+    proxy_check_command: list[str] = [
+        sys.executable,
+        "-m",
+        "yt_dlp_z.services.proxies.check_script",
+    ]
     # Channel feed polled for new uploads. {channel_id} is replaced. Tests point it elsewhere.
     youtube_feed_url: str = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     # Enables /api/test/* endpoints used by the E2E suite. Never set in production.
