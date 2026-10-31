@@ -104,10 +104,12 @@ test.describe("subscriptions", () => {
     await page.getByRole("button", { name: "Save subscription" }).click();
     await expect(page.getByText("Enter a YouTube channel URL or @handle")).toBeVisible();
 
-    // No feed is served for this channel, so the first check fails.
-    await page.getByLabel("Channel", { exact: true }).fill("@demo");
+    // No feed is served and the fake yt-dlp can't list its videos tab: the check fails.
+    await page.getByLabel("Channel", { exact: true }).fill("@broken");
     await page.getByRole("button", { name: "Save subscription" }).click();
-    await expect(page.getByText(/Couldn't load the channel feed/)).toBeVisible();
+    await expect(
+      page.getByText(/Couldn't load the channel feed.*videos tab failed too/),
+    ).toBeVisible();
     await expect(page.getByText("Not checked yet")).toBeVisible();
   });
 

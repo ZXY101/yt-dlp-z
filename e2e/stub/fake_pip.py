@@ -8,7 +8,6 @@ Fails like pip without network when FAKE_PIP_FAIL is set.
 """
 
 import json
-
 import os
 import sys
 from pathlib import Path

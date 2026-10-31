@@ -19,10 +19,11 @@ from yt_dlp_z.services.watch.enqueue import (
     enqueue_video,
     preset_for,
 )
-from yt_dlp_z.services.watch.feed import FeedEntry, FeedError, feed_url, fetch_feed
+from yt_dlp_z.services.watch.feed import FeedEntry, FeedError
 from yt_dlp_z.services.watch.filters import skip_reason
 from yt_dlp_z.services.watch.probe import ProbeError, VideoInfo, probe_video
 from yt_dlp_z.services.watch.streams import fetch_stream_entries, sweep_due
+from yt_dlp_z.services.watch.tabs import latest_uploads
 
 BEFORE_SUBSCRIBING = "Uploaded before you subscribed"
 ENDED_STREAM = "Found on the streams tab after it ended"
@@ -34,9 +35,12 @@ async def check_subscription(context: WatchContext, subscription_id: int) -> Non
         subscription = await session.get(Subscription, subscription_id)
         if subscription is None:
             return
-        url = feed_url(context.settings.youtube_feed_url, subscription.channel_id)
         try:
-            entries = await fetch_feed(url)
+            entries = await latest_uploads(
+                context.settings.youtube_feed_url,
+                context.settings.ytdlp_command,
+                subscription.channel_id,
+            )
         except FeedError as error:
             subscription.last_error = str(error)
             await session.commit()
@@ -181,3 +185,5 @@ def _record_info(video: Video, info: VideoInfo) -> None:
     video.title = info.title or video.title
     video.live_status = info.live_status
     video.release_at = info.release_at
+    # Entries from a channel tab come without a date.
+    video.published_at = video.published_at or info.published_at

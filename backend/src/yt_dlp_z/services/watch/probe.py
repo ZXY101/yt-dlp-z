@@ -27,6 +27,8 @@ class VideoInfo:
     live_status: str | None
     duration: int | None
     release_at: datetime | None
+    # When it was uploaded (or went live).
+    published_at: datetime | None
     members_only: bool
 
 
@@ -48,15 +50,20 @@ def _optional_int(value: object) -> int | None:
     return int(value) if isinstance(value, int | float) else None
 
 
+def _time(value: object) -> datetime | None:
+    seconds = _optional_int(value)
+    return datetime.fromtimestamp(seconds, UTC) if seconds is not None else None
+
+
 def info_from_json(data: dict[str, Any]) -> VideoInfo:
-    release = _optional_int(data.get("release_timestamp"))
     title = data.get("title")
     return VideoInfo(
         title=title if isinstance(title, str) else None,
         content_type=_content_type(data),
         live_status=data.get("live_status"),
         duration=_optional_int(data.get("duration")),
-        release_at=datetime.fromtimestamp(release, UTC) if release is not None else None,
+        release_at=_time(data.get("release_timestamp")),
+        published_at=_time(data.get("timestamp")),
         members_only=data.get("availability") in MEMBERS_ONLY,
     )
 

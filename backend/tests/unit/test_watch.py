@@ -29,6 +29,7 @@ def video(**changes: object) -> VideoInfo:
         "live_status": "not_live",
         "duration": 600,
         "release_at": None,
+        "published_at": None,
         "members_only": False,
     }
     return VideoInfo(**{**values, **changes})  # type: ignore[arg-type]
