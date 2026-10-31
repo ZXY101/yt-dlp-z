@@ -3,6 +3,7 @@ import { JobActions } from "@/features/downloads/components/job-actions";
 import { JobStatusBadge } from "@/features/downloads/components/job-status-badge";
 import { describeProgress, formatStartTime } from "@/features/downloads/format";
 import type { Job } from "@/features/downloads/types";
+import { useProxies } from "@/features/proxies";
 
 function RecordingDetails({ job }: { job: Job }) {
   if (job.status === "scheduled" && job.scheduled_at) {
@@ -62,6 +63,20 @@ function JobDetails({ job }: { job: Job }) {
   return <JobOutcome job={job} />;
 }
 
+/** Which proxy of the pool the download went through. */
+function ProxyNote({ proxyId }: { proxyId: number }) {
+  const proxies = useProxies().data;
+  if (!proxies) {
+    return null;
+  }
+  const proxy = proxies.find((item) => item.id === proxyId);
+  return (
+    <p className="truncate text-xs text-muted-foreground">
+      {proxy ? `Through proxy ${proxy.name}` : "Through a deleted proxy"}
+    </p>
+  );
+}
+
 function JobCard({ job }: { job: Job }) {
   return (
     <li className="space-y-3 rounded-xl border p-4">
@@ -69,6 +84,7 @@ function JobCard({ job }: { job: Job }) {
         <div className="min-w-0 flex-1 space-y-1">
           <p className="truncate font-medium">{job.title ?? job.url}</p>
           {job.title && <p className="truncate text-xs text-muted-foreground">{job.url}</p>}
+          {job.proxy_id !== null && <ProxyNote proxyId={job.proxy_id} />}
         </div>
         <JobStatusBadge job={job} />
       </div>

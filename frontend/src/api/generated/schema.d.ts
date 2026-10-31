@@ -390,6 +390,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/proxies/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Proxy Settings */
+        get: operations["get_proxy_settings_api_proxies_settings_get"];
+        /** Update Proxy Settings */
+        put: operations["update_proxy_settings_api_proxies_settings_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proxies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Proxies */
+        get: operations["list_proxies_api_proxies_get"];
+        put?: never;
+        /** Create Proxy */
+        post: operations["create_proxy_api_proxies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proxies/{proxy_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Proxy */
+        put: operations["update_proxy_api_proxies__proxy_id__put"];
+        post?: never;
+        /**
+         * Delete Proxy
+         * @description Jobs that ran through it keep its id; running ones keep using it until they end.
+         */
+        delete: operations["delete_proxy_api_proxies__proxy_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/proxies/{proxy_id}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check
+         * @description Opens a page through the proxy: does it work, and which IP do sites see.
+         */
+        post: operations["check_api_proxies__proxy_id__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/subscriptions": {
         parameters: {
             query?: never;
@@ -692,6 +769,12 @@ export interface components {
             cookie_id?: number | null;
             /** Media Layout */
             media_layout?: ("season" | "flat") | null;
+            /**
+             * Proxy Mode
+             * @default off
+             * @enum {string}
+             */
+            proxy_mode: "off" | "rotate" | "random" | "sticky";
         };
         /**
          * JobKind
@@ -728,6 +811,13 @@ export interface components {
             media_layout: ("season" | "flat") | null;
             /** Cookie Id */
             cookie_id: number | null;
+            /**
+             * Proxy Mode
+             * @enum {string}
+             */
+            proxy_mode: "off" | "rotate" | "random" | "sticky";
+            /** Proxy Id */
+            proxy_id: number | null;
             /** Subscription Id */
             subscription_id: number | null;
             /** Title */
@@ -895,6 +985,12 @@ export interface components {
             /** Media Layout */
             media_layout?: ("season" | "flat") | null;
             /**
+             * Proxy Mode
+             * @default off
+             * @enum {string}
+             */
+            proxy_mode: "off" | "rotate" | "random" | "sticky";
+            /**
              * Kind
              * @default any
              * @enum {string}
@@ -930,6 +1026,12 @@ export interface components {
             /** Media Layout */
             media_layout?: ("season" | "flat") | null;
             /**
+             * Proxy Mode
+             * @default off
+             * @enum {string}
+             */
+            proxy_mode: "off" | "rotate" | "random" | "sticky";
+            /**
              * Kind
              * @default any
              * @enum {string}
@@ -947,6 +1049,59 @@ export interface components {
             created_at: string;
             /** Updated At */
             updated_at: string;
+        };
+        /** ProxyCreate */
+        ProxyCreate: {
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+        };
+        /** ProxyOut */
+        ProxyOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Url */
+            url: string;
+            /** Enabled */
+            enabled: boolean;
+            /** Cooldown Until */
+            cooldown_until: string | null;
+            /** Checked At */
+            checked_at: string | null;
+            /** Check Ok */
+            check_ok: boolean | null;
+            /** Exit Ip */
+            exit_ip: string | null;
+            /** Check Error */
+            check_error: string | null;
+        };
+        /** ProxySettings */
+        ProxySettings: {
+            /**
+             * Send Cookies
+             * @default false
+             */
+            send_cookies: boolean;
+        };
+        /** ProxyUpdate */
+        ProxyUpdate: {
+            /** Name */
+            name: string;
+            /** Url */
+            url?: string | null;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
         };
         /**
          * RecordingRequest
@@ -2093,6 +2248,207 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_proxy_settings_api_proxies_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProxySettings"];
+                };
+            };
+        };
+    };
+    update_proxy_settings_api_proxies_settings_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProxySettings"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProxySettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_proxies_api_proxies_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProxyOut"][];
+                };
+            };
+        };
+    };
+    create_proxy_api_proxies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProxyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProxyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_proxy_api_proxies__proxy_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proxy_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProxyUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProxyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_proxy_api_proxies__proxy_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proxy_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    check_api_proxies__proxy_id__check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proxy_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProxyOut"];
+                };
             };
             /** @description Validation Error */
             422: {

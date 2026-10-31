@@ -18,6 +18,8 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     output_dir: "/downloads",
     media_layout: null,
     cookie_id: null,
+    proxy_mode: "off",
+    proxy_id: null,
     subscription_id: null,
     title: null,
     progress: null,
@@ -71,6 +73,7 @@ function settingsFields(body: Record<string, unknown>): Partial<Job> {
     output_dir: (body.output_dir as string | null) ?? "/downloads",
     cookie_id: (body.cookie_id as number | null | undefined) ?? null,
     media_layout: (body.media_layout as Job["media_layout"] | undefined) ?? null,
+    proxy_mode: (body.proxy_mode as Job["proxy_mode"] | undefined) ?? "off",
   };
 }
 

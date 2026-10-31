@@ -3,6 +3,7 @@ import { screen, within } from "@testing-library/react";
 import { DEFAULT_RECORDING } from "@/features/presets";
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
 import { makeCookieFile, makePreset } from "@/test/fake-library";
+import { makeProxy } from "@/test/fake-proxies";
 import { renderApp } from "@/test/render";
 
 describe("Presets", () => {
@@ -42,6 +43,29 @@ describe("Presets", () => {
       media_layout: "season",
       options: { "--extract-audio": true, "--embed-metadata": true, "--embed-thumbnail": true },
     });
+  });
+
+  it("sends a preset's downloads through the proxy pool", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/presets/new");
+
+    await user.type(await screen.findByLabelText("Name"), "Hidden");
+    // No proxies yet: the choice stays hidden.
+    expect(screen.queryByLabelText("Proxy")).not.toBeInTheDocument();
+    server.proxies = [makeProxy()];
+    await user.click(screen.getByRole("button", { name: "Save preset" }));
+    await screen.findByRole("list", { name: "Presets" });
+
+    await user.click(screen.getByRole("link", { name: "Edit Hidden" }));
+    await user.selectOptions(await screen.findByLabelText("Proxy"), "sticky");
+    await user.click(screen.getByRole("button", { name: "Save preset" }));
+    expect(await screen.findByText(/through proxies/)).toBeVisible();
+    expect(server.presets[0]?.proxy_mode).toBe("sticky");
+
+    server.proxies = [];
+    await user.click(screen.getByRole("link", { name: "Edit Hidden" }));
+    expect(await screen.findByText(/There are no proxies in Settings/)).toBeVisible();
   });
 
   it("edits an existing preset", async () => {

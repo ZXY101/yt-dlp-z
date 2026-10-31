@@ -59,6 +59,7 @@ describe("API conversion", () => {
       outputDir: "  music  ",
       cookieId: 3,
       mediaLayout: "season" as const,
+      proxyMode: "sticky" as const,
     };
     const body = settingsForApi(settings);
     expect(body).toEqual({
@@ -67,6 +68,7 @@ describe("API conversion", () => {
       output_dir: "music",
       cookie_id: 3,
       media_layout: "season",
+      proxy_mode: "sticky",
     });
     expect(settingsFromApi(body)).toEqual({ ...settings, ...settingsFromApi(body) });
     expect(settingsFromApi({})).toEqual({
@@ -75,6 +77,7 @@ describe("API conversion", () => {
       outputDir: "",
       cookieId: null,
       mediaLayout: null,
+      proxyMode: "off",
     });
   });
 

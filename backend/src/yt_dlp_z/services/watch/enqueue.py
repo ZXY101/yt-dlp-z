@@ -12,7 +12,7 @@ from yt_dlp_z.db.models.subscription import Subscription
 from yt_dlp_z.db.models.video import Video
 from yt_dlp_z.services import auth_service
 from yt_dlp_z.services.events import EventHub
-from yt_dlp_z.services.jobs.job_run import job_log_path, publish_job
+from yt_dlp_z.services.jobs.context import job_log_path, publish_job
 from yt_dlp_z.services.jobs.queues import JobQueues
 from yt_dlp_z.services.live.plan import RecordingPlan, plan_recording
 from yt_dlp_z.services.live.scheduler import recording_status
@@ -104,6 +104,7 @@ async def enqueue_video(
         cookie_id=effective_cookie_id(subscription, preset),
         output_dir=await _output_dir(context, session, requested_dir),
         media_layout=preset.media_layout if preset else None,
+        proxy_mode=preset.proxy_mode if preset else "off",
         subscription_id=subscription.id,
     )
     session.add(job)

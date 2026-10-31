@@ -3,6 +3,7 @@ import { CommonOptions } from "@/components/download-options/common-options";
 import { FolderField } from "@/components/download-options/folder-field";
 import { MediaLayoutField } from "@/components/download-options/media-layout-field";
 import { OptionsDialog } from "@/components/download-options/options-dialog";
+import { ProxyField } from "@/components/download-options/proxy-field";
 import { FormField, SelectField, TextareaField } from "@/components/form-field";
 import { type DownloadSettings, setOption } from "@/lib/download-options";
 
@@ -15,6 +16,7 @@ interface DownloadSettingsFieldsProps {
   value: DownloadSettings;
   onChange: (value: DownloadSettings) => void;
   cookieFiles: CookieChoice[];
+  proxyCount: number;
 }
 
 function CookiesField({ value, onChange, cookieFiles }: DownloadSettingsFieldsProps) {
@@ -57,6 +59,11 @@ export function DownloadSettingsFields(props: DownloadSettingsFieldsProps) {
       <MediaLayoutField
         value={value.mediaLayout}
         onChange={(mediaLayout) => onChange({ ...value, mediaLayout })}
+      />
+      <ProxyField
+        value={value.proxyMode}
+        proxyCount={props.proxyCount}
+        onChange={(proxyMode) => onChange({ ...value, proxyMode })}
       />
       <Disclosure title="Advanced options">
         <FormField

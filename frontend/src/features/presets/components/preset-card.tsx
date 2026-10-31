@@ -38,6 +38,9 @@ function describePreset(preset: Preset) {
   if (preset.media_layout) {
     parts.push("for media servers");
   }
+  if (preset.proxy_mode !== "off") {
+    parts.push("through proxies");
+  }
   if (preset.recording) {
     parts.push(describeRecording(preset.recording).toLowerCase());
   }

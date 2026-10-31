@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/page-header";
 import { SuccessMessage } from "@/components/success-message";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { ProxiesSection } from "@/features/proxies";
 import { useAppSettings, useSaveAppSettings } from "@/features/settings/api";
 import { type LimitField, useLimitField } from "@/hooks/use-limit-field";
 import { NotificationsSection } from "@/features/settings/components/notifications-section";
@@ -147,6 +148,7 @@ export function SettingsPage() {
       {settings.isPending && <p className="text-sm text-muted-foreground">Loading settings…</p>}
       {settings.isError && <FormError message={describeError(settings.error)} />}
       {settings.data && <SettingsForm settings={settings.data} />}
+      <ProxiesSection />
       <NotificationsSection />
       <YtdlpSection />
     </>

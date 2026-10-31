@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 from yt_dlp_z.db.models.job import JobStatus, utcnow
 from yt_dlp_z.services.jobs import repository
-from yt_dlp_z.services.jobs.job_run import JobContext, publish_job
+from yt_dlp_z.services.jobs.context import JobContext, publish_job
 from yt_dlp_z.services.jobs.queues import JobQueues
 
 logger = logging.getLogger(__name__)

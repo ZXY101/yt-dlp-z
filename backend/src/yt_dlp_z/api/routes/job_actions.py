@@ -6,7 +6,7 @@ from yt_dlp_z.api.routes.jobs import find_job
 from yt_dlp_z.db.models.job import FINISHED_STATUSES, JobStatus, utcnow
 from yt_dlp_z.schemas.jobs import JobOut
 from yt_dlp_z.services.jobs import repository
-from yt_dlp_z.services.jobs.job_run import job_log_path, publish_job
+from yt_dlp_z.services.jobs.context import job_log_path, publish_job
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"], dependencies=[Depends(require_auth)])
 

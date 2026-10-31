@@ -5,7 +5,8 @@ import logging
 
 from yt_dlp_z.db.models.job import JobStatus, utcnow
 from yt_dlp_z.services.jobs import repository
-from yt_dlp_z.services.jobs.job_run import JobContext, execute_job, publish_job
+from yt_dlp_z.services.jobs.context import JobContext, publish_job
+from yt_dlp_z.services.jobs.job_run import execute_job
 from yt_dlp_z.services.jobs.process import stop_process
 
 logger = logging.getLogger(__name__)

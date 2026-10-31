@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from tests.conftest import wait_for_job
 from tests.integration.watch_helpers import CHANNEL_ID, subscribe, wait_for_check, write_feed
-from yt_dlp_z.services.jobs import job_run
+from yt_dlp_z.services.jobs import progress
 
 
 def nfo_text(path: Path, tag: str) -> str | None:
@@ -46,7 +46,7 @@ def test_nfo_write_errors_dont_fail_the_download(
     def broken(*_args: object) -> None:
         raise PermissionError("read-only")
 
-    monkeypatch.setattr(job_run, "write_nfo_files", broken)
+    monkeypatch.setattr(progress, "write_nfo_files", broken)
     response = setup_client.post(
         "/api/jobs",
         json={"url": "https://www.youtube.com/watch?v=ro", "media_layout": "flat"},
