@@ -58,27 +58,31 @@ Vitest, pytest and Playwright suites; Docker image; CI for all of it.
 6. PO-token provider (bgutil) recipe.
 7. Docs: configuration.md, ops; healthcheck review.
 
-## Next: presets per kind of link (agreed 2026-10-31, before M6 step 3)
+## Presets per kind of link (done 2026-10-31)
 
-The maintainer asked to rethink the global live-stream settings now that the
-form knows what a link is: recording settings per recording and per
-subscription, carried by presets made for a kind of link ("live stream /
-playlist presets"). Plan:
+Asked by the maintainer: recording settings per recording and per subscription,
+carried by presets made for a kind of link, instead of global settings.
 
-1. Presets get a "Use for" kind: any link, videos, playlists & channels, live
-   streams. Live-stream presets also hold recording settings (start: from the
-   start / from now / first N hours; new file every N h; stop after N h).
-2. A default preset per kind replaces the single "Use by default". When the
-   check finds a live stream the form picks the default live preset; a
-   playlist picks the playlist preset. The picker lists matching presets
-   first; every field can still be changed for one download.
-3. The download form shows the recording fields for live/upcoming links,
-   prefilled from the preset, with how long the stream has been live.
-4. Subscriptions get a separate preset for their streams, plus the "already
-   live longer than N h when found" rule.
-5. Settings keeps only "Recordings at the same time". A migration turns the
-   current global recording settings into a "Live streams" preset (default
-   for live), so nothing changes on upgrade.
+1. Presets have a "Use for" kind (`any`, `video`, `playlist` = playlists and
+   channels, `live` = live and upcoming streams). Live-stream presets hold the
+   recording settings (`recording`: new file every N h, stop after N h, record
+   from the start unless live longer than N h, then from now or the first N h).
+2. One default per kind. The download form picks the default for the kind the
+   link check found (falling back to the "any" default) and keeps the current
+   preset if that kind has none; the picker lists matching presets first.
+3. Live/upcoming links show "live for …", the start choice and the two hour
+   fields, filled in from the preset (`planRecording` in the frontend mirrors
+   the backend's `plan_recording`); a preset without recording settings uses
+   the default live-stream preset's. `POST /api/jobs` takes `part_hours` and
+   `max_hours` in `recording` (left out = off). The probe no longer returns
+   `record_from_start`.
+4. Subscriptions have `stream_preset_id`: streams use its options and recording
+   settings; unset, they use the main preset's options and the default
+   live-stream preset's recording settings (as before).
+5. Settings keeps only "Recordings at the same time". Migration `e6da7e3ea8b3`
+   turns the global recording settings into a "Live streams" preset (default
+   for live; a copy of the old default preset, else the form's default
+   options), so nothing changes on upgrade. Fresh installs get it too.
 
 ## Link check on the download form (done 2026-10-31)
 
@@ -357,5 +361,9 @@ Still open:
 - **2026-10-31 · Faster link check.** Fast path + check on paste. Agreed the
   presets-per-kind redesign (see "Next: presets per kind of link").
 
-**Next session:** presets per kind of link (plan above), then M6 step 3 (ntfy). Still unverified: a real scheduled stream starting on time.
+- **2026-10-31 · Presets per kind of link.** See the section above. Backend
+  tests incl. a migration test, unit and E2E tests updated; screenshots
+  checked desktop/mobile, light/dark.
+
+**Next session:** M6 step 3 (ntfy). Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.
