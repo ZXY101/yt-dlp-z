@@ -22,7 +22,11 @@ class Preset(Base):
     cookie_id: Mapped[int | None] = mapped_column(Integer, default=None)
     # Stored as entered (relative or absolute) and resolved when a job starts.
     output_dir: Mapped[str | None] = mapped_column(Text, default=None)
+    # See schemas/presets.py PresetKind. The default preset is the default for its kind.
+    kind: Mapped[str] = mapped_column(String(20), default="any", server_default="any")
     is_default: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Live-stream presets: schemas/recording.py RecordingSettings.
+    recording: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utcnow, onupdate=utcnow

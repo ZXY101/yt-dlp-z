@@ -12,7 +12,8 @@ export type LinkCheck =
   | { status: "invalid"; message: string }
   | { status: "checking" }
   | { status: "failed"; message: string }
-  | { status: "ready"; media: MediaInfo };
+  // checkedAt: when the answer arrived (ms), for how long a live stream has been live.
+  | { status: "ready"; media: MediaInfo; checkedAt: number };
 
 interface LinkCheckInput {
   url: string;
@@ -39,7 +40,7 @@ function probeResult(probe: ReturnType<typeof useMediaProbe>): LinkCheck {
   if (probe.isError) {
     return { status: "failed", message: describeError(probe.error) };
   }
-  return { status: "ready", media: probe.data };
+  return { status: "ready", media: probe.data, checkedAt: probe.dataUpdatedAt };
 }
 
 /** Checks the link with yt-dlp as it is typed, so problems show before anything is queued. */

@@ -67,6 +67,8 @@ class SubscriptionFilters(BaseModel):
 
 class SubscriptionUpdate(BaseModel):
     preset_id: int | None = None
+    # For live streams and premieres; see models/subscription.py.
+    stream_preset_id: int | None = None
     cookie_id: int | None = None
     # Empty: the preset's folder (or the default). Same rules as a download's folder.
     output_dir: str | None = Field(default=None, max_length=4096)

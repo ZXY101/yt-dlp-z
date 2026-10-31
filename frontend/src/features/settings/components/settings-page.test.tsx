@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
 import { renderApp } from "@/test/render";
@@ -28,12 +28,6 @@ describe("SettingsPage", () => {
       max_concurrent_downloads: 5,
       max_concurrent_recordings: 4,
       max_subscriptions: 5,
-      recording: {
-        part_hours: 6,
-        max_hours: null,
-        from_start_max_hours: 6,
-        long_streams: "from_now",
-      },
     });
   });
 
@@ -88,61 +82,5 @@ describe("SettingsPage", () => {
     server.failWith = 500;
     renderApp("/settings");
     expect(await screen.findByText("Server error")).toBeInTheDocument();
-  });
-
-  it("saves how recordings are split and limited; empty turns a limit off", async () => {
-    const server = createFakeServer();
-    installFakeApi(server);
-    const { user } = renderApp("/settings");
-
-    const part = await screen.findByLabelText("New file every (hours)");
-    expect(part).toHaveValue("6");
-    expect(screen.getByLabelText("Stop after (hours)")).toHaveValue("");
-    await user.clear(part);
-    await user.type(screen.getByLabelText("Stop after (hours)"), "200");
-    await user.click(screen.getByRole("button", { name: "Save settings" }));
-    expect(
-      screen.getByText("Enter a whole number from 1 to 168, or leave it empty."),
-    ).toBeVisible();
-    expect(server.requests).not.toContain("PUT /api/settings");
-
-    const max = screen.getByLabelText("Stop after (hours)");
-    await user.clear(max);
-    await user.type(max, "12");
-    await user.click(screen.getByRole("button", { name: "Save settings" }));
-    expect(await screen.findByText("Settings saved.")).toBeInTheDocument();
-    expect(server.settings.recording).toEqual({
-      part_hours: null,
-      max_hours: 12,
-      from_start_max_hours: 6,
-      long_streams: "from_now",
-    });
-  });
-
-  it("can record the first hours of streams found after running long", async () => {
-    const server = createFakeServer();
-    installFakeApi(server);
-    const { user } = renderApp("/settings");
-
-    const limit = await screen.findByLabelText(
-      "Record from the start, unless live longer than (hours)",
-    );
-    const choice = screen.getByRole("group", {
-      name: "Streams live longer than 6 hours when found",
-    });
-    expect(within(choice).getByRole("radio", { name: "Record from now" })).toBeChecked();
-    await user.clear(limit);
-    await user.type(limit, "1");
-    await user.click(screen.getByRole("radio", { name: "Record their first 1 hour" }));
-    await user.click(screen.getByRole("button", { name: "Save settings" }));
-    expect(await screen.findByText("Settings saved.")).toBeInTheDocument();
-    expect(server.settings.recording).toMatchObject({
-      from_start_max_hours: 1,
-      long_streams: "first_hours",
-    });
-
-    // Without a limit every stream is recorded from the start, so there's nothing to choose.
-    await user.clear(limit);
-    expect(screen.queryByRole("radio", { name: "Record from now" })).not.toBeInTheDocument();
   });
 });

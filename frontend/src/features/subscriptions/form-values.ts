@@ -15,6 +15,7 @@ export interface SubscriptionFormValues {
   channel: string;
   backfill: string;
   presetId: number | null;
+  streamPresetId: number | null;
   cookieId: number | null;
   outputDir: string;
   pollMinutes: string;
@@ -34,6 +35,7 @@ export const EMPTY_FORM: SubscriptionFormValues = {
   channel: "",
   backfill: "0",
   presetId: null,
+  streamPresetId: null,
   cookieId: null,
   outputDir: "",
   pollMinutes: "10",
@@ -57,6 +59,7 @@ export function formFromSubscription(subscription: Subscription): SubscriptionFo
     channel: subscription.url,
     backfill: String(subscription.backfill),
     presetId: subscription.preset_id ?? null,
+    streamPresetId: subscription.stream_preset_id ?? null,
     cookieId: subscription.cookie_id ?? null,
     outputDir: subscription.output_dir ?? "",
     pollMinutes: String(subscription.poll_minutes),
@@ -108,6 +111,7 @@ function secondsOrNull(minutes: string) {
 export function updateBody(values: SubscriptionFormValues): SubscriptionUpdate {
   return {
     preset_id: values.presetId,
+    stream_preset_id: values.streamPresetId,
     cookie_id: values.cookieId,
     output_dir: values.outputDir.trim() || null,
     poll_minutes: Number(values.pollMinutes),

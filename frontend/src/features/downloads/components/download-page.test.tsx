@@ -154,12 +154,32 @@ describe("DownloadPage", () => {
 
     const details = await enterCheckedLink(user, "https://www.youtube.com/watch?v=live1");
     expect(details).toHaveTextContent("Live now");
+    expect(screen.getByText("This stream has been live for 1 h 0 min.")).toBeVisible();
     expect(screen.getByLabelText("From the start")).toBeChecked();
     await user.click(screen.getByLabelText("From now"));
+    const stopAfter = screen.getByLabelText("Stop after (hours)");
+    await user.type(stopAfter, "2");
     await user.click(screen.getByRole("button", { name: "Record" }));
 
     await screen.findByRole("heading", { name: "Queue" });
-    expect(server.jobs[0]).toMatchObject({ kind: "live", record_from_start: false });
+    expect(server.jobs[0]).toMatchObject({
+      kind: "live",
+      record_from_start: false,
+      part_seconds: 6 * 3600,
+      max_seconds: 2 * 3600,
+    });
+  });
+
+  it("checks the recording hours before recording", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/");
+
+    await enterCheckedLink(user, "https://www.youtube.com/watch?v=live1");
+    await user.type(screen.getByLabelText("Stop after (hours)"), "0");
+    await user.click(screen.getByRole("button", { name: "Record" }));
+    expect(screen.getByText(/Enter a whole number from 1 to 168/)).toBeVisible();
+    expect(server.jobs).toEqual([]);
   });
 
   it("suggests recording long-running streams from now", async () => {

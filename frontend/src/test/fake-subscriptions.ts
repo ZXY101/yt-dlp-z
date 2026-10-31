@@ -13,6 +13,7 @@ export function makeSubscription(overrides: Partial<Subscription> = {}): Subscri
     name: "Demo channel",
     url: "https://www.youtube.com/channel/UCdemo",
     preset_id: null,
+    stream_preset_id: null,
     cookie_id: null,
     output_dir: null,
     filters: { content_types: ["video"], include_members_only: false },

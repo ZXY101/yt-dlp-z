@@ -24,12 +24,6 @@ def test_reads_the_setup_values_and_env_default(setup_client: TestClient, tmp_pa
         "max_concurrent_downloads": 3,
         "max_concurrent_recordings": 2,
         "max_subscriptions": 5,
-        "recording": {
-            "part_hours": 6,
-            "max_hours": None,
-            "from_start_max_hours": 6,
-            "long_streams": "from_now",
-        },
     }
 
 
@@ -88,24 +82,3 @@ def test_the_download_limit_survives_a_restart(make_client: MakeClient, tmp_path
     assert settings["max_concurrent_downloads"] == 5
     assert settings["max_concurrent_recordings"] == 4
     assert settings["max_subscriptions"] == 12
-
-
-def test_recording_settings_can_be_turned_off_and_survive_a_restart(
-    make_client: MakeClient, tmp_path: Path
-) -> None:
-    first = make_client()
-    first.post("/api/auth/setup", json={"password": TEST_PASSWORD, "download_dir": str(tmp_path)})
-    recording = {
-        "part_hours": None,
-        "max_hours": 12,
-        "from_start_max_hours": None,
-        "long_streams": "first_hours",
-    }
-    assert update(first, recording=recording).status_code == 200
-    restarted = make_client()
-    restarted.cookies.update(first.cookies)
-    assert restarted.get("/api/settings").json()["recording"] == recording
-    too_long = {**recording, "max_hours": 24 * 7 + 1}
-    assert update(restarted, recording=too_long).status_code == 422
-    unknown = {**recording, "long_streams": "skip"}
-    assert update(restarted, recording=unknown).status_code == 422

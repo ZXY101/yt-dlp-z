@@ -9,9 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from yt_dlp_z.api.deps import Db, State, require_auth
 from yt_dlp_z.api.validation import check_cookie_id
 from yt_dlp_z.core.config import Settings
-from yt_dlp_z.db.models.job import utcnow
 from yt_dlp_z.schemas.media import MediaInfo, MediaProbeRequest
-from yt_dlp_z.services import app_settings
 from yt_dlp_z.services.cookies.store import working_copy
 from yt_dlp_z.services.watch.probe import MEMBERS_ERROR_HINT
 from yt_dlp_z.services.ytdlp.json_run import YtdlpJsonError
@@ -53,5 +51,4 @@ async def probe(body: MediaProbeRequest, state: State, db: Db) -> MediaInfo:
             )
     except YtdlpJsonError as error:
         raise _probe_failed(error, with_cookies=body.cookie_id is not None) from error
-    recording = await app_settings.get_recording_settings(db)
-    return media_info(data, recording, utcnow())
+    return media_info(data)

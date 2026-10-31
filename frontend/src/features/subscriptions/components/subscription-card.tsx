@@ -21,8 +21,9 @@ function useCardActions(subscription: Subscription) {
   const failed = [check, update, remove].find((mutation) => mutation.isError);
 
   function togglePaused() {
-    const { id, preset_id, cookie_id, output_dir, filters, poll_minutes } = subscription;
-    const body = { preset_id, cookie_id, output_dir, filters, poll_minutes };
+    const { id, preset_id, stream_preset_id, cookie_id, output_dir, filters, poll_minutes } =
+      subscription;
+    const body = { preset_id, stream_preset_id, cookie_id, output_dir, filters, poll_minutes };
     update.mutate({ id, body: { ...body, enabled: !subscription.enabled } });
   }
 

@@ -1,5 +1,6 @@
 import { TriangleAlert } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router";
 
 import { describeError } from "@/api/errors";
 import { FormError } from "@/components/form-error";
@@ -9,11 +10,7 @@ import { SuccessMessage } from "@/components/success-message";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useAppSettings, useSaveAppSettings } from "@/features/settings/api";
-import {
-  LiveStreamFields,
-  useLiveStreamFields,
-} from "@/features/settings/components/live-stream-fields";
-import { type LimitField, useLimitField } from "@/features/settings/hooks/use-limit-field";
+import { type LimitField, useLimitField } from "@/hooks/use-limit-field";
 import { YtdlpSection } from "@/features/settings/components/ytdlp-section";
 import type { AppSettings } from "@/features/settings/types";
 
@@ -69,25 +66,49 @@ function DownloadLimitField({ field }: { field: LimitField }) {
   );
 }
 
+function RecordingLimitField({ field }: { field: LimitField }) {
+  return (
+    <FormField
+      label="Recordings at the same time"
+      inputMode="numeric"
+      hint={<RecordingLimitHint />}
+      value={field.value}
+      error={field.error}
+      onChange={(event) => field.setValue(event.target.value)}
+    />
+  );
+}
+
+function RecordingLimitHint() {
+  return (
+    <>
+      Live streams, counted apart from downloads so they never wait behind them. How streams are
+      recorded is set in their{" "}
+      <Link to="/presets" className="underline underline-offset-2">
+        live-stream presets
+      </Link>
+      .
+    </>
+  );
+}
+
 function SettingsForm({ settings }: { settings: AppSettings }) {
   const [downloadDir, setDownloadDir] = useState(settings.download_dir);
   const downloads = useLimitField(settings.max_concurrent_downloads, { max: MAX_DOWNLOADS });
   const recordings = useLimitField(settings.max_concurrent_recordings, { max: MAX_DOWNLOADS });
   const channels = useLimitField(settings.max_subscriptions, { max: MAX_CHANNELS });
-  const recording = useLiveStreamFields(settings.recording);
   const save = useSaveAppSettings();
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     // Every field is checked, so all errors show at once.
-    const valid = [downloads.check(), recordings.check(), channels.check(), recording.check()];
+    const valid = [downloads.check(), recordings.check(), channels.check()];
     if (valid.every(Boolean)) {
       save.mutate({
         download_dir: downloadDir.trim(),
         max_concurrent_downloads: Number(downloads.value),
         max_concurrent_recordings: Number(recordings.value),
         max_subscriptions: Number(channels.value),
-        recording: recording.values(),
       });
     }
   }
@@ -104,12 +125,12 @@ function SettingsForm({ settings }: { settings: AppSettings }) {
         onChange={(event) => setDownloadDir(event.target.value)}
       />
       <DownloadLimitField field={downloads} />
+      <RecordingLimitField field={recordings} />
       <ChannelLimitField
         value={channels.value}
         error={channels.error}
         onChange={channels.setValue}
       />
-      <LiveStreamFields recording={recording} concurrent={recordings} />
       <Button type="submit" size="lg" className="h-10" disabled={save.isPending}>
         {save.isPending ? "Saving…" : "Save settings"}
       </Button>

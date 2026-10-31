@@ -22,7 +22,7 @@ def test_create_list_update_and_delete(setup_client: TestClient) -> None:
     assert preset["is_default"] is False
 
     listed = setup_client.get("/api/presets").json()
-    assert [item["name"] for item in listed] == ["Music"]
+    assert [item["name"] for item in listed] == ["Live streams", "Music"]
 
     updated = setup_client.put(
         f"/api/presets/{preset['id']}", json={"name": "Podcasts", "output_dir": ""}
@@ -37,20 +37,59 @@ def test_create_list_update_and_delete(setup_client: TestClient) -> None:
     assert setup_client.delete(f"/api/presets/{preset['id']}").status_code == 404
 
 
-def test_only_one_preset_is_the_default(setup_client: TestClient) -> None:
+def defaults(client: TestClient) -> dict[str, bool]:
+    return {item["name"]: item["is_default"] for item in client.get("/api/presets").json()}
+
+
+def test_each_kind_of_link_has_one_default(setup_client: TestClient) -> None:
     first = create(setup_client, name="First", is_default=True)
     second = create(setup_client, name="Second", is_default=True)
-    defaults = {
-        item["name"]: item["is_default"] for item in setup_client.get("/api/presets").json()
+    create(setup_client, name="Lists", kind="playlist", is_default=True)
+    assert defaults(setup_client) == {
+        "First": False,
+        "Second": True,
+        "Lists": True,
+        "Live streams": True,
     }
-    assert defaults == {"First": False, "Second": True}
 
     setup_client.put(f"/api/presets/{first['id']}", json={"name": "First", "is_default": True})
-    defaults = {
-        item["name"]: item["is_default"] for item in setup_client.get("/api/presets").json()
-    }
-    assert defaults == {"First": True, "Second": False}
+    assert defaults(setup_client)["First"] is True
+    assert defaults(setup_client)["Second"] is False
     assert second["id"] != first["id"]
+
+
+def test_a_live_stream_preset_comes_with_the_old_recording_defaults(
+    setup_client: TestClient,
+) -> None:
+    (live,) = [item for item in setup_client.get("/api/presets").json() if item["kind"] == "live"]
+    assert live["is_default"] is True
+    assert live["options"] == {"--embed-metadata": True, "--embed-thumbnail": True}
+    assert live["recording"] == {
+        "part_hours": 6,
+        "max_hours": None,
+        "from_start_max_hours": 6,
+        "long_streams": "from_now",
+    }
+
+
+def test_only_live_stream_presets_have_recording_settings(setup_client: TestClient) -> None:
+    recording = {
+        "part_hours": None,
+        "max_hours": 12,
+        "from_start_max_hours": None,
+        "long_streams": "first_hours",
+    }
+    live = create(setup_client, name="Concerts", kind="live", recording=recording)
+    assert live["recording"] == recording
+    assert create(setup_client, name="Bare", kind="live")["recording"]["part_hours"] == 6
+    assert create(setup_client, kind="video", recording=recording)["recording"] is None
+    too_long = {**recording, "max_hours": 24 * 7 + 1}
+    response = setup_client.post(
+        "/api/presets", json={"name": "Long", "kind": "live", "recording": too_long}
+    )
+    assert response.status_code == 422
+    unknown_kind = setup_client.post("/api/presets", json={"name": "X", "kind": "shorts"})
+    assert unknown_kind.status_code == 422
 
 
 def test_names_are_unique(setup_client: TestClient) -> None:

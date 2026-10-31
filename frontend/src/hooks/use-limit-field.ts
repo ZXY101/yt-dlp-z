@@ -29,11 +29,17 @@ export function useLimitField(initial: number | null, options: LimitOptions) {
     return problem === undefined;
   }
 
+  /** Replaces the value, e.g. when a preset fills the field in, and clears the error. */
+  function reset(next: number | null) {
+    setValue(next === null ? "" : String(next));
+    setError(undefined);
+  }
+
   function parsed() {
     return value.trim() === "" ? null : Number(value);
   }
 
-  return { value, setValue, error, check, parsed };
+  return { value, setValue, error, check, parsed, reset };
 }
 
 export type LimitField = ReturnType<typeof useLimitField>;

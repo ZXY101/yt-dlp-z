@@ -58,6 +58,8 @@ function recordingFields(recording: JobCreate["recording"]): Partial<Job> {
     status: scheduledAt ? "scheduled" : "queued",
     scheduled_at: scheduledAt,
     record_from_start: recording.from_start,
+    part_seconds: recording.part_hours ? recording.part_hours * 3600 : null,
+    max_seconds: recording.max_hours ? recording.max_hours * 3600 : null,
   };
 }
 

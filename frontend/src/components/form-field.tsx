@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface FieldLabels {
   label: string;
-  hint?: string;
+  hint?: React.ReactNode;
   error?: string;
 }
 

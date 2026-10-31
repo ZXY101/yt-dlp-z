@@ -5,17 +5,21 @@ from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from yt_dlp_z.db.models.job import JobKind, JobStatus
 from yt_dlp_z.schemas.common import WebUrl, as_utc_iso
+from yt_dlp_z.schemas.recording import Hours
 
 OptionValue = bool | int | float | str | list[str]
 
 
 class RecordingRequest(BaseModel):
-    """Records a live or upcoming stream instead of downloading. Part length and maximum
-    length come from the recording settings."""
+    """Records a live or upcoming stream instead of downloading. The form fills these in
+    from the live-stream preset."""
 
     from_start: bool
     # Upcoming streams: when they start (from the link check). The recording waits until then.
     starts_at: datetime | None = None
+    # A new file every this many hours, and stop after this many. None: off.
+    part_hours: Hours | None = None
+    max_hours: Hours | None = None
 
 
 class JobCreate(BaseModel):

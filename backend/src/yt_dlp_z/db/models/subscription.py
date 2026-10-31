@@ -19,6 +19,9 @@ class Subscription(Base):
     url: Mapped[str] = mapped_column(Text)
     # Cleared when the preset or cookies file is deleted.
     preset_id: Mapped[int | None] = mapped_column(Integer, default=None)
+    # Live streams and premieres use this preset when set (its options and recording
+    # settings); else preset_id's options and the default live-stream preset's recording.
+    stream_preset_id: Mapped[int | None] = mapped_column(Integer, default=None)
     cookie_id: Mapped[int | None] = mapped_column(Integer, default=None)
     # Overrides the preset's folder. Stored as entered and resolved per download.
     output_dir: Mapped[str | None] = mapped_column(Text, default=None)

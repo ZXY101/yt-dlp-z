@@ -2,17 +2,14 @@ import { useState } from "react";
 
 import { FormField } from "@/components/form-field";
 import { RadioOption } from "@/components/radio-option";
-import { type LimitField, useLimitField } from "@/features/settings/hooks/use-limit-field";
-import type { AppSettings } from "@/features/settings/types";
+import { MAX_RECORDING_HOURS } from "@/features/presets/kinds";
+import type { RecordingSettings } from "@/features/presets/types";
+import { type LimitField, useLimitField } from "@/hooks/use-limit-field";
 
-// A week; longer values are almost certainly typos.
-const MAX_HOURS = 168;
-
-type RecordingSettings = AppSettings["recording"];
 type LongStreams = RecordingSettings["long_streams"];
 
-export function useLiveStreamFields(recording: RecordingSettings) {
-  const options = { max: MAX_HOURS, optional: true };
+export function useRecordingFields(recording: RecordingSettings) {
+  const options = { max: MAX_RECORDING_HOURS, optional: true };
   const fields = {
     part: useLimitField(recording.part_hours, options),
     max: useLimitField(recording.max_hours, options),
@@ -38,9 +35,17 @@ export function useLiveStreamFields(recording: RecordingSettings) {
   return { fields, longStreams, setLongStreams, check, values };
 }
 
-type LiveStreamFieldsState = ReturnType<typeof useLiveStreamFields>;
+export type RecordingFieldsState = ReturnType<typeof useRecordingFields>;
 
-function HoursField({ label, hint, field }: { label: string; hint: string; field: LimitField }) {
+export function HoursField({
+  label,
+  hint,
+  field,
+}: {
+  label: string;
+  hint: string;
+  field: LimitField;
+}) {
   return (
     <FormField
       label={label}
@@ -87,27 +92,13 @@ function LongStreamsChoice({ hours, value, onChange }: LongStreamsChoiceProps) {
   );
 }
 
-interface LiveStreamFieldsProps {
-  recording: LiveStreamFieldsState;
-  // Recordings at the same time; saved apart from the other recording settings.
-  concurrent: LimitField;
-}
-
-/** How live streams are recorded. Each recording keeps the values it started with. */
-export function LiveStreamFields({ recording, concurrent }: LiveStreamFieldsProps) {
+/** How a live-stream preset records. Each recording keeps the values it started with. */
+export function RecordingFields({ recording }: { recording: RecordingFieldsState }) {
   const { part, max, fromStart } = recording.fields;
   const fromStartHours = typedHours(fromStart);
   return (
     <fieldset className="space-y-6">
-      <legend className="mb-4 text-lg font-medium">Live streams</legend>
-      <FormField
-        label="Recordings at the same time"
-        inputMode="numeric"
-        hint="Counted apart from downloads, so recordings never wait behind them."
-        value={concurrent.value}
-        error={concurrent.error}
-        onChange={(event) => concurrent.setValue(event.target.value)}
-      />
+      <legend className="mb-4 text-lg font-medium">Recording</legend>
       <HoursField
         label="New file every (hours)"
         hint="Splits long streams into parts, so endless streams stay manageable. Empty: one file per stream."

@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 from yt_dlp_z.db.models.job import Job
-from yt_dlp_z.schemas.app_settings import DEFAULT_RECORDING, RecordingSettings
+from yt_dlp_z.schemas.recording import DEFAULT_RECORDING, RecordingSettings
 from yt_dlp_z.services.live.plan import RecordingPlan, plan_recording
 from yt_dlp_z.services.live.recorder import part_args, part_length, part_template
 
