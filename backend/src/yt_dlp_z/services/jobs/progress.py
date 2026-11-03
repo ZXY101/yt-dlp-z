@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from yt_dlp_z.db.models.job import Job
 from yt_dlp_z.services.jobs.context import JobContext, publish_job
+from yt_dlp_z.services.media_server.artwork import start_artwork_fetch
 from yt_dlp_z.services.media_server.nfo import write_nfo_files
 from yt_dlp_z.services.ytdlp.output import (
     FileUpdate,
@@ -73,10 +74,14 @@ class ProgressTracker:
             return
         download_dir = Path(self._job.output_dir)
         try:
-            await asyncio.to_thread(write_nfo_files, update.info, layout, download_dir)
+            show_dir = await asyncio.to_thread(write_nfo_files, update.info, layout, download_dir)
         except OSError:
             # The video itself is saved; a missing .nfo shouldn't fail the download.
             logger.warning("Couldn't write the .nfo files for job %s", self._job.id, exc_info=True)
+            return
+        channel_id = update.info.get("channel_id")
+        if show_dir is not None and isinstance(channel_id, str):
+            start_artwork_fetch(self._context.settings.ytdlp_command, channel_id, show_dir)
 
     async def flush(self) -> None:
         self._job.revision += 1

@@ -70,8 +70,10 @@ Vitest, pytest and Playwright suites; Docker image; CI for all of it.
    and a `--print after_move:[ytdlpz:nfo]…` line; each finished file (also every
    recording part) gets an episode `.nfo`, the channel folder a `tvshow.nfo`
    (written once, never overwritten). Code: `services/media_server/`. Checked
-   against real YouTube. Not done: a channel poster (`poster.jpg`); media servers
-   fall back to an episode image.
+   against real YouTube. Channel artwork (2026-11-03): the first download into a
+   channel folder without them fetches `poster.jpg` (largest square channel
+   picture), `fanart.jpg` (whole banner, 16:9) and `banner.jpg` (widest strip)
+   in the background (`services/media_server/artwork.py`); never overwritten.
 5. ~~Proxy pool (PLAN.md §9).~~ Done 2026-10-31: `proxies` table and
    `/api/proxies` (CRUD, `POST /{id}/check`, `GET/PUT /settings` with
    `send_cookies`); URLs come back with the password as `****` and an update
