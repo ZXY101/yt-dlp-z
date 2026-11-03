@@ -15,6 +15,7 @@ from yt_dlp_z.api.routes import (
     media,
     notifications,
     options,
+    pot,
     presets,
     proxies,
     subscriptions,
@@ -32,6 +33,7 @@ from yt_dlp_z.schemas.ytdlp import YtdlpPreferences
 from yt_dlp_z.services.app_settings import (
     get_max_concurrent_downloads,
     get_max_concurrent_recordings,
+    get_pot_provider_url,
     get_ytdlp_preferences,
 )
 from yt_dlp_z.services.auth_service import sync_admin_password
@@ -44,6 +46,7 @@ from yt_dlp_z.services.notify.store import load_config
 from yt_dlp_z.services.proxies.pool import ProxyPool
 from yt_dlp_z.services.watch.enqueue import WatchContext
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
+from yt_dlp_z.services.ytdlp.pot.provider import PotProvider
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
 from yt_dlp_z.services.ytdlp.update_check import UpdateChecker
 from yt_dlp_z.services.ytdlp.updater import YtdlpUpdater, ytdlp_python_path
@@ -85,6 +88,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 return await get_ytdlp_preferences(session)
 
         update_checker = UpdateChecker(updater, ytdlp_preferences)
+
+        async def pot_provider_url() -> str | None:
+            async with session_factory() as session:
+                return await get_pot_provider_url(session)
+
+        pot_provider = PotProvider(
+            settings.ytdlp_pip_command, settings.plugins_dir, pot_provider_url
+        )
         app.state.app_state = AppState(
             settings=settings,
             engine=engine,
@@ -98,6 +109,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             updater=updater,
             update_checker=update_checker,
             notifier=notifier,
+            pot=pot_provider,
         )
         if settings.admin_password and settings.auth_mode is AuthMode.PASSWORD:
             async with session_factory() as session:
@@ -107,7 +119,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             live.start()
             watcher.start()
             update_checker.start()
+            await pot_provider.start()
             yield
+            await pot_provider.stop()
             await update_checker.stop()
             await updater.stop()
             await watcher.stop()
@@ -128,6 +142,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         media,
         notifications,
         options,
+        pot,
         presets,
         proxies,
         subscriptions,

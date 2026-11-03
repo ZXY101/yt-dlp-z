@@ -15,7 +15,7 @@ from importlib import metadata
 from pathlib import Path
 
 from yt_dlp_z.schemas.ytdlp import UpdateState, UpdateStatus, YtdlpChannel
-from yt_dlp_z.services.ytdlp.communicate import communicate
+from yt_dlp_z.services.ytdlp.pip import PIP_OPTIONS, last_line, run_pip, staging_dir, swap_in
 
 PACKAGE = "yt-dlp[default]"
 TIMEOUT_SECONDS = 600
@@ -58,13 +58,8 @@ def updated_version(update_dir: Path) -> str | None:
 def install_command(pip_command: list[str], target: Path, channel: YtdlpChannel) -> list[str]:
     # Nightly builds are published to PyPI as pre-releases (yt-dlp's own install docs).
     pre = ["--pre"] if channel == "nightly" else []
-    options = ["--upgrade", "--no-input", "--disable-pip-version-check", "--target", str(target)]
+    options = ["--upgrade", *PIP_OPTIONS, "--target", str(target)]
     return [*pip_command, "install", *options, *pre, PACKAGE]
-
-
-def last_line(output: bytes) -> str:
-    lines = output.decode(errors="replace").strip().splitlines()
-    return lines[-1] if lines else "no output"
 
 
 class YtdlpUpdater:
@@ -125,11 +120,7 @@ class YtdlpUpdater:
         self._on_change()
 
     async def _install(self, channel: YtdlpChannel) -> None:
-        # Installed next to the live folder, then swapped in, so a failed or half-done
-        # install never breaks the yt-dlp in use.
-        staging = self.update_dir.with_name(f"{self.update_dir.name}.new")
-        shutil.rmtree(staging, ignore_errors=True)
-        staging.parent.mkdir(parents=True, exist_ok=True)
+        staging = staging_dir(self.update_dir)
         try:
             await self._pip_install(install_command(self.pip_command, staging, channel))
             version = updated_version(staging)
@@ -139,29 +130,18 @@ class YtdlpUpdater:
                 # Nothing newer than the app's own copy (or back from nightly to stable).
                 shutil.rmtree(self.update_dir, ignore_errors=True)
             else:
-                self._swap_in(staging)
+                swap_in(staging, self.update_dir)
         finally:
             shutil.rmtree(staging, ignore_errors=True)
 
     async def _pip_install(self, command: list[str]) -> None:
-        process = await asyncio.create_subprocess_exec(
-            *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT
-        )
         try:
             async with asyncio.timeout(TIMEOUT_SECONDS):
-                output, _ = await communicate(process)
+                returncode, output = await run_pip(command)
         except TimeoutError as error:
             raise UpdateError("The update timed out.") from error
-        if process.returncode != 0:
+        if returncode != 0:
             raise UpdateError(f"The update failed: {last_line(output)}")
-
-    def _swap_in(self, staging: Path) -> None:
-        old = self.update_dir.with_name(f"{self.update_dir.name}.old")
-        shutil.rmtree(old, ignore_errors=True)
-        if self.update_dir.exists():
-            self.update_dir.rename(old)
-        staging.rename(self.update_dir)
-        shutil.rmtree(old, ignore_errors=True)
 
     @staticmethod
     def _finished(state: UpdateState, message: str) -> UpdateStatus:

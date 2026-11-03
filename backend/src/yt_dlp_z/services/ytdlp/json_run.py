@@ -5,6 +5,7 @@ import json
 from typing import Any
 
 from yt_dlp_z.services.ytdlp.communicate import communicate
+from yt_dlp_z.services.ytdlp.global_args import global_args
 from yt_dlp_z.services.ytdlp.output import error_message
 
 JSON_TIMEOUT_SECONDS = 120
@@ -21,7 +22,8 @@ def _last_error(output: str) -> str | None:
 
 
 async def run_ytdlp_json(ytdlp_command: list[str], args: list[str], url: str) -> dict[str, Any]:
-    command = [*ytdlp_command, "--ignore-config", "--no-warnings", "-J", *args, "--", url]
+    base = [*ytdlp_command, "--ignore-config", "--no-warnings", "-J", *global_args()]
+    command = [*base, *args, "--", url]
     process = await asyncio.create_subprocess_exec(
         *command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )

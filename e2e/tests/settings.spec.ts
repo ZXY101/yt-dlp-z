@@ -99,4 +99,24 @@ test.describe("settings", () => {
         expect.objectContaining({ title: "Download finished", message: "Fake video notified" }),
       ]);
   });
+
+  test("a PO token provider is tested, saved and turned off", async ({ page }) => {
+    const section = page.getByRole("region", { name: "PO tokens" });
+    const provider = `${new URL(page.url()).origin}/api/test/pot`;
+    await expect(section.getByText("Off.", { exact: true })).toBeVisible();
+    await section.getByLabel("Provider address").fill(provider);
+    await section.getByRole("button", { name: "Test" }).click();
+    await expect(section.getByText("Provider 2.0.2 answered.")).toBeVisible();
+    await section.getByRole("button", { name: "Save provider" }).click();
+    await expect(section.getByText("PO tokens on.")).toBeVisible();
+    await expect(section.getByText("On: provider 2.0.2, plugin 2.0.2.")).toBeVisible();
+    await expectNoHorizontalScroll(page);
+
+    await page.reload();
+    await expect(section.getByLabel("Provider address")).toHaveValue(provider);
+    await section.getByLabel("Provider address").fill("");
+    await section.getByRole("button", { name: "Save provider" }).click();
+    await expect(section.getByText("PO tokens off.", { exact: true })).toBeVisible();
+    await expect(section.getByText("Off.", { exact: true })).toBeVisible();
+  });
 });

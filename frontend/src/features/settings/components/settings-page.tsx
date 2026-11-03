@@ -13,6 +13,7 @@ import { ProxiesSection } from "@/features/proxies";
 import { useAppSettings, useSaveAppSettings } from "@/features/settings/api";
 import { type LimitField, useLimitField } from "@/hooks/use-limit-field";
 import { NotificationsSection } from "@/features/settings/components/notifications-section";
+import { PotSection } from "@/features/settings/components/pot-section";
 import { YtdlpSection } from "@/features/settings/components/ytdlp-section";
 import type { AppSettings } from "@/features/settings/types";
 
@@ -151,6 +152,7 @@ export function SettingsPage() {
       <ProxiesSection />
       <NotificationsSection />
       <YtdlpSection />
+      <PotSection />
     </>
   );
 }

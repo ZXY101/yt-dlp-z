@@ -26,6 +26,9 @@ export interface FakeServer {
   /** Test messages sent, and the error the next one gets (null = it works). */
   sentTests: components["schemas"]["NotificationSettingsIn"][];
   testError: string | null;
+  pot: components["schemas"]["PotProviderInfo"];
+  // Version the fake provider answers with; null acts like an unreachable one.
+  potServerVersion: string | null;
   proxies: components["schemas"]["ProxyOut"][];
   proxySettings: components["schemas"]["ProxySettings"];
   /** Folder suggestions by parent path. */
