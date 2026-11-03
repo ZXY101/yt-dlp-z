@@ -338,7 +338,6 @@ Still open:
   release-please CI fails until "Allow GitHub Actions to create and approve pull
   requests" is enabled in repo settings (asked the user, no answer yet).
   PO-token provider (bgutil) noted for milestone 6.
-  **Next session:** check job 5 on :9743 (Vivi #26, parts 1–3) finished `completed`, and whether a stream past ~5 h shows "[yt-dlp-z] … still live; continuing in the next part" in its log (link-expiry fix, unverified on real YouTube). Then M6 step 6 (PO-token provider recipe). Still unverified: a real scheduled stream starting on time.
   fix failures, `npm run check`, then commit frontend + Dockerfile separately.
 - **2026-10-30 · Milestone 2 done.** Frontend tests passed after a
   ResizeObserver stub; download/queue/system pages, E2E download flows (27 E2E
@@ -505,5 +504,5 @@ Still open:
   Checked for real: artwork for a real channel, resolving/listing a real
   playlist. Unverified on real YouTube: a real VOD after a real recording.
 
-**Next session:** M6 step 7 (docs: configuration.md, ops; healthcheck review). Still unverified: link-expiry continue on a > 5 h stream; a real scheduled stream starting on time.
+**Next session:** :9743 runs yt-dlp-z:0d48ab7. First check on the phone: subscriptions expand/usage, Remove → Delete files, Keep, preset VOD fields (no screenshots taken of these yet). Then M6 step 7 (docs: configuration.md, ops; healthcheck review). Still unverified on real YouTube: a VOD after a real recording (set VOD hours on the live preset to try), link-expiry continue on a > 5 h stream, a scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.
