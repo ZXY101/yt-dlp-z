@@ -1,6 +1,7 @@
 """A recording's VOD, downloaded some hours after the stream when the preset says so."""
 
 import sqlite3
+import time
 from pathlib import Path
 from typing import Any
 
@@ -63,5 +64,9 @@ def test_the_vod_can_replace_the_recording(setup_client: TestClient, tmp_path: P
     make_due(setup_client, tmp_path)
     done = wait_for_job(setup_client, vod["id"], FINISHED)
     assert Path(done["filepath"]).exists()
+    # The VOD shows as completed first; the recording is deleted right after.
+    deadline = time.monotonic() + 5
+    while setup_client.get(f"/api/jobs/{recording['id']}").status_code != 404:
+        assert time.monotonic() < deadline, "the recording wasn't deleted"
+        time.sleep(0.05)
     assert not Path(recording["filepath"]).exists()
-    assert setup_client.get(f"/api/jobs/{recording['id']}").status_code == 404
