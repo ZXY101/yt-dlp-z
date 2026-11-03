@@ -117,9 +117,9 @@ adds them.
 ### Docker Compose (recommended)
 
 ```sh
-git clone https://github.com/ZXY101/yt-dlp-z.git
-cd yt-dlp-z
-docker compose up -d --build
+mkdir yt-dlp-z && cd yt-dlp-z
+curl -O https://raw.githubusercontent.com/ZXY101/yt-dlp-z/main/docker-compose.yml
+docker compose up -d
 ```
 
 Open <http://localhost:9742> and finish the first-run setup: choose the admin
@@ -137,9 +137,6 @@ user that should own them. The compose file:
 services:
   yt-dlp-z:
     image: ghcr.io/zxy101/yt-dlp-z:latest
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
     container_name: yt-dlp-z
     ports:
       - "9742:9742"
@@ -155,8 +152,10 @@ services:
     stop_grace_period: 10m # lets running recordings finish their files
 ```
 
-Pre-built images aren't published yet; `--build` builds the image locally
-(a few minutes the first time).
+Images for amd64 and arm64 are on
+[GHCR](https://github.com/ZXY101/yt-dlp-z/pkgs/container/yt-dlp-z): `latest`,
+or pin a version such as `0.1` or `0.1.1`. To build from source instead, clone
+the repository and run `docker compose up -d --build`.
 
 ### Without Docker
 

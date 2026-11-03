@@ -189,8 +189,8 @@ docker run -d --name yt-dlp-z -p 9742:9742 \
 
 - Entrypoint drops to PUID/PGID (gosu) so files are owned correctly.
 - Healthcheck at `/api/health`. A `docker-compose.yml` example ships in the repo.
-- Multi-arch (amd64 + arm64) via buildx in GitHub Actions. The registry is
-  undecided (GHCR is likely).
+- Multi-arch (amd64 + arm64) via buildx in GitHub Actions, published to GHCR
+  on every release (`.github/workflows/publish-image.yml`).
 
 ## Repo layout
 
