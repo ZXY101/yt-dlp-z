@@ -90,6 +90,11 @@ async def delete_subscription(session: AsyncSession, subscription: Subscription)
     await session.commit()
 
 
+async def get_video(session: AsyncSession, subscription_id: int, video_id: int) -> Video | None:
+    video = await session.get(Video, video_id)
+    return video if video is not None and video.subscription_id == subscription_id else None
+
+
 async def list_videos(session: AsyncSession, subscription_id: int) -> Sequence[Video]:
     result = await session.execute(
         select(Video)

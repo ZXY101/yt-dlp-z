@@ -9,11 +9,14 @@ from yt_dlp_z.db.models.job import utcnow
 
 
 class Subscription(Base):
-    """A watched YouTube channel. New uploads are filtered and queued with its preset."""
+    """A watched YouTube channel or playlist. New videos are filtered and queued with its
+    preset."""
 
     __tablename__ = "subscriptions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    # "channel" or "playlist" (channel_id then holds the playlist id).
+    kind: Mapped[str] = mapped_column(String(20), default="channel", server_default="channel")
     channel_id: Mapped[str] = mapped_column(String(64), unique=True)
     name: Mapped[str] = mapped_column(Text)
     url: Mapped[str] = mapped_column(Text)
@@ -31,6 +34,8 @@ class Subscription(Base):
     # How many of the newest feed entries the first check may download (0: only new ones).
     backfill: Mapped[int] = mapped_column(Integer, default=0)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    # Delete its downloads this many days after they finish (None: keep them).
+    keep_days: Mapped[int | None] = mapped_column(Integer, default=None)
     last_checked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     last_error: Mapped[str | None] = mapped_column(Text, default=None)
     # Last look at the channel's /streams tab, for streams the RSS feed missed.

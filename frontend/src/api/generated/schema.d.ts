@@ -221,7 +221,9 @@ export interface paths {
         post?: never;
         /**
          * Delete Job
-         * @description Removes the job from history. Downloaded files are kept.
+         * @description Removes the job from history. With delete_files, also deletes what it saved (and
+         *     files beside them: .nfo, thumbnail, subtitles), and a subscription won't download
+         *     the video again.
          */
         delete: operations["delete_job_api_jobs__job_id__delete"];
         options?: never;
@@ -589,6 +591,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/subscriptions/{subscription_id}/videos/{video_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Video */
+        put: operations["update_video_api_subscriptions__subscription_id__videos__video_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/subscriptions/{subscription_id}/usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Disk Usage */
+        get: operations["get_disk_usage_api_subscriptions__subscription_id__usage_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/system": {
         parameters: {
             query?: never;
@@ -769,6 +805,18 @@ export interface components {
             /** Content */
             content?: string | null;
         };
+        /**
+         * DiskUsageOut
+         * @description What a subscription's downloads take up on disk now.
+         */
+        DiskUsageOut: {
+            /** Downloads */
+            downloads: number;
+            /** Files */
+            files: number;
+            /** Bytes */
+            bytes: number;
+        };
         /** FolderSuggestions */
         FolderSuggestions: {
             /** Folders */
@@ -876,6 +924,14 @@ export interface components {
             eta: number | null;
             /** Filepath */
             filepath: string | null;
+            /** Keep */
+            keep: boolean;
+            /** Vod After Seconds */
+            vod_after_seconds: number | null;
+            /** Vod Replace */
+            vod_replace: boolean;
+            /** Source Job Id */
+            source_job_id: number | null;
             /** Error */
             error: string | null;
             /** Created At */
@@ -1431,7 +1487,12 @@ export interface components {
          * VideoState
          * @enum {string}
          */
-        VideoState: "queued" | "skipped" | "upcoming" | "live" | "failed";
+        VideoState: "queued" | "skipped" | "upcoming" | "live" | "failed" | "ignored";
+        /** VideoUpdate */
+        VideoUpdate: {
+            /** Ignored */
+            ignored: boolean;
+        };
         /** YtdlpInfo */
         YtdlpInfo: {
             /**
@@ -1926,7 +1987,9 @@ export interface operations {
     };
     delete_job_api_jobs__job_id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                delete_files?: boolean;
+            };
             header?: never;
             path: {
                 job_id: number;
@@ -2815,6 +2878,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VideoOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_video_api_subscriptions__subscription_id__videos__video_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: number;
+                video_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VideoUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VideoOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_disk_usage_api_subscriptions__subscription_id__usage_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subscription_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiskUsageOut"];
                 };
             };
             /** @description Validation Error */

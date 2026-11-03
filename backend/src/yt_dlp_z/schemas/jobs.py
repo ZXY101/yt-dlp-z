@@ -71,6 +71,13 @@ class JobOut(BaseModel):
     speed: float | None
     eta: int | None
     filepath: str | None
+    # Pinned: the subscription's "delete after N days" leaves it alone.
+    keep: bool
+    # Recordings: when the VOD is downloaded after the stream (seconds), and whether it
+    # then replaces the recording. VOD downloads: the recording they follow.
+    vod_after_seconds: int | None
+    vod_replace: bool
+    source_job_id: int | None
     error: str | None
     created_at: datetime
     started_at: datetime | None

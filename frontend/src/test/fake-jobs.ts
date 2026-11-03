@@ -28,6 +28,10 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     speed: null,
     eta: null,
     filepath: null,
+    keep: false,
+    vod_after_seconds: null,
+    vod_replace: false,
+    source_job_id: null,
     error: null,
     created_at: "2026-10-30T10:00:00+00:00",
     started_at: null,
@@ -127,7 +131,10 @@ export const jobRoutes: Route[] = [
   {
     method: "DELETE",
     path: JOB_PATH,
-    handle: (server, { params }) => {
+    handle: (server, { params, query }) => {
+      if (query.get("delete_files") === "true") {
+        server.deletedJobFiles.push(Number(params[0]));
+      }
       server.jobs = server.jobs.filter((job) => job.id !== Number(params[0]));
       broadcast({ type: "job_deleted", id: Number(params[0]) });
       return noContent();

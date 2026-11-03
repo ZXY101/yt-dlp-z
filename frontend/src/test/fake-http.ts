@@ -20,6 +20,8 @@ export interface FakeServer {
   ytdlp: components["schemas"]["YtdlpInfo"];
   /** Makes the next yt-dlp update fail. */
   ytdlpUpdateFails: boolean;
+  // Jobs removed with "Delete files".
+  deletedJobFiles: number[];
   notifications: components["schemas"]["NotificationSettingsOut"];
   /** The saved ntfy token, never sent back by the real server. */
   notificationToken: string;

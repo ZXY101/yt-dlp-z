@@ -25,6 +25,7 @@ describe("Subscriptions", () => {
 
     const list = await screen.findByRole("list", { name: "Downloads from Vivi" });
     expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(await screen.findByText("2 downloads · 4 files on disk · 3.0 MB")).toBeVisible();
     const titles = within(list)
       .getAllByRole("listitem")
       .map((item) => item.textContent);
@@ -176,6 +177,11 @@ describe("Subscriptions", () => {
     expect(within(videos).getByText("Downloading")).toBeVisible();
     expect(within(videos).getByText("It's a Short")).toBeVisible();
     expect(within(videos).getByText(/^Starts in \d+ years$/)).toBeVisible();
+    expect(screen.queryByRole("button", { name: /A Short/ })).not.toBeInTheDocument();
+    await user.click(within(videos).getByRole("button", { name: "Don't download: Soon" }));
+    expect(await within(videos).findByText("Not downloaded")).toBeVisible();
+    await user.click(within(videos).getByRole("button", { name: "Allow again: Soon" }));
+    expect(await within(videos).findByText("Checked again on the next check")).toBeVisible();
     expect(screen.queryByLabelText("Channel")).not.toBeInTheDocument();
     expect(screen.getByLabelText("Shortest (minutes)")).toHaveValue("2");
     expect(screen.getByLabelText("Save to")).toHaveValue("demo");

@@ -5,9 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from yt_dlp_z.api.deps import Db, State, require_auth
 from yt_dlp_z.api.validation import check_cookie_id, check_user_args, output_dir_for_job
 from yt_dlp_z.db.models.job import FINISHED_STATUSES, Job, JobKind, JobStatus, utcnow
-from yt_dlp_z.schemas.jobs import JobCreate, JobDeletedEvent, JobOut, RecordingRequest
+from yt_dlp_z.schemas.jobs import JobCreate, JobOut, RecordingRequest
 from yt_dlp_z.services.jobs import repository
 from yt_dlp_z.services.jobs.context import job_log_path, publish_job
+from yt_dlp_z.services.jobs.removal import JobRemover
 from yt_dlp_z.services.live.plan import hours_to_seconds
 from yt_dlp_z.services.live.scheduler import recording_status
 
@@ -79,12 +80,11 @@ async def get_job(job_id: int, db: Db) -> JobOut:
 
 
 @router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_job(job_id: int, state: State, db: Db) -> None:
-    """Removes the job from history. Downloaded files are kept."""
+async def delete_job(job_id: int, state: State, db: Db, delete_files: bool = False) -> None:
+    """Removes the job from history. With delete_files, also deletes what it saved (and
+    files beside them: .nfo, thumbnail, subtitles), and a subscription won't download
+    the video again."""
     job = await find_job(db, job_id)
     if job.status not in FINISHED_STATUSES:
         raise HTTPException(status.HTTP_409_CONFLICT, "Cancel the download before removing it")
-    await db.delete(job)
-    await db.commit()
-    job_log_path(state.settings, job_id).unlink(missing_ok=True)
-    state.hub.publish(JobDeletedEvent(id=job_id).model_dump(mode="json"))
+    await JobRemover(state.settings, state.hub).remove(db, job, delete_files=delete_files)

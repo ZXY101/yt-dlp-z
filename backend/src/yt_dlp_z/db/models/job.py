@@ -68,6 +68,17 @@ class Job(Base):
     speed: Mapped[float | None] = mapped_column(Float, default=None)
     eta: Mapped[int | None] = mapped_column(Integer, default=None)
     filepath: Mapped[str | None] = mapped_column(Text, default=None)
+    # Every file yt-dlp saved (playlists and recording parts give several). Files saved
+    # beside them with the same name (.nfo, thumbnail, subtitles) are found from these.
+    files: Mapped[list[str]] = mapped_column(JSON, default=list, server_default="[]")
+    # Pinned by the user: never deleted by the subscription's "delete after N days".
+    keep: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # Recordings: download the VOD this long after the stream ends (None: don't), and
+    # delete the recording once the VOD is saved. Copied from the live preset.
+    vod_after_seconds: Mapped[int | None] = mapped_column(Integer, default=None)
+    vod_replace: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    # A VOD download: the recording it follows (no foreign key, like cookie_id).
+    source_job_id: Mapped[int | None] = mapped_column(Integer, default=None)
     error: Mapped[str | None] = mapped_column(Text, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)

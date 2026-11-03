@@ -114,4 +114,28 @@ export const subscriptionRoutes: Route[] = [
     path: /^\/api\/subscriptions\/(\d+)\/videos$/,
     handle: (server, { params }) => json(server.videos[Number(params[0])] ?? []),
   },
+  {
+    method: "PUT",
+    path: /^\/api\/subscriptions\/(\d+)\/videos\/(\d+)$/,
+    handle: (server, { params, body }) => {
+      const video = (server.videos[Number(params[0])] ?? []).find(
+        (item) => item.id === Number(params[1]),
+      );
+      if (!video) {
+        return json({ detail: "Video not found" }, 404);
+      }
+      const ignored = (body as { ignored: boolean }).ignored;
+      video.state = ignored ? "ignored" : "failed";
+      video.reason = ignored ? "You chose not to download it" : "Checked again on the next check";
+      return json(video);
+    },
+  },
+  {
+    method: "GET",
+    path: /^\/api\/subscriptions\/(\d+)\/usage$/,
+    handle: (server, { params }) => {
+      const jobs = server.jobs.filter((job) => job.subscription_id === Number(params[0]));
+      return json({ downloads: jobs.length, files: jobs.length * 2, bytes: jobs.length * 1500000 });
+    },
+  },
 ];

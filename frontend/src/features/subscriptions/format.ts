@@ -36,4 +36,5 @@ export const VIDEO_STATE_LABELS: Record<VideoState, string> = {
   upcoming: "Recording scheduled",
   live: "Recording",
   failed: "Failed",
+  ignored: "Not downloaded",
 };

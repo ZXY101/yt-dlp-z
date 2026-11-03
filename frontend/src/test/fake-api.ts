@@ -92,6 +92,7 @@ export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
     folders: {},
     ytdlp: makeYtdlpInfo(),
     ytdlpUpdateFails: false,
+    deletedJobFiles: [],
     ...makeNotifications(),
     ...makePot(),
     subscriptions: [],

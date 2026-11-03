@@ -161,3 +161,23 @@ def test_new_job_never_inherits_an_old_log(setup_client: TestClient) -> None:
     log = setup_client.get(f"/api/jobs/{second['id']}/log").text
     assert "left over" not in log
     assert log.count("[fake] args") == 1
+
+
+def test_remove_keeps_files_unless_asked_to_delete_them(setup_client: TestClient) -> None:
+    kept = wait_for_job(
+        setup_client, start(setup_client, "https://example.com/watch/k1")["id"], FINISHED
+    )
+    gone = wait_for_job(
+        setup_client, start(setup_client, "https://example.com/watch/g1")["id"], FINISHED
+    )
+    kept_file, gone_file = Path(kept["filepath"]), Path(gone["filepath"])
+    beside = gone_file.with_suffix(".nfo")
+    beside.write_text("<episodedetails/>")
+
+    assert setup_client.delete(f"/api/jobs/{kept['id']}").status_code == 204
+    assert kept_file.exists()
+    response = setup_client.delete(f"/api/jobs/{gone['id']}", params={"delete_files": True})
+    assert response.status_code == 204
+    assert not gone_file.exists()
+    assert not beside.exists()
+    assert setup_client.get(f"/api/jobs/{gone['id']}").status_code == 404
