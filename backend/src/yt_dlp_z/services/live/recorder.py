@@ -14,6 +14,7 @@ import asyncio
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from pathlib import Path
 
 from yt_dlp_z.db.models.job import Job, JobStatus
 from yt_dlp_z.services.jobs.process import ProcessResult, interrupt_process
@@ -58,11 +59,25 @@ def part_args(job: Job, part: int) -> list[str]:
     args = list(WAIT_ARGS)
     if part == 1 and job.record_from_start:
         args = ["--live-from-start", *args]
-    # Numbered files when splitting, and after a restart (part > 1), so a continued
-    # recording never collides with the file already saved.
-    if job.part_seconds or part > 1:
+    # Most recordings are one file, so the first part keeps the plain name; it becomes
+    # "(part 1)" only once a second part starts (see number_first_part).
+    if part > 1:
         args += ["--output", part_template(output_template(job), part)]
     return args
+
+
+def number_first_part(filepath: str) -> str:
+    """Renames the first part's file, and files saved beside it with the same name (its
+    .nfo and thumbnail), to "… (part 1)". Returns the file's new path."""
+    path = Path(filepath)
+    if not path.exists():
+        return filepath
+    stem = path.stem
+    for sibling in path.parent.iterdir():
+        if sibling.is_file() and sibling.name.startswith(f"{stem}."):
+            rest = sibling.name.removeprefix(stem)
+            sibling.rename(sibling.with_name(f"{stem} (part 1){rest}"))
+    return str(path.with_name(f"{stem} (part 1){path.suffix}"))
 
 
 @dataclass

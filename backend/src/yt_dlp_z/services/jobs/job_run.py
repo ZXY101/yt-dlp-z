@@ -20,6 +20,7 @@ from yt_dlp_z.services.live.recorder import (
     Outcome,
     PartWatch,
     RecordingHooks,
+    number_first_part,
     part_args,
     record,
 )
@@ -33,6 +34,7 @@ from yt_dlp_z.services.ytdlp.output import FileUpdate, ProgressUpdate, Update
 
 # Proxies a download tries before giving up. Each one YouTube blocks goes on cooldown.
 MAX_PROXY_ATTEMPTS = 3
+SECOND_PART = 2
 
 
 def _outcome(result: ProcessResult, cancelled: bool) -> Outcome:
@@ -125,7 +127,11 @@ async def _record(running: Running, proxy_args: list[str]) -> Outcome:
         return await run_ytdlp(command, log_path, hooks)
 
     async def on_part(part: int) -> None:
-        await repository.save(session, job, part=part, **PROGRESS_RESET)
+        fields: dict[str, object] = {}
+        # The recording became several files: the first one gets its part number too.
+        if part == SECOND_PART and job.filepath:
+            fields["filepath"] = number_first_part(job.filepath)
+        await repository.save(session, job, part=part, **PROGRESS_RESET, **fields)
         publish_job(context.hub, job)
 
     async def still_live() -> bool:
