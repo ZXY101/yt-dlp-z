@@ -7,7 +7,8 @@ Design and milestones: [PLAN.md](PLAN.md).
 ## Current status
 
 **Milestone 6 (ops): done.** yt-dlp updates, ntfy, media-server output, proxy
-pool, PO tokens and the docs. Next: milestone 7 (release). Milestone 5 is done (a real scheduled stream starting
+pool, PO tokens and the docs. Milestone 7 (release) in progress: the publish
+pipeline is in, the first image release is waiting on the 0.1.1 release PR. Milestone 5 is done (a real scheduled stream starting
 on time is still unchecked, see below).
 
 | Milestone                 | Status      |
@@ -19,7 +20,7 @@ on time is still unchecked, see below).
 | 4. Watching               | Done        |
 | 5. Live                   | Done        |
 | 6. Ops (incl. proxy pool) | Done        |
-| 7. Release                | Not started |
+| 7. Release                | In progress |
 
 What exists: FastAPI backend with first-run setup, login/logout, rate limiting,
 `AUTH_MODE=none` and a `reset-password` command; download jobs (queue, live
@@ -530,10 +531,27 @@ Still open:
   flaky test_the_vod_can_replace_the_recording (the VOD is published as
   completed before the recording is deleted; the test now waits).
 
-**Next session:** :9743 runs yt-dlp-z:7c57630 (layout settings; main 2 ahead of origin, not pushed). Milestone 6 is done; next is
-milestone 7 (release: publish images to ghcr, amd64+arm64; the docs say images
-aren't published yet). The repo is private, so README badges show broken until
-it's public. Still unverified on real YouTube: link-expiry continue on a > 5 h
-stream, a scheduled stream starting on time, deleting a multi-part recording
-removes all parts (job 5 on :9743 lists only part 3 in `files`).
+- **2026-11-04 · M7 started.** `publish-image.yml` builds amd64+arm64 (QEMU;
+  the frontend stage runs on `$BUILDPLATFORM`) and pushes
+  `ghcr.io/zxy101/yt-dlp-z:{X.Y.Z,X.Y,latest}`. release-please calls it as a
+  reusable workflow when `release_created` (GITHUB_TOKEN releases don't trigger
+  `on: release`); it can also be run by hand for an existing tag. The CI docker
+  job now builds both platforms too (8.5 min, gha cache shared with the
+  release). Releases bump `backend/pyproject.toml` + `uv.lock` via extra-files
+  (until now /api/health always said 0.1.0). Docs: install by pulling the image,
+  build from a clone as the alternative. Release tags stay `yt-dlp-z-vX.Y.Z`
+  (changing the format would make release-please lose v0.1.0).
+
+**Next session:** :9743 runs yt-dlp-z:7c57630. Milestone 7 remaining:
+(1) release PR #2 (0.1.1) predates the extra-files config and release-please
+only rewrites a PR when its changelog changes, so close it (delete its branch)
+and rerun release-please, or land any feat/fix first; check the new PR bumps
+pyproject.toml and uv.lock. (2) Merge it → the publish job runs; check both
+platforms on GHCR and `docker run` the arm64 image (e.g. on the Pi).
+(3) The GHCR package starts private like the repo; making the repo and package
+public is the user's call (README badges and the curl quick start need it).
+(4) Dogfood: switch :9743 to the GHCR image. Still unverified on real YouTube:
+link-expiry continue on a > 5 h stream, a scheduled stream starting on time,
+deleting a multi-part recording removes all parts (job 5 on :9743 lists only
+part 3 in `files`).
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.
