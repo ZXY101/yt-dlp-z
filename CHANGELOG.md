@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.1.1](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.0...yt-dlp-z-v0.1.1) (2026-11-03)
+
+
+### Features
+
+* **backend:** channel picture and banner for media servers ([f8b0ad0](https://github.com/ZXY101/yt-dlp-z/commit/f8b0ad0727947582241bc9c1a78c539a90c13961))
+* delete a download's files, skip videos for good, and show disk usage ([13a55e4](https://github.com/ZXY101/yt-dlp-z/commit/13a55e41cb5de434d19edbfe930715eb73dd409e))
+* **frontend:** expand a subscription to list its downloads and recordings ([b4d6ed7](https://github.com/ZXY101/yt-dlp-z/commit/b4d6ed78e3a5691dec93b614d466db47dd7ceb07))
+* **frontend:** new logo, favicon and home-screen icon ([7329d52](https://github.com/ZXY101/yt-dlp-z/commit/7329d52bd212dd4c0ea1a92dd9ed2fe5dca12c5b))
+* get PO tokens from a bgutil provider ([9695f70](https://github.com/ZXY101/yt-dlp-z/commit/9695f7047be97b404783c06e7d77194a077b3461))
+* optionally delete a subscription's downloads after N days ([a4eed91](https://github.com/ZXY101/yt-dlp-z/commit/a4eed91bac1cf6a046b17ca3cee803c87f940ba2))
+* optionally download a stream's VOD after recording it ([aaa0a82](https://github.com/ZXY101/yt-dlp-z/commit/aaa0a82a783311f3fd37d33a9278d96cff929bac))
+* separate sub-folder, file name and media-server file settings ([7c57630](https://github.com/ZXY101/yt-dlp-z/commit/7c57630a75157f12af3b11fba80ea660ba2b9433))
+* watch playlists as well as channels ([0d48ab7](https://github.com/ZXY101/yt-dlp-z/commit/0d48ab7f7a6f189239e829d1c9e05a5822fee622))
+
+
+### Bug Fixes
+
+* **backend:** keep the date out of recording titles ([5c1b973](https://github.com/ZXY101/yt-dlp-z/commit/5c1b9736fbbcf67de32190b2018b09398e06267e))
+* **backend:** leave recording parts that are already numbered alone ([f93a702](https://github.com/ZXY101/yt-dlp-z/commit/f93a7022a32782007807bd0099739e1c7ddc1c75))
+* **backend:** number recording parts only once a second part starts ([05897ba](https://github.com/ZXY101/yt-dlp-z/commit/05897ba0b4c35d3a3b29d9a6ad2f8576f0978cea))
+* **backend:** stop browsers showing the previous release after an update ([579e861](https://github.com/ZXY101/yt-dlp-z/commit/579e86191eb638a8121f34d60ae0b3d381db76a5))
+* continue recordings when YouTube's stream links expire ([ac602c8](https://github.com/ZXY101/yt-dlp-z/commit/ac602c8d65e830e625c2484c11cc9199e5e6fb41))
+* **frontend:** full-screen options dialog with a compact toolbar on phones ([9697265](https://github.com/ZXY101/yt-dlp-z/commit/96972654d2ab1d8304bd5a4bc4500e6c266d6213))
+* **frontend:** keep dialog content within the screen on phones ([0c593dc](https://github.com/ZXY101/yt-dlp-z/commit/0c593dc30b3b30af7caf88f192e50036d66208b6))
+* recordings that end or wait, and CI hangs ([436ae2e](https://github.com/ZXY101/yt-dlp-z/commit/436ae2ee84acad2beae3ccea5d4780bc90720a09))
+
 ## 0.1.0 (2026-10-31)
 
 
