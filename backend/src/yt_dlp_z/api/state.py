@@ -9,6 +9,7 @@ from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs.queues import JobQueues
 from yt_dlp_z.services.live.scheduler import LiveScheduler
 from yt_dlp_z.services.notify.notifier import Notifier
+from yt_dlp_z.services.watch.retention import RetentionSweeper
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.pot.provider import PotProvider
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
@@ -31,4 +32,5 @@ class AppState:
     update_checker: UpdateChecker
     notifier: Notifier
     pot: PotProvider
+    retention: RetentionSweeper
     login_limiter: FailureRateLimiter = field(default_factory=FailureRateLimiter)

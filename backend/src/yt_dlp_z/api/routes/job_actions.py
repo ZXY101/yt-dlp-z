@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import PlainTextResponse
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from yt_dlp_z.api.deps import Db, State, require_auth
@@ -32,6 +33,19 @@ async def cancel_job(job_id: int, state: State, db: Db) -> JobOut:
     if job.status in FINISHED_STATUSES:
         raise HTTPException(status.HTTP_409_CONFLICT, "This download has already finished")
     await stop_job(state, db, job)
+    return JobOut.model_validate(job)
+
+
+class KeepIn(BaseModel):
+    keep: bool
+
+
+@router.put("/{job_id}/keep")
+async def set_keep(job_id: int, body: KeepIn, state: State, db: Db) -> JobOut:
+    """Pins a download so its subscription's "delete after N days" leaves it alone."""
+    job = await find_job(db, job_id)
+    await repository.save(db, job, keep=body.keep)
+    publish_job(state.hub, job)
     return JobOut.model_validate(job)
 
 

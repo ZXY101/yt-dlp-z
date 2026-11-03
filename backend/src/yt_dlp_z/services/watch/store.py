@@ -55,6 +55,7 @@ def _apply(subscription: Subscription, values: SubscriptionUpdate) -> None:
     subscription.filters = values.filters.model_dump(mode="json")
     subscription.poll_minutes = values.poll_minutes
     subscription.enabled = values.enabled
+    subscription.keep_days = values.keep_days
 
 
 async def create_subscription(

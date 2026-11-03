@@ -129,6 +129,12 @@ export const jobRoutes: Route[] = [
     handle: (server, { params }) => updateJob(server, params, { status: "queued", error: null }),
   },
   {
+    method: "PUT",
+    path: /^\/api\/jobs\/(\d+)\/keep$/,
+    handle: (server, { params, body }) =>
+      updateJob(server, params, { keep: (body as { keep: boolean }).keep }),
+  },
+  {
     method: "DELETE",
     path: JOB_PATH,
     handle: (server, { params, query }) => {

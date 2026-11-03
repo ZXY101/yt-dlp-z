@@ -33,6 +33,11 @@ describe("Subscriptions", () => {
     expect(titles[1]).toContain("Karaoke");
     expect(titles).toHaveLength(2);
     expect(within(list).getByText("Gone")).toBeInTheDocument();
+    await user.click(within(list).getByRole("button", { name: "Keep Karaoke" }));
+    expect(
+      await within(list).findByRole("button", { name: "Stop keeping Karaoke" }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(server.jobs.find((job) => job.id === 1)?.keep).toBe(true);
     expect(screen.getByRole("link", { name: "Open Vivi on YouTube" })).toHaveAttribute(
       "href",
       server.subscriptions[0]?.url,
@@ -107,12 +112,14 @@ describe("Subscriptions", () => {
     await user.type(poll, "1");
     await user.click(screen.getByLabelText("Videos"));
     await user.type(screen.getByLabelText("Shortest (minutes)"), "x");
+    await user.type(screen.getByLabelText("Delete downloads after (days)"), "0");
     await user.click(screen.getByRole("button", { name: "Save subscription" }));
 
     expect(await screen.findByText("Enter a channel URL or @handle.")).toBeVisible();
     expect(screen.getByText("Enter a whole number from 5 to 10080.")).toBeVisible();
     expect(screen.getByText("Pick at least one.")).toBeVisible();
     expect(screen.getByText("Enter a number of minutes.")).toBeVisible();
+    expect(screen.getByText("Enter a whole number from 1 to 3650.")).toBeVisible();
   });
 
   it("shows the server's reason when a channel can't be added", async () => {
@@ -130,6 +137,7 @@ describe("Subscriptions", () => {
         id: 1,
         name: "Demo",
         stream_preset_id: 3,
+        keep_days: 30,
         last_error: "Couldn't load the channel feed",
       }),
     ];
@@ -143,7 +151,11 @@ describe("Subscriptions", () => {
 
     await user.click(screen.getByRole("button", { name: "Pause Demo" }));
     expect(await screen.findByText("Paused")).toBeVisible();
-    expect(server.subscriptions[0]).toMatchObject({ enabled: false, stream_preset_id: 3 });
+    expect(server.subscriptions[0]).toMatchObject({
+      enabled: false,
+      stream_preset_id: 3,
+      keep_days: 30,
+    });
     await user.click(screen.getByRole("button", { name: "Resume Demo" }));
     expect(await screen.findByRole("button", { name: "Pause Demo" })).toBeVisible();
 
@@ -189,9 +201,14 @@ describe("Subscriptions", () => {
     const poll = screen.getByLabelText("Check every (minutes)");
     await user.clear(poll);
     await user.type(poll, "30");
+    await user.type(screen.getByLabelText("Delete downloads after (days)"), "14");
     await user.click(screen.getByRole("button", { name: "Save subscription" }));
     expect(await screen.findByText(/every 30 min/)).toBeVisible();
-    expect(server.subscriptions[0]).toMatchObject({ poll_minutes: 30, output_dir: "demo" });
+    expect(server.subscriptions[0]).toMatchObject({
+      poll_minutes: 30,
+      output_dir: "demo",
+      keep_days: 14,
+    });
   });
 
   it("explains a subscription that no longer exists", async () => {

@@ -45,6 +45,7 @@ from yt_dlp_z.services.notify.notifier import Notifier
 from yt_dlp_z.services.notify.store import load_config
 from yt_dlp_z.services.proxies.pool import ProxyPool
 from yt_dlp_z.services.watch.enqueue import WatchContext
+from yt_dlp_z.services.watch.retention import RetentionSweeper
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.pot.provider import PotProvider
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
@@ -53,6 +54,26 @@ from yt_dlp_z.services.ytdlp.updater import YtdlpUpdater, ytdlp_python_path
 from yt_dlp_z.web import mount_spa
 
 SECONDS_PER_DAY = 86_400
+
+
+async def _start_services(state: AppState) -> None:
+    await state.jobs.start()
+    state.live.start()
+    state.watcher.start()
+    state.update_checker.start()
+    await state.pot.start()
+    state.retention.start()
+
+
+async def _stop_services(state: AppState) -> None:
+    await state.retention.stop()
+    await state.pot.stop()
+    await state.update_checker.stop()
+    await state.updater.stop()
+    await state.watcher.stop()
+    await state.live.stop()
+    await state.jobs.stop()
+    await state.notifier.stop()
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -110,24 +131,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             update_checker=update_checker,
             notifier=notifier,
             pot=pot_provider,
+            retention=RetentionSweeper(job_context),
         )
         if settings.admin_password and settings.auth_mode is AuthMode.PASSWORD:
             async with session_factory() as session:
                 await sync_admin_password(session, settings.admin_password.get_secret_value())
         with ytdlp_python_path(settings.ytdlp_update_dir):
-            await job_queues.start()
-            live.start()
-            watcher.start()
-            update_checker.start()
-            await pot_provider.start()
+            await _start_services(app.state.app_state)
             yield
-            await pot_provider.stop()
-            await update_checker.stop()
-            await updater.stop()
-            await watcher.stop()
-            await live.stop()
-            await job_queues.stop()
-            await notifier.stop()
+            await _stop_services(app.state.app_state)
         await engine.dispose()
 
     app = FastAPI(title="yt-dlp-z", lifespan=lifespan)
