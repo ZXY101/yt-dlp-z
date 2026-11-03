@@ -8,7 +8,7 @@ import type {
 export const MIN_POLL_MINUTES = 5;
 const MAX_POLL_MINUTES = 7 * 24 * 60;
 export const MAX_BACKFILL = 15;
-export const MAX_KEEP_DAYS = 3650;
+const MAX_KEEP_DAYS = 3650;
 const SECONDS_PER_MINUTE = 60;
 
 /** Form state: numbers stay text until submit so half-typed values aren't mangled. */
