@@ -44,14 +44,17 @@ test.describe("presets", () => {
   test("a media-server preset saves videos as episodes of a show", async ({ page }) => {
     await page.goto("/presets/new");
     await page.getByLabel("Name", { exact: true }).fill("Jellyfin");
-    await page.getByLabel("Media server").selectOption("season");
+    await page.getByLabel("Sub-folders").selectOption("season");
+    await page.getByLabel("File name", { exact: true }).selectOption("episode");
+    await page.getByLabel("Media-server files").click();
     await page.getByRole("button", { name: "Save preset" }).click();
     const preset = page.getByRole("listitem").filter({ hasText: "Jellyfin" });
     await expect(preset.getByText(/for media servers/)).toBeVisible();
 
     await page.goto("/");
     await page.getByLabel("Preset").selectOption({ label: "Jellyfin" });
-    await expect(page.getByLabel("Media server")).toHaveValue("season");
+    await expect(page.getByLabel("Sub-folders")).toHaveValue("season");
+    await expect(page.getByLabel("File name", { exact: true })).toHaveValue("episode");
     await page.getByLabel("Link").fill("https://example.com/watch/show");
     await page.getByRole("button", { name: "Download" }).click();
 

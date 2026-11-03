@@ -67,7 +67,7 @@ adds them.
 - Named, reusable option sets for **any link, videos, playlists or live streams**,
   with a default per kind.
 - Live-stream presets carry the **recording settings** (see below).
-- Per-preset **cookies**, **proxy mode** and **media-server layout**.
+- Per-preset **cookies**, **proxy mode**, **folder and file-name layout**.
 
 ### Channel and playlist watching (YouTube)
 
@@ -102,8 +102,11 @@ adds them.
   connection.
 - **Cookies** for members-only, private and age-restricted videos, with a test button.
 - **[ntfy](https://ntfy.sh) notifications** for recordings and problems.
-- **Media-server output** for Jellyfin, Plex and Kodi: `Channel/Season 2026/`
-  folders, episode and show `.nfo` files, thumbnails, channel poster, fanart and banner.
+- **Folder and file-name layout**: a folder per channel (optionally `Season 2026/`),
+  names like `[20261103] Title` or `Channel - S2026E1103 - Title`, dated by the day a
+  stream aired.
+- **Media-server files** for Jellyfin, Plex and Kodi: episode and show `.nfo` files,
+  thumbnails, channel poster, fanart and banner.
 - **Single admin password** (argon2, rate-limited sign-in), or hand login to
   your reverse proxy.
 - **One container** with two volumes, or run it directly with Python and Node.

@@ -26,7 +26,7 @@ SIGINT, saving the file. With --live-from-start progress comes as two numbered s
 ffmpeg writes the file and prints its own "size=… time=…" progress ended by \r, like
 real yt-dlp. --output is honoured for any %(field)s, with fake values for the
 fields media-server output uses (channel, upload_date with a >%Y or >%m%d format,
-a .150B length); with --write-thumbnail it saves a .jpg next to the video; a
+a .150B length, air_date when a --parse-metadata sets it); with --write-thumbnail it saves a .jpg next to the video; a
 --print after_move:[ytdlpz:nfo] template gets the NFO fields;
 --replace-in-metadata title REGEX REPLACE changes the title (and so the file name);
 ...upcoming... URLs first print yt-dlp's wait message. ...waiting... recordings keep
@@ -194,14 +194,18 @@ def report_cookies(args: list[str]) -> None:
         emit(f"[fake] cookies: {len(cookies)}")
 
 
-def fake_fields(title: str, video_id: str) -> dict[str, str]:
-    return {
+def fake_fields(args: list[str], title: str, video_id: str) -> dict[str, str]:
+    fields = {
         "title": title,
         "id": video_id,
         "ext": "mp4",
         "channel": FAKE_CHANNEL,
         "upload_date": FAKE_UPLOAD_DATE,
     }
+    # The fake videos have no release date, so air_date is the upload date.
+    if any("(?P<air_date>" in value for value in values_of(args, "--parse-metadata")):
+        fields["air_date"] = FAKE_UPLOAD_DATE
+    return fields
 
 
 def date_part(value: str, date_format: str) -> str:
@@ -214,7 +218,7 @@ def date_part(value: str, date_format: str) -> str:
 def output_name(args: list[str], title: str, video_id: str) -> str:
     templates = values_of(args, "--output")
     template = templates[-1] if templates else "%(title)s [%(id)s].%(ext)s"
-    fields = fake_fields(title, video_id)
+    fields = fake_fields(args, title, video_id)
 
     def render(match: re.Match[str]) -> str:
         name = match["names"].split(",")[0]
@@ -227,7 +231,7 @@ def output_name(args: list[str], title: str, video_id: str) -> str:
 def emit_nfo(args: list[str], target: Path, title: str, video_id: str) -> None:
     if not any(value.startswith(f"after_move:{NFO}") for value in values_of(args, "--print")):
         return
-    info = fake_fields(title, video_id) | {
+    info = fake_fields(args, title, video_id) | {
         "filepath": str(target),
         "channel_id": "UCfakechannel",
         "description": "A fake video's description.",

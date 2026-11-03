@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from yt_dlp_z.db.base import Base
 from yt_dlp_z.db.models.job import utcnow
-from yt_dlp_z.schemas.common import MediaLayout, ProxyMode
+from yt_dlp_z.schemas.common import FileNaming, FolderLayout, ProxyMode
 
 
 class Preset(Base):
@@ -28,8 +28,10 @@ class Preset(Base):
     is_default: Mapped[bool] = mapped_column(Boolean, default=False)
     # Live-stream presets: schemas/recording.py RecordingSettings.
     recording: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
-    # Media-server output: schemas/common.py MediaLayout, or None for off.
-    media_layout: Mapped[MediaLayout | None] = mapped_column(String(20), default=None)
+    # Layout: schemas/common.py FolderLayout and FileNaming, None for the plain default.
+    folders: Mapped[FolderLayout | None] = mapped_column(String(20), default=None)
+    file_name: Mapped[FileNaming | None] = mapped_column(String(20), default=None)
+    media_files: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     proxy_mode: Mapped[ProxyMode] = mapped_column(String(20), default="off", server_default="off")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(

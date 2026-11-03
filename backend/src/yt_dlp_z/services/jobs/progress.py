@@ -69,12 +69,12 @@ class ProgressTracker:
             await self.flush()
 
     async def _write_nfo(self, update: NfoUpdate) -> None:
-        layout = self._job.media_layout
-        if layout is None:
+        if not self._job.media_files:
             return
         download_dir = Path(self._job.output_dir)
+        folders = self._job.folders
         try:
-            show_dir = await asyncio.to_thread(write_nfo_files, update.info, layout, download_dir)
+            show_dir = await asyncio.to_thread(write_nfo_files, update.info, folders, download_dir)
         except OSError:
             # The video itself is saved; a missing .nfo shouldn't fail the download.
             logger.warning("Couldn't write the .nfo files for job %s", self._job.id, exc_info=True)

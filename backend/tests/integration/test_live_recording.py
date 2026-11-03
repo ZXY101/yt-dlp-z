@@ -223,7 +223,13 @@ def test_a_recording_that_needs_no_split_keeps_the_plain_name(watch_client: Test
 
 def test_the_first_part_is_numbered_with_the_files_beside_it(watch_client: TestClient) -> None:
     job_id = start_recording(
-        watch_client, watch_url("slow-live"), part_seconds=1, max_seconds=2, media_layout="flat"
+        watch_client,
+        watch_url("slow-live"),
+        part_seconds=1,
+        max_seconds=2,
+        folders="channel",
+        file_name="episode",
+        media_files=True,
     )
     job = wait_for_job(watch_client, job_id, FINISHED)
     assert job["status"] == "completed"

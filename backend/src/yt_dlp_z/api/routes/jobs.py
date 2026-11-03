@@ -50,7 +50,9 @@ async def create_job(body: JobCreate, state: State, db: Db) -> JobOut:
         options=body.options,
         extra_args=body.extra_args,
         output_dir=str(output_dir),
-        media_layout=body.media_layout,
+        folders=body.folders,
+        file_name=body.file_name,
+        media_files=body.media_files,
         proxy_mode=body.proxy_mode,
         cookie_id=body.cookie_id,
     )

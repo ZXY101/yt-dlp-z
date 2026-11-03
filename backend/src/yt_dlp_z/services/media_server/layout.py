@@ -1,51 +1,79 @@
-"""Media-server output: files laid out the way Jellyfin, Plex and Kodi expect a TV show.
+"""Folder and file-name layout, and the extra files media servers read.
 
-Each channel is a show, each upload year a season and each video an episode numbered by
-its upload date (S2026E1031), so new videos sort in order without a running count.
+Three independent choices per preset or download:
+
+- folders: straight into the download folder, a folder per channel, or a folder per
+  channel with a "Season YYYY" folder per year;
+- file name: the user's own template (or yt-dlp's default), "Title [id]",
+  "[20261103] Title", "[20261103] Title [id]", or a TV episode numbered by the day it aired
+  ("Channel - S2026E1103 - Title [id]"), so new videos sort in order without a running
+  count;
+- media files: a .jpg thumbnail and .nfo next to each video, and the channel's tvshow.nfo
+  and artwork, for Jellyfin, Plex and Kodi.
 """
 
 from yt_dlp_z.db.models.job import Job
-from yt_dlp_z.schemas.common import MediaLayout
+from yt_dlp_z.schemas.common import FileNaming, FolderLayout
 from yt_dlp_z.services.ytdlp.command import NFO_MARKER
 
 CHANNEL = "%(channel,uploader|Unknown channel)s"
-YEAR = "%(upload_date>%Y|0000)s"
-# Titles are cut to 150 bytes: channel, title and the rest must fit the 255-byte name limit.
-EPISODE = f"{CHANNEL} - S{YEAR}E%(upload_date>%m%d|0000)s - %(title).150B [%(id)s].%(ext)s"
+# The day it aired: a live stream's or premiere's release date, else the upload date.
+# upload_date alone is when a stream's waiting room was made, often weeks before.
+# yt-dlp ignores a date format on a field with alternatives, so it gets its own field.
+AIR_DATE_ARGS = ["--parse-metadata", r"%(release_date,upload_date|)s:(?P<air_date>\d{8})"]
+YEAR = "%(air_date>%Y|0000)s"
+DATE = "%(air_date|00000000)s"
 
-NFO_FIELDS = "filepath,id,title,channel,uploader,channel_id,upload_date,description,duration"
+FOLDERS: dict[FolderLayout, str] = {
+    "channel": CHANNEL,
+    "season": f"{CHANNEL}/Season {YEAR}",
+}
+# Titles are cut so the whole name fits the 255-byte limit.
+FILE_NAMES: dict[FileNaming, str] = {
+    "title_id": "%(title).200B [%(id)s].%(ext)s",
+    "dated": f"[{DATE}] %(title).200B.%(ext)s",
+    "dated_id": f"[{DATE}] %(title).190B [%(id)s].%(ext)s",
+    "episode": f"{CHANNEL} - S{YEAR}E%(air_date>%m%d|0000)s - %(title).150B [%(id)s].%(ext)s",
+}
+# What yt-dlp names files when no template is given.
+YTDLP_DEFAULT_NAME = "%(title)s [%(id)s].%(ext)s"
+
+NFO_FIELDS = (
+    "filepath,id,title,channel,uploader,channel_id,air_date,upload_date,description,duration"
+)
 
 
-def media_template(layout: MediaLayout) -> str:
-    if layout == "season":
-        return f"{CHANNEL}/Season {YEAR}/{EPISODE}"
-    return f"{CHANNEL}/{EPISODE}"
-
-
-def media_args(layout: MediaLayout) -> list[str]:
-    """Options yt-dlp-z adds for a media-server layout. They come after the user's own,
-    so this file name template wins over theirs."""
-    return [
-        "--output",
-        media_template(layout),
-        # Saved next to the video with the same name, where media servers look for it.
-        "--write-thumbnail",
-        "--convert-thumbnails",
-        "jpg",
-        "--embed-metadata",
-        # What the episode .nfo needs, printed once the file is in place.
-        "--print",
-        f"after_move:{NFO_MARKER}%(.{{{NFO_FIELDS}}})j",
-    ]
+def _user_template(job: Job) -> str | None:
+    template = job.options.get("--output")
+    return template if isinstance(template, str) and template else None
 
 
 def output_template(job: Job) -> str | None:
-    """The file name template the job's files get: the media-server one, or the user's."""
-    if job.media_layout is not None:
-        return media_template(job.media_layout)
-    template = job.options.get("--output")
-    return template if isinstance(template, str) else None
+    """The file name template the job's files get: the layout's, or the user's own."""
+    user = _user_template(job)
+    if job.folders is None and job.file_name is None:
+        return user
+    name = FILE_NAMES[job.file_name] if job.file_name else (user or YTDLP_DEFAULT_NAME)
+    return f"{FOLDERS[job.folders]}/{name}" if job.folders else name
 
 
 def job_media_args(job: Job) -> list[str]:
-    return media_args(job.media_layout) if job.media_layout is not None else []
+    """Options yt-dlp-z adds for the layout. They come after the user's own, so this
+    file name template wins over theirs."""
+    args: list[str] = []
+    if job.folders is not None or job.file_name is not None or job.media_files:
+        args += AIR_DATE_ARGS
+    if job.folders is not None or job.file_name is not None:
+        args += ["--output", output_template(job) or YTDLP_DEFAULT_NAME]
+    if job.media_files:
+        args += [
+            # Saved next to the video with the same name, where media servers look for it.
+            "--write-thumbnail",
+            "--convert-thumbnails",
+            "jpg",
+            "--embed-metadata",
+            # What the episode .nfo needs, printed once the file is in place.
+            "--print",
+            f"after_move:{NFO_MARKER}%(.{{{NFO_FIELDS}}})j",
+        ]
+    return args

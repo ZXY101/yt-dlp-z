@@ -33,8 +33,10 @@ videos, "Audio only" for playlists, and "Live streams" for live streams.
 - **Cookies**: a [cookies file](cookies.md) to sign in with
 - **Proxy**: Off, next proxy in turn, random proxy, or same proxy per channel
   ([Proxies](proxies.md))
-- **Media server**: off, `Channel/Season YYYY/` or flat
-  ([Media servers](media-server.md))
+- **Sub-folders, file name, media-server files**: a folder per channel (with
+  or without season folders), names like `[20261103] Title` or
+  `Channel - S2026E1103 - Title`, thumbnails and `.nfo` files
+  ([Folders and media servers](media-server.md))
 
 ## Live-stream presets
 

@@ -877,8 +877,15 @@ export interface components {
             output_dir?: string | null;
             /** Cookie Id */
             cookie_id?: number | null;
-            /** Media Layout */
-            media_layout?: ("season" | "flat") | null;
+            /** Folders */
+            folders?: ("channel" | "season") | null;
+            /** File Name */
+            file_name?: ("title_id" | "dated" | "dated_id" | "episode") | null;
+            /**
+             * Media Files
+             * @default false
+             */
+            media_files: boolean;
             /**
              * Proxy Mode
              * @default off
@@ -917,8 +924,12 @@ export interface components {
             extra_args: string;
             /** Output Dir */
             output_dir: string;
-            /** Media Layout */
-            media_layout: ("season" | "flat") | null;
+            /** Folders */
+            folders: ("channel" | "season") | null;
+            /** File Name */
+            file_name: ("title_id" | "dated" | "dated_id" | "episode") | null;
+            /** Media Files */
+            media_files: boolean;
             /** Cookie Id */
             cookie_id: number | null;
             /**
@@ -1133,8 +1144,15 @@ export interface components {
             output_dir?: string | null;
             /** Cookie Id */
             cookie_id?: number | null;
-            /** Media Layout */
-            media_layout?: ("season" | "flat") | null;
+            /** Folders */
+            folders?: ("channel" | "season") | null;
+            /** File Name */
+            file_name?: ("title_id" | "dated" | "dated_id" | "episode") | null;
+            /**
+             * Media Files
+             * @default false
+             */
+            media_files: boolean;
             /**
              * Proxy Mode
              * @default off
@@ -1174,8 +1192,15 @@ export interface components {
             output_dir?: string | null;
             /** Cookie Id */
             cookie_id?: number | null;
-            /** Media Layout */
-            media_layout?: ("season" | "flat") | null;
+            /** Folders */
+            folders?: ("channel" | "season") | null;
+            /** File Name */
+            file_name?: ("title_id" | "dated" | "dated_id" | "episode") | null;
+            /**
+             * Media Files
+             * @default false
+             */
+            media_files: boolean;
             /**
              * Proxy Mode
              * @default off

@@ -38,7 +38,10 @@ function describePreset(preset: Preset) {
   if (preset.cookie_id !== null) {
     parts.push("with cookies");
   }
-  if (preset.media_layout) {
+  if (preset.folders) {
+    parts.push("in channel folders");
+  }
+  if (preset.media_files) {
     parts.push("for media servers");
   }
   if (preset.proxy_mode !== "off") {

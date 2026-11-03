@@ -106,18 +106,24 @@ describe("DownloadPage", () => {
     expect(screen.getByLabelText("File name template")).toBeVisible();
   });
 
-  it("lays the download out for a media server when asked", async () => {
+  it("saves into channel folders with a chosen file name", async () => {
     const server = createFakeServer();
     installFakeApi(server);
     const { user } = renderApp("/");
 
     await enterCheckedLink(user, "https://example.com/v");
-    await user.selectOptions(screen.getByLabelText("Media server"), "flat");
+    await user.selectOptions(screen.getByLabelText("Sub-folders"), "channel");
     await user.click(screen.getByRole("button", { name: "Advanced options" }));
-    expect(screen.getByText(/Not used: the media-server layout/)).toBeVisible();
+    expect(screen.getByText(/used inside the sub-folders/)).toBeVisible();
+    await user.selectOptions(screen.getByLabelText("File name"), "dated");
+    expect(screen.getByText(/Not used: File name above/)).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Download" }));
     await screen.findByRole("heading", { name: "Queue" });
-    expect(server.jobs[0]?.media_layout).toBe("flat");
+    expect(server.jobs[0]).toMatchObject({
+      folders: "channel",
+      file_name: "dated",
+      media_files: false,
+    });
   });
 
   it("downloads just the video from a playlist link unless asked for the whole playlist", async () => {

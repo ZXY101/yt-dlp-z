@@ -24,11 +24,13 @@ def test_season_layout_saves_a_show_folder(setup_client: TestClient, tmp_path: P
         json={
             "url": "https://www.youtube.com/watch?v=abc",
             "options": {"--output": "%(title)s.%(ext)s"},
-            "media_layout": "season",
+            "folders": "season",
+            "file_name": "episode",
+            "media_files": True,
         },
     )
     assert response.status_code == 201
-    assert response.json()["media_layout"] == "season"
+    assert response.json()["folders"] == "season"
     done = wait_for_job(setup_client, response.json()["id"], FINISHED)
     assert done["status"] == "completed"
 
@@ -49,29 +51,47 @@ def test_nfo_write_errors_dont_fail_the_download(
     monkeypatch.setattr(progress, "write_nfo_files", broken)
     response = setup_client.post(
         "/api/jobs",
-        json={"url": "https://www.youtube.com/watch?v=ro", "media_layout": "flat"},
+        json={"url": "https://www.youtube.com/watch?v=ro", "media_files": True},
     )
     done = wait_for_job(setup_client, response.json()["id"], FINISHED)
     assert done["status"] == "completed"
 
 
 def test_presets_keep_the_layout(setup_client: TestClient) -> None:
-    created = setup_client.post(
-        "/api/presets", json={"name": "Jellyfin", "media_layout": "flat"}
-    ).json()
-    assert created["media_layout"] == "flat"
-    bad = setup_client.post("/api/presets", json={"name": "Bad", "media_layout": "nested"})
+    layout = {"folders": "channel", "file_name": "dated", "media_files": False}
+    created = setup_client.post("/api/presets", json={"name": "Archive", **layout}).json()
+    assert {key: created[key] for key in layout} == layout
+    bad = setup_client.post("/api/presets", json={"name": "Bad", "folders": "nested"})
     assert bad.status_code == 422
     plain = setup_client.post("/api/presets", json={"name": "Plain"}).json()
-    assert plain["media_layout"] is None
+    assert (plain["folders"], plain["file_name"], plain["media_files"]) == (None, None, False)
+
+
+def test_dated_names_in_a_channel_folder(setup_client: TestClient, tmp_path: Path) -> None:
+    response = setup_client.post(
+        "/api/jobs",
+        json={
+            "url": "https://www.youtube.com/watch?v=abc",
+            "folders": "channel",
+            "file_name": "dated",
+        },
+    )
+    done = wait_for_job(setup_client, response.json()["id"], FINISHED)
+    assert done["status"] == "completed"
+    video = Path(done["filepath"])
+    assert (
+        video
+        == (tmp_path / "downloads" / "Fake channel").resolve() / "[20261001] Fake video abc.mp4"
+    )
+    assert list(video.parent.glob("*.nfo")) == []
 
 
 def test_subscriptions_copy_the_presets_layout(watch_client: TestClient, feeds: Path) -> None:
     preset = watch_client.post(
-        "/api/presets", json={"name": "Shows", "media_layout": "season"}
+        "/api/presets", json={"name": "Shows", "folders": "season", "file_name": "episode"}
     ).json()
     write_feed(feeds, CHANNEL_ID, ["show"])
     created = subscribe(watch_client, backfill=1, preset_id=preset["id"])
     wait_for_check(watch_client, created["id"])
     job = watch_client.get("/api/jobs").json()[0]
-    assert job["media_layout"] == "season"
+    assert (job["folders"], job["file_name"]) == ("season", "episode")
