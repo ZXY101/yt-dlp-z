@@ -52,9 +52,11 @@ def test_part_names() -> None:
 
 def test_part_args() -> None:
     job = Job(options={}, record_from_start=True, part_seconds=None)
-    assert part_args(job, 1) == ["--live-from-start", "--wait-for-video", "30-300"]
+    title = ["--parse-metadata", "fulltitle:%(title)s"]
+    assert part_args(job, 1) == ["--live-from-start", *title, "--wait-for-video", "30-300"]
     # A continued recording (after a restart) records from now, into a numbered file.
     assert part_args(job, 2) == [
+        *title,
         "--wait-for-video",
         "30-300",
         "--output",
@@ -62,7 +64,7 @@ def test_part_args() -> None:
     ]
     split = Job(options={"--output": "%(title)s.%(ext)s"}, record_from_start=False, part_seconds=60)
     # The first part keeps the plain name until a second part starts.
-    assert part_args(split, 1) == ["--wait-for-video", "30-300"]
+    assert part_args(split, 1) == [*title, "--wait-for-video", "30-300"]
     assert part_args(split, 2)[-2:] == ["--output", "%(title)s (part 2).%(ext)s"]
 
 

@@ -93,7 +93,7 @@ def test_streams_are_recorded_instead_of_downloaded(watch_client: TestClient, fe
     # Video (1 MB) and audio (0.1 MB) progress, added up.
     assert live["downloaded_bytes"] == 1_100_000
     log = watch_client.get(f"/api/jobs/{live['id']}/log").text
-    assert "--live-from-start --wait-for-video 30-300" in log
+    assert "--live-from-start --parse-metadata fulltitle:%(title)s --wait-for-video 30-300" in log
 
     states = video_states(watch_client, created["id"])
     assert states["upcoming1"] == ("upcoming", None)

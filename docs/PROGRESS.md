@@ -453,7 +453,12 @@ Still open:
   Compared with Pinchflat (dormant since 2025-12, no live recording): keep going;
   ideas from it in Open items. Part names: the first part keeps the plain file
   name; when a second part starts, it and the files beside it (.nfo, .jpg) are
-  renamed to "(part 1)" (`number_first_part`).
+  renamed to "(part 1)" (`number_first_part`; parts already numbered by older
+  versions are left alone). Recordings pass `--parse-metadata
+"fulltitle:%(title)s"`, because yt-dlp adds the date and time to a live title
+  (seen on part 2 after a redeploy). Example compose stop_grace_period 2m → 10m:
+  2 min killed yt-dlp while it embedded the thumbnail into a 2.5 GB part (left a
+  .temp.mkv; the .mkv itself was complete).
 
 **Next session:** M6 step 6 (PO-token provider recipe). Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.
