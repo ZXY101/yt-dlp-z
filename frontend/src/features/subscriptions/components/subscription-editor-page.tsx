@@ -1,7 +1,6 @@
 import { Link, useParams } from "react-router";
 
 import { describeError } from "@/api/errors";
-import { CheckboxField } from "@/components/checkbox-field";
 import { FolderField } from "@/components/download-options/folder-field";
 import { FormError } from "@/components/form-error";
 import { FormField } from "@/components/form-field";
@@ -10,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { useSubscriptions } from "@/features/subscriptions/api";
 import { FilterFields } from "@/features/subscriptions/components/filter-fields";
 import { LinkFields } from "@/features/subscriptions/components/link-fields";
+import { ScheduleFields } from "@/features/subscriptions/components/schedule-fields";
 import { VideoList } from "@/features/subscriptions/components/video-list";
-import { MAX_BACKFILL, MIN_POLL_MINUTES } from "@/features/subscriptions/form-values";
+import { MAX_BACKFILL } from "@/features/subscriptions/form-values";
 import { useSubscriptionForm } from "@/features/subscriptions/hooks/use-subscription-form";
 import type { Subscription } from "@/features/subscriptions/types";
 
@@ -55,20 +55,7 @@ function SubscriptionForm({ subscription }: { subscription: Subscription | null 
       {subscription === null && <ChannelFields form={form} />}
       <LinkFields values={values} onChange={change} />
       <FolderField value={values.outputDir} onChange={(outputDir) => change({ outputDir })} />
-      <FormField
-        label="Check every (minutes)"
-        inputMode="numeric"
-        hint={`At least ${MIN_POLL_MINUTES}. Checking often makes rate limits more likely.`}
-        value={values.pollMinutes}
-        error={errors.pollMinutes}
-        onChange={(event) => change({ pollMinutes: event.target.value })}
-      />
-      <CheckboxField
-        label="Watch this channel"
-        description="Turn off to pause checking without losing the settings."
-        checked={values.enabled}
-        onCheckedChange={(enabled) => change({ enabled })}
-      />
+      <ScheduleFields values={values} errors={errors} onChange={change} />
       <FilterFields values={values} errors={errors} onChange={change} />
       <div className="flex flex-wrap gap-2">
         <Button type="submit" size="lg" className="h-10" disabled={save.isPending}>

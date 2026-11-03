@@ -1,9 +1,9 @@
-import { FileText, type LucideIcon, RotateCcw, Square } from "lucide-react";
+import { FileText, type LucideIcon, Pin, PinOff, RotateCcw, Square } from "lucide-react";
 import { useState } from "react";
 
 import { describeError } from "@/api/errors";
 import { Button } from "@/components/ui/button";
-import { useCancelJob, useDeleteJob, useRetryJob } from "@/features/downloads/api";
+import { useCancelJob, useDeleteJob, useRetryJob, useSetJobKeep } from "@/features/downloads/api";
 import { JobLogDialog } from "@/features/downloads/components/job-log-dialog";
 import { RemoveJobButton } from "@/features/downloads/components/remove-job-button";
 import { isFinishedJob } from "@/features/downloads/jobs";
@@ -32,13 +32,32 @@ function useJobMutations() {
   const cancel = useCancelJob();
   const retry = useRetryJob();
   const remove = useDeleteJob();
-  const failed = [cancel, retry, remove].find((mutation) => mutation.isError);
-  return { cancel, retry, remove, error: failed ? describeError(failed.error) : null };
+  const keep = useSetJobKeep();
+  const failed = [cancel, retry, remove, keep].find((mutation) => mutation.isError);
+  return { cancel, retry, remove, keep, error: failed ? describeError(failed.error) : null };
+}
+
+/** Subscription downloads can be pinned against "delete after N days". */
+function KeepButton({ job, mutation }: { job: Job; mutation: ReturnType<typeof useSetJobKeep> }) {
+  const name = job.title ?? job.url;
+  return (
+    <Button
+      variant={job.keep ? "outline" : "ghost"}
+      className="h-10"
+      aria-label={job.keep ? `Stop keeping ${name}` : `Keep ${name}`}
+      aria-pressed={job.keep}
+      disabled={mutation.isPending}
+      onClick={() => mutation.mutate({ jobId: job.id, keep: !job.keep })}
+    >
+      {job.keep ? <PinOff aria-hidden /> : <Pin aria-hidden />}
+      {job.keep ? "Kept" : "Keep"}
+    </Button>
+  );
 }
 
 export function JobActions({ job }: { job: Job }) {
   const [logOpen, setLogOpen] = useState(false);
-  const { cancel, retry, remove, error } = useJobMutations();
+  const { cancel, retry, remove, keep, error } = useJobMutations();
   const finished = isFinishedJob(job);
   const canRetry = job.status === "failed" || job.status === "cancelled";
   const name = job.title ?? job.url;
@@ -67,6 +86,7 @@ export function JobActions({ job }: { job: Job }) {
             onClick={() => retry.mutate(job.id)}
           />
         )}
+        {finished && job.subscription_id !== null && <KeepButton job={job} mutation={keep} />}
         {finished && (
           <RemoveJobButton
             job={job}

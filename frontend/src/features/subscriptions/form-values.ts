@@ -8,6 +8,7 @@ import type {
 export const MIN_POLL_MINUTES = 5;
 const MAX_POLL_MINUTES = 7 * 24 * 60;
 export const MAX_BACKFILL = 15;
+export const MAX_KEEP_DAYS = 3650;
 const SECONDS_PER_MINUTE = 60;
 
 /** Form state: numbers stay text until submit so half-typed values aren't mangled. */
@@ -20,6 +21,8 @@ export interface SubscriptionFormValues {
   outputDir: string;
   pollMinutes: string;
   enabled: boolean;
+  /** Empty keeps downloads for good. */
+  keepDays: string;
   contentTypes: ContentType[];
   titleInclude: string;
   titleExclude: string;
@@ -40,6 +43,7 @@ export const EMPTY_FORM: SubscriptionFormValues = {
   outputDir: "",
   pollMinutes: "10",
   enabled: true,
+  keepDays: "",
   contentTypes: ["video"],
   titleInclude: "",
   titleExclude: "",
@@ -64,6 +68,7 @@ export function formFromSubscription(subscription: Subscription): SubscriptionFo
     outputDir: subscription.output_dir ?? "",
     pollMinutes: String(subscription.poll_minutes),
     enabled: subscription.enabled,
+    keepDays: subscription.keep_days ? String(subscription.keep_days) : "",
     contentTypes: filters.content_types,
     titleInclude: filters.title_include ?? "",
     titleExclude: filters.title_exclude ?? "",
@@ -96,6 +101,9 @@ export function validateForm(values: SubscriptionFormValues, isNew: boolean): Fo
     minMinutes: minutesError(values.minMinutes),
     maxMinutes: minutesError(values.maxMinutes),
     contentTypes: values.contentTypes.length === 0 ? "Pick at least one." : undefined,
+    keepDays: values.keepDays.trim()
+      ? wholeNumberError(values.keepDays, 1, MAX_KEEP_DAYS)
+      : undefined,
   };
   if (isNew) {
     errors.channel = values.channel.trim() ? undefined : "Enter a channel URL or @handle.";
@@ -116,6 +124,7 @@ export function updateBody(values: SubscriptionFormValues): SubscriptionUpdate {
     output_dir: values.outputDir.trim() || null,
     poll_minutes: Number(values.pollMinutes),
     enabled: values.enabled,
+    keep_days: values.keepDays.trim() ? Number(values.keepDays) : null,
     filters: {
       content_types: values.contentTypes,
       title_include: values.titleInclude.trim() || null,

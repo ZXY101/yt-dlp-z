@@ -58,6 +58,16 @@ function useJobUpdate(send: (jobId: number) => Promise<Job>) {
   });
 }
 
+/** Pins a download so its subscription's "delete after N days" leaves it alone. */
+export function useSetJobKeep() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ jobId, keep }: { jobId: number; keep: boolean }) =>
+      unwrap(api.PUT("/api/jobs/{job_id}/keep", { ...jobPath(jobId), body: { keep } })),
+    onSuccess: (job) => saveJob(queryClient, job),
+  });
+}
+
 export function useCancelJob() {
   return useJobUpdate((jobId) => unwrap(api.POST("/api/jobs/{job_id}/cancel", jobPath(jobId))));
 }

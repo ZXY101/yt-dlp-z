@@ -65,6 +65,9 @@ class SubscriptionFilters(BaseModel):
         return self
 
 
+MAX_KEEP_DAYS = 3650
+
+
 class SubscriptionUpdate(BaseModel):
     preset_id: int | None = None
     # For live streams and premieres; see models/subscription.py.
@@ -77,6 +80,9 @@ class SubscriptionUpdate(BaseModel):
         default=DEFAULT_POLL_MINUTES, ge=MIN_POLL_MINUTES, le=MAX_POLL_MINUTES
     )
     enabled: bool = True
+    # Delete downloads this many days after they finish, except pinned ones (Keep).
+    # None keeps them for good.
+    keep_days: int | None = Field(default=None, ge=1, le=MAX_KEEP_DAYS)
 
     @field_validator("output_dir")
     @classmethod
