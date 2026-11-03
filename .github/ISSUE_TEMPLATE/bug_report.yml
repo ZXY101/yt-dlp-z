@@ -1,0 +1,50 @@
+name: Bug report
+description: Something doesn't work as it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! **Remove cookies, tokens, passwords and private links** from anything you paste.
+        If the same download also fails with plain `yt-dlp` on the command line, please report it to [yt-dlp](https://github.com/yt-dlp/yt-dlp/issues) instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: yt-dlp-z version
+      description: Shown on the Settings page.
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: ytdlp
+    attributes:
+      label: yt-dlp version
+      description: Shown on the Settings page.
+      placeholder: "2026.10.29"
+  - type: dropdown
+    id: install
+    attributes:
+      label: How do you run it?
+      options:
+        - Docker
+        - Without Docker
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: "Firefox 140 on Windows, Safari on iPhone"
+  - type: textarea
+    id: log
+    attributes:
+      label: Job log or server log
+      description: The job's Log from the Queue page, or `docker logs yt-dlp-z`.
+      render: text

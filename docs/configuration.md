@@ -51,173 +51,21 @@ Paths are resolved (including `..` and symlinks) before this check, so a
 download can't escape these folders. File name templates (`--output`) must be
 relative for the same reason.
 
-### Cookies
+### Feature settings
 
-Upload a Netscape-format `cookies.txt` on the Cookies page to download
-members-only, private or age-restricted videos. yt-dlp-z stores it in
-`<config>/cookies/` readable only by its own user, never returns it through the
-API, and passes `--cookies` itself (users can't). Each download gets its own
-temporary copy, because yt-dlp writes cookies back when it exits. For YouTube,
-export from a private window you then close, so the browser doesn't rotate the
-session and invalidate the file.
+Most settings live in the app, on the Settings page or per preset. Each feature
+has its own guide:
 
-### Watching channels
+- [Cookies](cookies.md): members-only and age-restricted videos
+- [Subscriptions](subscriptions.md): check interval, channel limit, filters, retention
+- [Live recording](live-recording.md): recording settings and VODs
+- [Media servers](media-server.md): Jellyfin / Plex / Kodi output
+- [Proxies](proxies.md): the proxy pool
+- [Notifications](notifications.md): ntfy
+- [yt-dlp and PO tokens](ytdlp.md): updates, PO tokens and the
+  [blocked yt-dlp options](ytdlp.md#blocked-options) (`YTDLPZ_ALLOW_UNSAFE_OPTIONS`)
 
-The Subscriptions page watches YouTube channels (a channel URL or `@handle`).
-Each channel's RSS feed is read every 10 minutes by default (5 at the
-least), plus a little random delay so channels don't all poll at once. A new
-upload is opened with yt-dlp to see what it is (video, Short, live stream or
-premiere), checked against the subscription's filters, and queued with its
-preset. On the first check only the newest "backfill" uploads are downloaded;
-older ones are marked as seen. Each video is handled once; if yt-dlp can't
-open it, it is retried on the next check while it is still in the feed.
-
-Upcoming and live streams are recorded with the subscription's stream
-preset. Members-only videos need a member's cookies, set on the subscription
-or its preset.
-
-**Playlists.** A playlist link (any link with `list=`) watches that playlist
-instead: each check lists it with yt-dlp (up to 1,000 videos) and downloads
-the ones added since. Playlists people make add new videos at the end, so the
-last ones count as the newest for "download recent uploads now"; a channel's
-"Uploads" playlist (`UU…`) is newest first. Mixes (`RD…`) can't be watched.
-
-**What it downloaded.** Tap a subscription to see everything it downloaded
-or recorded, with how much space the files take. In the channel's video list
-(Edit), **Don't download** skips a video for good (and stops its download or
-recording); **Allow again** looks at it again on the next check.
-
-**Deleting files.** Remove on a download asks whether to keep its files or
-delete them. Deleting removes the video and the files saved beside it with
-the same name (`.nfo`, thumbnail, subtitles, other recording parts), only
-inside the download's own folder, and a subscription won't download that
-video again.
-
-**Delete after N days** (optional, off by default): set per subscription.
-An hourly sweep deletes its downloads that finished longer ago than that,
-the same way. **Keep** on a download pins it.
-
-The Settings page limits how many channels can be watched (5 by default).
-Many channels polled from one IP can get it rate-limited or flagged by YouTube.
-
-### VODs after recordings
-
-Optional, per live-stream preset (off by default): **Download the VOD
-afterwards** schedules a normal download of the stream that many hours after
-the recording ends. It fills gaps a recording can have (expired links,
-restarts), and YouTube needs time to process long streams. The VOD gets
-"(VOD)" added to its title, so it never shares the recording's file name.
-With **Delete the recording once the VOD is saved**, the recording is deleted
-after the VOD finishes; a VOD that fails (members-only, not archived) keeps
-the recording.
-
-### Proxy pool
-
-Settings → **Proxies** holds HTTP or SOCKS proxies (`http://`, `https://`,
-`socks4://`, `socks4a://`, `socks5://`, `socks5h://`, with `user:password@` if
-needed). Passwords are stored in the database but never shown again. **Test**
-opens a page through the proxy with yt-dlp's own networking and shows the IP
-address sites see (from Cloudflare's `/cdn-cgi/trace`), then checks that
-YouTube answers.
-
-A preset (or a single download) picks how its downloads use the pool: **Off**,
-**Next proxy in turn**, **Random proxy**, or **Same proxy per channel**
-(subscriptions keep one proxy; one-off downloads take turns). The proxy is
-picked when a download starts and kept until it ends. If yt-dlp fails with
-YouTube's "confirm you're not a bot", HTTP 429 or a proxy connection error,
-that proxy is skipped for 30 minutes and the download tries the next one (up
-to 3). Recordings aren't retried, but the proxy still cools down. A download
-that should use the pool never falls back to a direct connection: with no
-proxy free it fails, and can be retried.
-
-Downloads with cookies connect directly unless **Send downloads with cookies
-through proxies** is on: one account seen from many IP addresses can get
-flagged, and the cookies identify it anyway. Channel checks (feeds, link
-checks) don't use the pool yet.
-
-YouTube often asks VPN and data-centre addresses to sign in, so a VPN proxy may
-work better for other sites than for YouTube. One way to get several exit IPs:
-one [gluetun](https://github.com/qdm12/gluetun) container per VPN server, each
-with its HTTP proxy on (`HTTPPROXY=on`), on the same Docker network as yt-dlp-z:
-
-```yaml
-services:
-  vpn-1:
-    image: qmcgaw/gluetun
-    cap_add: [NET_ADMIN]
-    devices: [/dev/net/tun:/dev/net/tun]
-    environment:
-      VPN_SERVICE_PROVIDER: your-provider
-      SERVER_COUNTRIES: Netherlands
-      HTTPPROXY: "on"
-      # plus your provider's credentials
-```
-
-Then add `http://vpn-1:8888` as a proxy. yt-dlp-z itself never needs
-`NET_ADMIN` or a VPN of its own.
-
-### Updating yt-dlp
-
-YouTube changes often break older yt-dlp versions. Settings → yt-dlp updates it
-without a new app release: **Update now** pip-installs the newest
-`yt-dlp[default]` (Stable, or Nightly pre-releases) into `<config>/ytdlp`. That
-folder comes first on `PYTHONPATH` for every yt-dlp run, so the update survives
-container rebuilds and app updates. Downloads already running keep the version
-they started with. **Use bundled version** deletes the folder. The install goes
-to a staging folder first, so a failed update never breaks the yt-dlp in use.
-Updating needs internet access to PyPI. The app checks for a newer version a
-minute after it starts and then once a day (Settings shows "X is available");
-turn on **Update automatically** to install it then. It's off by default.
-
-### PO tokens
-
-YouTube asks some clients for a PO token before it serves their formats.
-Without one, yt-dlp skips those formats or gets HTTP 403 errors. The
-[bgutil provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider)
-makes tokens. Run it next to yt-dlp-z:
-
-```yaml
-services:
-  bgutil-provider:
-    image: brainicism/bgutil-ytdlp-pot-provider
-    restart: unless-stopped
-    # No ports needed when it shares a Docker network with yt-dlp-z.
-```
-
-Then set Settings → PO tokens → **Provider address** to
-`http://bgutil-provider:4416` (without Docker: `http://127.0.0.1:4416`) and
-save. Saving pings the provider and pip-installs the bgutil yt-dlp plugin of
-the **same version** into `<config>/plugins` (needs PyPI access). Every yt-dlp
-run then gets `--plugin-dirs <config>/plugins` and
-`--extractor-args youtubepot-bgutilhttp:base_url=…`. The plugin isn't installed
-next to the app because yt-dlp would then load it on every run and warn about
-an unreachable server whenever no provider is set up. The app checks the
-provider again at start and every 6 hours, and installs the matching plugin
-when the provider was updated. If the provider can't be reached then, Settings
-shows the error and yt-dlp keeps asking it (yt-dlp works without tokens, with
-fewer formats). Empty the address to turn PO tokens off and remove the plugin.
-
-The plugin passes a job's proxy to the provider, which makes the token through
-that proxy. So the provider must reach your proxies by the same address
-yt-dlp-z uses (put them on the same Docker network).
-
-### Blocked yt-dlp options
-
-Every yt-dlp option is available, except these.
-
-Always blocked, because yt-dlp-z manages them itself: `--paths`, `--cookies`,
-`--cookies-from-browser`, `--download-archive`, `--update`, `--update-to`,
-`--batch-file`.
-
-Blocked unless `YTDLPZ_ALLOW_UNSAFE_OPTIONS=true`, because they can run programs
-or read and write files outside the download folder: `--exec`, `--netrc-cmd`,
-`--plugin-dirs`, `--ffmpeg-location`, `--downloader`, `--js-runtimes`,
-`--postprocessor-args`, `--downloader-args`, `--load-info-json`,
-`--netrc-location`, `--config-locations`, `--print-to-file`, `--cache-dir`,
-`--enable-file-urls`, `--alias`.
-
-yt-dlp-z also ignores yt-dlp config files on the server (`--ignore-config`), so
-every download uses exactly the options chosen in the app.
+### Test mode
 
 `YTDLPZ_TEST_MODE` exists for the automated test suite only. Never set it on a
 real install: it exposes an endpoint that wipes all data.
@@ -241,10 +89,10 @@ In Docker: `docker exec -it yt-dlp-z yt-dlp-z reset-password`.
 
 ## Volumes (Docker)
 
-| Path         | Contents                                                                                                                                                                     |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/config`    | `yt-dlp-z.db` (settings, presets, subscriptions, password hash), `secret.key`, `logs/` and `cookies/`. Back this up, and keep it private: `cookies/` holds sign-in sessions. |
-| `/downloads` | Default download location chosen in first-run setup                                                                                                                          |
+| Path         | Contents                                                                                                                                                                                                                 |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/config`    | `yt-dlp-z.db` (settings, presets, subscriptions, password hash), `secret.key`, `logs/`, `cookies/`, and `ytdlp/` / `plugins/` from in-app updates. Back this up, and keep it private: `cookies/` holds sign-in sessions. |
+| `/downloads` | Default download location chosen in first-run setup                                                                                                                                                                      |
 
 ## Security notes
 
