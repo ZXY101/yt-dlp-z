@@ -28,6 +28,9 @@ EXT_SUFFIX = ".%(ext)s"
 # Waits (retrying every 30 s to 5 min) when the stream starts later than announced.
 WAIT_ARGS = ["--wait-for-video", "30-300"]
 FIRST_PART_SUFFIX = " (part 1)"
+# yt-dlp adds the date and time to a live stream's title ("Title 2026-11-03 17_30");
+# fulltitle is the title without it.
+TITLE_ARGS = ["--parse-metadata", "fulltitle:%(title)s"]
 
 Outcome = tuple[JobStatus, str | None]
 # A part whose links expired sooner than this isn't continued: something else is wrong.
@@ -57,7 +60,7 @@ def part_template(template: str | None, part: int) -> str:
 
 def part_args(job: Job, part: int) -> list[str]:
     """Only the first part records from the stream's start; later ones continue from now."""
-    args = list(WAIT_ARGS)
+    args = [*TITLE_ARGS, *WAIT_ARGS]
     if part == 1 and job.record_from_start:
         args = ["--live-from-start", *args]
     # Most recordings are one file, so the first part keeps the plain name; it becomes
