@@ -18,20 +18,17 @@ serve the web app and the API on one port (9742 by default).
 ## Docker Compose
 
 ```sh
-git clone https://github.com/ZXY101/yt-dlp-z.git
-cd yt-dlp-z
-docker compose up -d --build
+mkdir yt-dlp-z && cd yt-dlp-z
+curl -O https://raw.githubusercontent.com/ZXY101/yt-dlp-z/main/docker-compose.yml
+docker compose up -d
 ```
 
-The repository's `docker-compose.yml`:
+The compose file (the repository's copy also has a `build:` section, see below):
 
 ```yaml
 services:
   yt-dlp-z:
     image: ghcr.io/zxy101/yt-dlp-z:latest
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
     container_name: yt-dlp-z
     ports:
       - "9742:9742"
@@ -65,22 +62,38 @@ What to change:
   recordings get up to 10 minutes to finish their files (merging, embedding
   the thumbnail). Docker's default of 10 seconds cuts them off.
 
-Pre-built images aren't published yet, so `--build` builds the image from the
-source (a few minutes the first time). The image is a multi-stage build:
-Node builds the web app, uv installs the backend into a slim Python image with
-FFmpeg and Deno. It has a health check on `/api/health`.
+### Images and tags
+
+Images are published to
+[GHCR](https://github.com/ZXY101/yt-dlp-z/pkgs/container/yt-dlp-z) for amd64
+and arm64 (e.g. a Raspberry Pi 4 or 5 with a 64-bit OS) on every release:
+
+| Tag      | Follows                                 |
+| -------- | --------------------------------------- |
+| `latest` | The newest release                      |
+| `0.1`    | The newest `0.1.x` release (fixes only) |
+| `0.1.1`  | Exactly that release                    |
+
+The image is a multi-stage build: Node builds the web app, uv installs the
+backend into a slim Python image with FFmpeg and Deno. It has a health check
+on `/api/health`.
+
+### Building from source
+
+The repository's own `docker-compose.yml` also has a `build:` section, so in a
+clone `docker compose up -d --build` builds the image locally (a few minutes
+the first time) instead of pulling it.
 
 ### Plain `docker run`
 
 ```sh
-docker build -f docker/Dockerfile -t yt-dlp-z .
 docker run -d --name yt-dlp-z \
   -p 9742:9742 \
   -e PUID=1000 -e PGID=1000 -e TZ=Etc/UTC \
   -v "$PWD/config:/config" -v "$PWD/downloads:/downloads" \
   --stop-timeout 600 \
   --restart unless-stopped \
-  yt-dlp-z
+  ghcr.io/zxy101/yt-dlp-z:latest
 ```
 
 ## Without Docker
@@ -203,9 +216,12 @@ with `none`, anyone who reaches the port has full access.
 
 ```sh
 cd yt-dlp-z
-git pull
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
+
+If you built from a clone, run `git pull` and `docker compose up -d --build`
+instead.
 
 **Without Docker:**
 
