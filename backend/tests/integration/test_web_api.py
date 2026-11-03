@@ -42,3 +42,10 @@ def test_reset_endpoint_only_in_test_mode(make_client: MakeClient, tmp_path: Pat
 
     production = make_client(test_mode=False, config_dir=tmp_path / "prod")
     assert production.post("/api/test/reset").status_code in {404, 405}
+
+
+def test_index_is_revalidated_and_hashed_assets_are_cached(client: TestClient) -> None:
+    """Regression: phones kept showing the previous release after an update."""
+    assert client.get("/").headers["cache-control"] == "no-cache"
+    assert client.get("/settings").headers["cache-control"] == "no-cache"
+    assert "immutable" in client.get("/assets/app.js").headers["cache-control"]
