@@ -530,7 +530,7 @@ Still open:
   flaky test_the_vod_can_replace_the_recording (the VOD is published as
   completed before the recording is deleted; the test now waits).
 
-**Next session:** :9743 runs yt-dlp-z:9c3c8fe (pushed). Milestone 6 is done; next is
+**Next session:** :9743 runs yt-dlp-z:7c57630 (layout settings; main 2 ahead of origin, not pushed). Milestone 6 is done; next is
 milestone 7 (release: publish images to ghcr, amd64+arm64; the docs say images
 aren't published yet). The repo is private, so README badges show broken until
 it's public. Still unverified on real YouTube: link-expiry continue on a > 5 h
