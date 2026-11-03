@@ -55,8 +55,9 @@ def test_part_args() -> None:
         "%(title)s [%(id)s] (part 2).%(ext)s",
     ]
     split = Job(options={"--output": "%(title)s.%(ext)s"}, record_from_start=False, part_seconds=60)
-    assert part_args(split, 1)[-2:] == ["--output", "%(title)s (part 1).%(ext)s"]
-    assert "--live-from-start" not in part_args(split, 1)
+    # The first part keeps the plain name until a second part starts.
+    assert part_args(split, 1) == ["--wait-for-video", "30-300"]
+    assert part_args(split, 2)[-2:] == ["--output", "%(title)s (part 2).%(ext)s"]
 
 
 def test_part_length_respects_the_maximum() -> None:

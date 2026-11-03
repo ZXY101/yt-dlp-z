@@ -451,7 +451,9 @@ Still open:
   screen on phones, with a compact header and the group picker beside "Only set"
   (was "Only options that are set", which wrapped); one toolbar row on desktop.
   Compared with Pinchflat (dormant since 2025-12, no live recording): keep going;
-  ideas from it in Open items.
+  ideas from it in Open items. Part names: the first part keeps the plain file
+  name; when a second part starts, it and the files beside it (.nfo, .jpg) are
+  renamed to "(part 1)" (`number_first_part`).
 
 **Next session:** M6 step 6 (PO-token provider recipe). Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.

@@ -214,6 +214,25 @@ def test_long_recordings_are_split_into_parts(watch_client: TestClient) -> None:
     assert "size=" not in log
 
 
+def test_a_recording_that_needs_no_split_keeps_the_plain_name(watch_client: TestClient) -> None:
+    job_id = start_recording(watch_client, watch_url("live"), part_seconds=3600)
+    job = wait_for_job(watch_client, job_id, FINISHED)
+    assert (job["status"], job["part"]) == ("completed", 1)
+    assert saved_files(watch_client) == ["Fake video live [live].mp4"]
+
+
+def test_the_first_part_is_numbered_with_the_files_beside_it(watch_client: TestClient) -> None:
+    job_id = start_recording(
+        watch_client, watch_url("slow-live"), part_seconds=1, max_seconds=2, media_layout="flat"
+    )
+    job = wait_for_job(watch_client, job_id, FINISHED)
+    assert job["status"] == "completed"
+    folder = Path(watch_client.get("/api/settings").json()["download_dir"]) / "Fake channel"
+    name = "Fake channel - S2026E1001 - Fake video slow-live [slow-live]"
+    expected = [f"{name} (part {part}).{ext}" for part in (1, 2) for ext in ("jpg", "mp4", "nfo")]
+    assert sorted(path.name for path in folder.iterdir()) == [*expected, "tvshow.nfo"]
+
+
 def test_a_maximum_length_stops_the_recording(watch_client: TestClient) -> None:
     job_id = start_recording(watch_client, watch_url("slow-live"), max_seconds=1)
     assert wait_for_job(watch_client, job_id, FINISHED)["status"] == "completed"
@@ -287,8 +306,8 @@ def test_expired_links_continue_a_stream_that_is_still_live(watch_client: TestCl
     assert job["status"] == "completed"
     assert job["part"] == 2
     assert saved_files(watch_client) == [
+        "Fake video expiring-live [expiring-live] (part 1).mp4",
         "Fake video expiring-live [expiring-live] (part 2).mp4",
-        "Fake video expiring-live [expiring-live].mp4",
     ]
     log = watch_client.get(f"/api/jobs/{job_id}/log").text
     assert "still live; continuing in the next part" in log
