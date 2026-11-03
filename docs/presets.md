@@ -1,0 +1,62 @@
+# Presets
+
+A preset is a named set of download options: quality, file names, any yt-dlp
+option, plus yt-dlp-z settings such as cookies, proxy mode and media-server
+layout. Downloads and subscriptions pick a preset instead of repeating options.
+
+Create them on the **Presets** page. Changing a preset affects downloads started
+afterwards; downloads already running keep the options they started with.
+
+## Kinds of presets
+
+Each preset has a **Use for** setting:
+
+| Kind                       | Offered for                              |
+| -------------------------- | ---------------------------------------- |
+| **Any link**               | Everything                               |
+| **Videos**                 | Single videos                            |
+| **Playlists and channels** | Playlist and channel links               |
+| **Live streams**           | Live and upcoming streams, and premieres |
+
+Each kind can have one **default** preset. After the [link check](downloads.md#link-check)
+the download form picks the default for that kind of link, or the default for
+"any link" when there isn't one. For example: "Best quality" as the default for
+videos, "Audio only" for playlists, and "Live streams" for live streams.
+
+## What a preset holds
+
+- **Name**
+- **Common options**: quality, file name template, subtitles, thumbnail and
+  metadata, SponsorBlock (see [Downloads](downloads.md#common-options))
+- **Every other yt-dlp option** and extra command-line flags
+- **Download folder**: overrides the default folder for this preset
+- **Cookies**: a [cookies file](cookies.md) to sign in with
+- **Proxy**: Off, next proxy in turn, random proxy, or same proxy per channel
+  ([Proxies](proxies.md))
+- **Media server**: off, `Channel/Season YYYY/` or flat
+  ([Media servers](media-server.md))
+
+## Live-stream presets
+
+Presets for live streams also hold the recording settings:
+
+| Setting                                                    | Default  | Meaning                                                       |
+| ---------------------------------------------------------- | -------- | ------------------------------------------------------------- |
+| **New file every (hours)**                                 | 6        | Splits long streams into parts. Empty: one file per stream    |
+| **Stop after (hours)**                                     | empty    | Counts hours of the stream. Empty: record until it ends       |
+| **Record from the start, unless live longer than (hours)** | 6        | Empty: always from the start (up to 5 days of a 24/7 stream)  |
+| **Streams live longer than that when found**               | from now | **Record from now**, or **Record their first N hours**        |
+| **Download the VOD afterwards (hours after the stream)**   | empty    | Downloads YouTube's processed copy later. Empty: no VOD       |
+| **Delete the recording once the VOD is saved**             | off      | Replaces the recording with the VOD if the VOD download works |
+
+[Live recording](live-recording.md) explains each one.
+
+A subscription can use a separate **Preset for live streams**; by default its
+streams use the default live-stream preset's recording settings with the
+subscription's own preset's options.
+
+## Deleting a preset
+
+Downloads already queued or finished stay. Subscriptions using it need another
+preset. Deleting a cookies file instead makes presets using it download without
+cookies.

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/ZXY101/yt-dlp-z/blob/main/docs/README.md
+    about: Guides for every feature, and troubleshooting.
+  - name: yt-dlp issues
+    url: https://github.com/yt-dlp/yt-dlp/issues
+    about: Download problems that also happen with plain yt-dlp.
+  - name: Security vulnerability
+    url: https://github.com/ZXY101/yt-dlp-z/security/advisories/new
+    about: Please report security problems privately.

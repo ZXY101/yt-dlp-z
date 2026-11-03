@@ -6,8 +6,8 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 6 (ops): in progress.** Steps 1–6 (yt-dlp updates, ntfy, media-server
-output, proxy pool, PO tokens) done. Next: M6 step 7 (docs, healthcheck review). Milestone 5 is done (a real scheduled stream starting
+**Milestone 6 (ops): done.** yt-dlp updates, ntfy, media-server output, proxy
+pool, PO tokens and the docs. Next: milestone 7 (release). Milestone 5 is done (a real scheduled stream starting
 on time is still unchecked, see below).
 
 | Milestone                 | Status      |
@@ -18,7 +18,7 @@ on time is still unchecked, see below).
 | 3. Presets & cookies      | Done        |
 | 4. Watching               | Done        |
 | 5. Live                   | Done        |
-| 6. Ops (incl. proxy pool) | In progress |
+| 6. Ops (incl. proxy pool) | Done        |
 | 7. Release                | Not started |
 
 What exists: FastAPI backend with first-run setup, login/logout, rate limiting,
@@ -108,7 +108,13 @@ Vitest, pytest and Playwright suites; Docker image; CI for all of it.
    re-check keeps the args. API `GET/PUT /api/ytdlp/pot`, `POST /test`. E2E
    fake provider `/api/test/pot/ping`. Checked for real against the bgutil
    container: a download forced to `player_client=mweb` got its GVS token.
-7. Docs: configuration.md, ops; healthcheck review.
+7. ~~Docs.~~ Done 2026-11-03: README rewritten (features, quick start, similar
+   projects, badges), user guides in `docs/` (index `docs/README.md`:
+   installation, downloads, presets, subscriptions, live recording, cookies,
+   media servers, proxies, notifications, ytdlp, troubleshooting);
+   configuration.md is now reference only and links to the guides. CONTRIBUTING,
+   SECURITY, issue/PR templates, new logo + favicon + apple-touch-icon.
+   Healthcheck: the image's HEALTHCHECK on `/api/health` is enough (no change).
 
 ## Presets per kind of link (done 2026-10-31)
 
@@ -504,5 +510,16 @@ Still open:
   Checked for real: artwork for a real channel, resolving/listing a real
   playlist. Unverified on real YouTube: a real VOD after a real recording.
 
-**Next session:** :9743 runs yt-dlp-z:0d48ab7. First check on the phone: subscriptions expand/usage, Remove → Delete files, Keep, preset VOD fields (no screenshots taken of these yet). Then M6 step 7 (docs: configuration.md, ops; healthcheck review). Still unverified on real YouTube: a VOD after a real recording (set VOD hours on the live preset to try), link-expiry continue on a > 5 h stream, a scheduled stream starting on time.
+- **2026-11-03 (docs):** M6 step 7 done (see the step). VOD after recording
+  verified for real on a throwaway instance: recording of a finished NASA
+  stream → VOD job (source_job_id, "(VOD)" title) → recording deleted with
+  vod_replace. Also fixed the knip failure (unused MAX_KEEP_DAYS export) that
+  had CI red on main.
+
+**Next session:** :9743 runs yt-dlp-z:0d48ab7. Milestone 6 is done; next is
+milestone 7 (release: publish images to ghcr, amd64+arm64; the docs say images
+aren't published yet). The repo is private, so README badges show broken until
+it's public. Still unverified on real YouTube: link-expiry continue on a > 5 h
+stream, a scheduled stream starting on time, deleting a multi-part recording
+removes all parts (job 5 on :9743 lists only part 3 in `files`).
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.
