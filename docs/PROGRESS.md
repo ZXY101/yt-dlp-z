@@ -325,7 +325,7 @@ Still open:
   release-please CI fails until "Allow GitHub Actions to create and approve pull
   requests" is enabled in repo settings (asked the user, no answer yet).
   PO-token provider (bgutil) noted for milestone 6.
-  **Next session:** `cd ~/dev/yt-dlp-z && npx tsc -b frontend && npm run test:coverage -w frontend`,
+  **Next session:** check job 5 on :9743 (Vivi #26, parts 1–3) finished `completed`, and whether a stream past ~5 h shows "[yt-dlp-z] … still live; continuing in the next part" in its log (link-expiry fix, unverified on real YouTube). Then M6 step 6 (PO-token provider recipe). Still unverified: a real scheduled stream starting on time.
   fix failures, `npm run check`, then commit frontend + Dockerfile separately.
 - **2026-10-30 · Milestone 2 done.** Frontend tests passed after a
   ResizeObserver stub; download/queue/system pages, E2E download flows (27 E2E
