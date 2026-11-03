@@ -22,6 +22,11 @@ class RecordingSettings(BaseModel):
     # "first_hours": record those streams from the start anyway, but only their first
     # from_start_max_hours hours.
     long_streams: LongStreams = "from_now"
+    # Download the stream's VOD this many hours after the recording ends (YouTube needs
+    # time to process long streams). None: don't. The VOD gets " (VOD)" in its title.
+    vod_after_hours: Hours | None = None
+    # Delete the recording once the VOD is saved. A VOD that fails keeps the recording.
+    vod_replace: bool = False
 
 
 DEFAULT_RECORDING = RecordingSettings(

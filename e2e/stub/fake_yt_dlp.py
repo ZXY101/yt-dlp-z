@@ -28,6 +28,7 @@ real yt-dlp. --output is honoured for any %(field)s, with fake values for the
 fields media-server output uses (channel, upload_date with a >%Y or >%m%d format,
 a .150B length); with --write-thumbnail it saves a .jpg next to the video; a
 --print after_move:[ytdlpz:nfo] template gets the NFO fields;
+--replace-in-metadata title REGEX REPLACE changes the title (and so the file name);
 ...upcoming... URLs first print yt-dlp's wait message. ...waiting... recordings keep
 waiting for the stream and, like real yt-dlp, treat SIGINT as "check again" (only SIGTERM
 stops them). ...gaps... recordings save the file but exit with yt-dlp's "Did not get any
@@ -277,13 +278,21 @@ def emit_progress(downloaded: int, eta: int, args: list[str]) -> None:
         emit(PROGRESS + json.dumps(progress))
 
 
+def replace_in_title(args: list[str], title: str) -> str:
+    """--replace-in-metadata title REGEX REPLACE, as the VOD download passes it."""
+    for index, arg in enumerate(args):
+        if arg == "--replace-in-metadata" and args[index + 1] == "title":
+            title = re.sub(args[index + 2], args[index + 3], title)
+    return title
+
+
 def main() -> int:
     args = sys.argv[1:]
     url = args[args.index("--") + 1]
     if "-J" in args:
         return metadata(url, args)
     video_id = video_id_of(url)
-    title = f"Fake video {video_id}"
+    title = replace_in_title(args, f"Fake video {video_id}")
     if "--simulate" in args:
         return simulate(url, title)
     emit("[fake] args: " + " ".join(args[: args.index("--")]))

@@ -20,6 +20,9 @@ function describeRecording(recording: RecordingSettings) {
     recording.part_hours ? `New file every ${hours(recording.part_hours)}` : "One file",
     recording.max_hours ? `stops after ${hours(recording.max_hours)}` : "until the stream ends",
   ];
+  if (recording.vod_after_hours) {
+    parts.push(`VOD after ${hours(recording.vod_after_hours)}`);
+  }
   return parts.join(" · ");
 }
 
@@ -42,7 +45,9 @@ function describePreset(preset: Preset) {
     parts.push("through proxies");
   }
   if (preset.recording) {
-    parts.push(describeRecording(preset.recording).toLowerCase());
+    const recording = describeRecording(preset.recording);
+    // Mid-sentence here: only the first letter goes lower case ("VOD" stays).
+    parts.push(recording.charAt(0).toLowerCase() + recording.slice(1));
   }
   return parts.join(" · ");
 }

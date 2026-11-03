@@ -1268,6 +1268,13 @@ export interface components {
             part_hours?: number | null;
             /** Max Hours */
             max_hours?: number | null;
+            /** Vod After Hours */
+            vod_after_hours?: number | null;
+            /**
+             * Vod Replace
+             * @default false
+             */
+            vod_replace: boolean;
         };
         /**
          * RecordingSettings
@@ -1287,6 +1294,13 @@ export interface components {
              * @enum {string}
              */
             long_streams: "from_now" | "first_hours";
+            /** Vod After Hours */
+            vod_after_hours?: number | null;
+            /**
+             * Vod Replace
+             * @default false
+             */
+            vod_replace: boolean;
         };
         /** SetupRequest */
         SetupRequest: {

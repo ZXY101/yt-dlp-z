@@ -30,6 +30,8 @@ def _recording_fields(recording: RecordingRequest) -> dict[str, Any]:
         "record_from_start": recording.from_start,
         "part_seconds": hours_to_seconds(recording.part_hours),
         "max_seconds": hours_to_seconds(recording.max_hours),
+        "vod_after_seconds": hours_to_seconds(recording.vod_after_hours),
+        "vod_replace": recording.vod_replace,
     }
 
 

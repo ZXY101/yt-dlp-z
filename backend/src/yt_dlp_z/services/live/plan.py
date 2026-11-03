@@ -13,6 +13,8 @@ class RecordingPlan:
     record_from_start: bool
     part_seconds: int | None
     max_seconds: int | None
+    vod_after_seconds: int | None = None
+    vod_replace: bool = False
 
 
 def hours_to_seconds(hours: int | None) -> int | None:
@@ -41,4 +43,6 @@ def plan_recording(
         record_from_start=from_start,
         part_seconds=hours_to_seconds(settings.part_hours),
         max_seconds=max_seconds,
+        vod_after_seconds=hours_to_seconds(settings.vod_after_hours),
+        vod_replace=settings.vod_replace,
     )

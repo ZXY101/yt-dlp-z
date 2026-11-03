@@ -20,6 +20,9 @@ class RecordingRequest(BaseModel):
     # A new file every this many hours, and stop after this many. None: off.
     part_hours: Hours | None = None
     max_hours: Hours | None = None
+    # Download the VOD this many hours after the stream, and maybe delete the recording.
+    vod_after_hours: Hours | None = None
+    vod_replace: bool = False
 
 
 class JobCreate(BaseModel):
