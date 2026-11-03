@@ -36,6 +36,7 @@ data blocks" error, like a stream whose last fragments are gone when it ends.
 """
 
 import json
+import os
 import re
 import signal
 import sys
@@ -95,7 +96,11 @@ def playlist_metadata(url: str) -> int:
     playlist_id = parse_qs(urlparse(url).query).get("list", ["PLfake"])[0]
     if "broken" in playlist_id:
         return fail_json("The playlist does not exist.")
-    entries = [{"_type": "url", "id": f"item{n}", "title": f"Item {n}"} for n in range(1, 4)]
+    # Tests grow a playlist through FAKE_PLAYLIST_SIZE (yt-dlp runs inherit the env).
+    size = int(os.environ.get("FAKE_PLAYLIST_SIZE", "3"))
+    entries = [
+        {"_type": "url", "id": f"item{n}", "title": f"Item {n}"} for n in range(1, size + 1)
+    ]
     data = {"_type": "playlist", "id": playlist_id, "title": f"Fake playlist {playlist_id}"}
     emit(json.dumps({**data, "playlist_count": 24, "entries": entries}))
     return 0

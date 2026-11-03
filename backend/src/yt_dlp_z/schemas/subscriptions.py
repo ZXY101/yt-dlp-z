@@ -1,7 +1,7 @@
 import re
 from datetime import date, datetime
 from enum import StrEnum
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import (
     BaseModel,
@@ -91,7 +91,7 @@ class SubscriptionUpdate(BaseModel):
 
 
 class SubscriptionCreate(SubscriptionUpdate):
-    # A channel URL, or just its @handle.
+    # A channel URL, its @handle, or a playlist URL (any link with list=).
     channel: str = Field(min_length=1, max_length=4096)
     # How many of the newest uploads to download now. 0: only uploads from now on.
     backfill: int = Field(default=0, ge=0, le=MAX_BACKFILL)
@@ -101,6 +101,8 @@ class SubscriptionOut(SubscriptionUpdate):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    # "channel", or "playlist" (channel_id is then the playlist id).
+    kind: Literal["channel", "playlist"]
     channel_id: str
     name: str
     url: str

@@ -111,7 +111,9 @@ test.describe("subscriptions", () => {
 
     await page.getByLabel("Channel", { exact: true }).fill("https://example.com/@demo");
     await page.getByRole("button", { name: "Save subscription" }).click();
-    await expect(page.getByText("Enter a YouTube channel URL or @handle")).toBeVisible();
+    await expect(
+      page.getByText("Enter a YouTube channel or playlist URL, or @handle"),
+    ).toBeVisible();
 
     // No feed is served and the fake yt-dlp can't list its videos tab: the check fails.
     await page.getByLabel("Channel", { exact: true }).fill("@broken");

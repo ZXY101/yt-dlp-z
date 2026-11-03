@@ -106,7 +106,9 @@ export function validateForm(values: SubscriptionFormValues, isNew: boolean): Fo
       : undefined,
   };
   if (isNew) {
-    errors.channel = values.channel.trim() ? undefined : "Enter a channel URL or @handle.";
+    errors.channel = values.channel.trim()
+      ? undefined
+      : "Enter a channel or playlist URL, or @handle.";
     errors.backfill = wholeNumberError(values.backfill, 0, MAX_BACKFILL);
   }
   return Object.fromEntries(Object.entries(errors).filter(([, error]) => error)) as FormErrors;

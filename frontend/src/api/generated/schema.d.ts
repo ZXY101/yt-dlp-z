@@ -1415,6 +1415,11 @@ export interface components {
             keep_days?: number | null;
             /** Id */
             id: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "channel" | "playlist";
             /** Channel Id */
             channel_id: string;
             /** Name */

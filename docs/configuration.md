@@ -72,11 +72,44 @@ preset. On the first check only the newest "backfill" uploads are downloaded;
 older ones are marked as seen. Each video is handled once; if yt-dlp can't
 open it, it is retried on the next check while it is still in the feed.
 
-Upcoming and live streams are listed but not recorded yet. Members-only
-videos need a member's cookies, set on the subscription or its preset.
+Upcoming and live streams are recorded with the subscription's stream
+preset. Members-only videos need a member's cookies, set on the subscription
+or its preset.
+
+**Playlists.** A playlist link (any link with `list=`) watches that playlist
+instead: each check lists it with yt-dlp (up to 1,000 videos) and downloads
+the ones added since. Playlists people make add new videos at the end, so the
+last ones count as the newest for "download recent uploads now"; a channel's
+"Uploads" playlist (`UU…`) is newest first. Mixes (`RD…`) can't be watched.
+
+**What it downloaded.** Tap a subscription to see everything it downloaded
+or recorded, with how much space the files take. In the channel's video list
+(Edit), **Don't download** skips a video for good (and stops its download or
+recording); **Allow again** looks at it again on the next check.
+
+**Deleting files.** Remove on a download asks whether to keep its files or
+delete them. Deleting removes the video and the files saved beside it with
+the same name (`.nfo`, thumbnail, subtitles, other recording parts), only
+inside the download's own folder, and a subscription won't download that
+video again.
+
+**Delete after N days** (optional, off by default): set per subscription.
+An hourly sweep deletes its downloads that finished longer ago than that,
+the same way. **Keep** on a download pins it.
 
 The Settings page limits how many channels can be watched (5 by default).
 Many channels polled from one IP can get it rate-limited or flagged by YouTube.
+
+### VODs after recordings
+
+Optional, per live-stream preset (off by default): **Download the VOD
+afterwards** schedules a normal download of the stream that many hours after
+the recording ends. It fills gaps a recording can have (expired links,
+restarts), and YouTube needs time to process long streams. The VOD gets
+"(VOD)" added to its title, so it never shares the recording's file name.
+With **Delete the recording once the VOD is saved**, the recording is deleted
+after the VOD finishes; a VOD that fails (members-only, not archived) keeps
+the recording.
 
 ### Proxy pool
 

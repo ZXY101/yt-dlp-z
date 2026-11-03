@@ -49,3 +49,23 @@ async def latest_uploads(
             raise FeedError(f"{feed_error} The videos tab failed too: {tab_error}") from tab_error
         logger.warning("Read the videos tab of %s instead of its feed: %s", channel_id, feed_error)
         return entries
+
+
+# Playlists longer than this are only read this far.
+PLAYLIST_LIMIT = 1000
+# A channel's "Uploads" playlist lists the newest first, unlike playlists people make.
+UPLOADS_PREFIX = "UU"
+
+
+async def playlist_entries(ytdlp_command: list[str], playlist_id: str) -> list[FeedEntry]:
+    """The playlist's videos, newest first. Playlists people make add new videos at the
+    end, so their last ones come first. Raises FeedError when yt-dlp fails."""
+    url = f"https://www.youtube.com/playlist?list={playlist_id}"
+    args = ["--flat-playlist", "--playlist-end", str(PLAYLIST_LIMIT)]
+    try:
+        data = await run_ytdlp_json(ytdlp_command, args, url)
+    except YtdlpJsonError as error:
+        raise FeedError(f"Couldn't read the playlist: {error}") from error
+    entries = [_entry(item) for item in data.get("entries") or []]
+    found = [entry for entry in entries if entry is not None]
+    return found if playlist_id.startswith(UPLOADS_PREFIX) else found[::-1]

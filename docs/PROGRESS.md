@@ -287,9 +287,9 @@ Still open:
 
 ## Open items
 
-- Ideas from Pinchflat: SponsorBlock and Shorts include/exclude/only as preset
-  settings, auto-delete old videos, re-download after N days, channel poster,
-  podcast RSS feed, Apprise notifications.
+- Ideas from Pinchflat still open: podcast RSS feed, Apprise notifications
+  (both judged low value). SponsorBlock/subtitles already work through preset
+  options.
 
 - The `layout.spec.ts` "dark mode also darkens native controls" test failed
   once on mobile in a full run (passed 15/15 on repeat). Watch for flakiness.
@@ -487,6 +487,23 @@ Still open:
   and `saveJob`/`forgetJob` keep it in step with job events. The channel name
   is no longer a link; a "YouTube" button opens the channel. The server now
   runs a bgutil provider next to :9743 (hosting compose).
+
+- **2026-11-03 · Pinchflat features.** (1) Jobs record every file
+  (`jobs.files`); `services/jobs/files.py` finds the files beside each one
+  (same name + optional " (part N)" + extensions only, inside the job's
+  folder) for disk usage and deletion; `DELETE /api/jobs/{id}?delete_files`
+  and `JobRemover` (marks the subscription video `ignored`). Videos:
+  `PUT /api/subscriptions/{id}/videos/{video_id}` {ignored}. (2)
+  `GET /api/subscriptions/{id}/usage`. (3) `subscriptions.keep_days`,
+  `jobs.keep`, `RetentionSweeper` hourly, `PUT /api/jobs/{id}/keep`. (4) live
+  preset `vod_after_hours`/`vod_replace` → recording jobs
+  `vod_after_seconds`/`vod_replace`; `services/live/vod.py` schedules a
+  download job (`source_job_id`) with `--replace-in-metadata title` " (VOD)"
+  and deletes the recording after a completed VOD when asked. (5) channel
+  artwork. (6) playlist subscriptions (`subscriptions.kind`). One migration
+  (44f47d865148) adds all columns and fills `files` from `filepath`.
+  Checked for real: artwork for a real channel, resolving/listing a real
+  playlist. Unverified on real YouTube: a real VOD after a real recording.
 
 **Next session:** M6 step 7 (docs: configuration.md, ops; healthcheck review). Still unverified: link-expiry continue on a > 5 h stream; a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.
