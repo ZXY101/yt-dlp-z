@@ -16,7 +16,9 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     options: {},
     extra_args: "",
     output_dir: "/downloads",
-    media_layout: null,
+    folders: null,
+    file_name: null,
+    media_files: false,
     cookie_id: null,
     proxy_mode: "off",
     proxy_id: null,
@@ -76,7 +78,9 @@ function settingsFields(body: Record<string, unknown>): Partial<Job> {
     extra_args: String(body.extra_args ?? ""),
     output_dir: (body.output_dir as string | null) ?? "/downloads",
     cookie_id: (body.cookie_id as number | null | undefined) ?? null,
-    media_layout: (body.media_layout as Job["media_layout"] | undefined) ?? null,
+    folders: (body.folders as Job["folders"] | undefined) ?? null,
+    file_name: (body.file_name as Job["file_name"] | undefined) ?? null,
+    media_files: (body.media_files as boolean | undefined) ?? false,
     proxy_mode: (body.proxy_mode as Job["proxy_mode"] | undefined) ?? "off",
   };
 }

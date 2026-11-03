@@ -103,7 +103,9 @@ async def enqueue_video(
         extra_args=preset.extra_args if preset else "",
         cookie_id=effective_cookie_id(subscription, preset),
         output_dir=await _output_dir(context, session, requested_dir),
-        media_layout=preset.media_layout if preset else None,
+        folders=preset.folders if preset else None,
+        file_name=preset.file_name if preset else None,
+        media_files=preset.media_files if preset else False,
         proxy_mode=preset.proxy_mode if preset else "off",
         subscription_id=subscription.id,
     )

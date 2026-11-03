@@ -1,7 +1,7 @@
 import { Disclosure } from "@/components/disclosure";
 import { CommonOptions } from "@/components/download-options/common-options";
 import { FolderField } from "@/components/download-options/folder-field";
-import { MediaLayoutField } from "@/components/download-options/media-layout-field";
+import { LayoutFields } from "@/components/download-options/layout-fields";
 import { OptionsDialog } from "@/components/download-options/options-dialog";
 import { ProxyField } from "@/components/download-options/proxy-field";
 import { FormField, SelectField, TextareaField } from "@/components/form-field";
@@ -38,6 +38,16 @@ function CookiesField({ value, onChange, cookieFiles }: DownloadSettingsFieldsPr
   );
 }
 
+function templateHint({ fileName, folders }: DownloadSettings): string {
+  if (fileName) {
+    return "Not used: File name above names the files.";
+  }
+  if (folders) {
+    return "A yt-dlp output template, used inside the sub-folders chosen above.";
+  }
+  return "A yt-dlp output template. Sub-folders are allowed, e.g. %(uploader)s/%(title)s.%(ext)s.";
+}
+
 /** Folder, cookies and yt-dlp options: everything a download or preset needs besides a URL. */
 export function DownloadSettingsFields(props: DownloadSettingsFieldsProps) {
   const { value, onChange } = props;
@@ -56,10 +66,7 @@ export function DownloadSettingsFields(props: DownloadSettingsFieldsProps) {
       />
       <CookiesField {...props} />
       <CommonOptions options={options} onChange={setOptions} />
-      <MediaLayoutField
-        value={value.mediaLayout}
-        onChange={(mediaLayout) => onChange({ ...value, mediaLayout })}
-      />
+      <LayoutFields value={value} onChange={(layout) => onChange({ ...value, ...layout })} />
       <ProxyField
         value={value.proxyMode}
         proxyCount={props.proxyCount}
@@ -69,11 +76,7 @@ export function DownloadSettingsFields(props: DownloadSettingsFieldsProps) {
         <FormField
           label="File name template"
           placeholder="%(title)s [%(id)s].%(ext)s"
-          hint={
-            value.mediaLayout
-              ? "Not used: the media-server layout names the files."
-              : "A yt-dlp output template. Sub-folders are allowed, e.g. %(uploader)s/%(title)s.%(ext)s."
-          }
+          hint={templateHint(value)}
           value={template}
           onChange={(event) => setOptions(setOption(options, "--output", event.target.value))}
         />

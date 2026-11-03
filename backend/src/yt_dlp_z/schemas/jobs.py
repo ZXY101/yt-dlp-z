@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from yt_dlp_z.db.models.job import JobKind, JobStatus
-from yt_dlp_z.schemas.common import MediaLayout, ProxyMode, WebUrl, as_utc_iso
+from yt_dlp_z.schemas.common import FileNaming, FolderLayout, ProxyMode, WebUrl, as_utc_iso
 from yt_dlp_z.schemas.recording import Hours
 
 OptionValue = bool | int | float | str | list[str]
@@ -37,8 +37,11 @@ class JobCreate(BaseModel):
     output_dir: str | None = Field(default=None, max_length=4096)
     # An uploaded cookies file; yt-dlp-z passes --cookies itself.
     cookie_id: int | None = None
-    # Media-server output; replaces the --output template. None: off.
-    media_layout: MediaLayout | None = None
+    # Folder and file-name layout (file_name replaces the --output template), and the
+    # thumbnail and .nfo files media servers read.
+    folders: FolderLayout | None = None
+    file_name: FileNaming | None = None
+    media_files: bool = False
     # Whether and how to pick a proxy from the pool when the download starts.
     proxy_mode: ProxyMode = "off"
 
@@ -60,7 +63,9 @@ class JobOut(BaseModel):
     options: dict[str, OptionValue]
     extra_args: str
     output_dir: str
-    media_layout: MediaLayout | None
+    folders: FolderLayout | None
+    file_name: FileNaming | None
+    media_files: bool
     cookie_id: int | None
     proxy_mode: ProxyMode
     # The proxy it ran through (no foreign key: the proxy may be deleted since).

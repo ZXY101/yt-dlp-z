@@ -3,8 +3,10 @@ import type { components } from "@/api/generated/schema";
 /** yt-dlp options keyed by long flag, the format the API stores for jobs and presets. */
 export type OptionValues = NonNullable<components["schemas"]["JobCreate"]["options"]>;
 export type OptionValue = OptionValues[string];
-/** Media-server output: a folder per channel, with or without season folders. */
-export type MediaLayout = NonNullable<components["schemas"]["JobCreate"]["media_layout"]>;
+/** Sub-folders per channel, with or without a season folder per year. */
+export type FolderLayout = NonNullable<components["schemas"]["JobCreate"]["folders"]>;
+/** File names chosen from a list instead of a yt-dlp template. */
+export type FileNaming = NonNullable<components["schemas"]["JobCreate"]["file_name"]>;
 /** Whether downloads go through the proxy pool, and how a proxy is picked. */
 export type ProxyMode = NonNullable<components["schemas"]["JobCreate"]["proxy_mode"]>;
 
@@ -14,7 +16,9 @@ export interface DownloadSettings {
   extraArgs: string;
   outputDir: string;
   cookieId: number | null;
-  mediaLayout: MediaLayout | null;
+  folders: FolderLayout | null;
+  fileName: FileNaming | null;
+  mediaFiles: boolean;
   proxyMode: ProxyMode;
 }
 
@@ -23,7 +27,9 @@ export const DEFAULT_SETTINGS: DownloadSettings = {
   extraArgs: "",
   outputDir: "",
   cookieId: null,
-  mediaLayout: null,
+  folders: null,
+  fileName: null,
+  mediaFiles: false,
   proxyMode: "off",
 };
 
@@ -104,7 +110,9 @@ interface ApiDownloadSettings {
   extra_args?: string;
   output_dir?: string | null;
   cookie_id?: number | null;
-  media_layout?: MediaLayout | null;
+  folders?: FolderLayout | null;
+  file_name?: FileNaming | null;
+  media_files?: boolean;
   proxy_mode?: ProxyMode;
 }
 
@@ -114,7 +122,9 @@ export function settingsFromApi(source: ApiDownloadSettings): DownloadSettings {
     extraArgs: source.extra_args ?? "",
     outputDir: source.output_dir ?? "",
     cookieId: source.cookie_id ?? null,
-    mediaLayout: source.media_layout ?? null,
+    folders: source.folders ?? null,
+    fileName: source.file_name ?? null,
+    mediaFiles: source.media_files ?? false,
     proxyMode: source.proxy_mode ?? "off",
   };
 }
@@ -130,7 +140,9 @@ export function settingsForApi(settings: DownloadSettings) {
     extra_args: settings.extraArgs,
     output_dir: settings.outputDir.trim() || null,
     cookie_id: settings.cookieId,
-    media_layout: settings.mediaLayout,
+    folders: settings.folders,
+    file_name: settings.fileName,
+    media_files: settings.mediaFiles,
     proxy_mode: settings.proxyMode,
   };
 }

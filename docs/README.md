@@ -21,7 +21,7 @@ features you use.
 
 ## Extras
 
-- [Media servers](media-server.md): Jellyfin, Plex and Kodi folders and `.nfo` files
+- [Folders and media servers](media-server.md): channel folders, file names, Jellyfin/Plex/Kodi `.nfo` files
 - [Proxies](proxies.md): the proxy pool and VPN exits
 - [Notifications](notifications.md): ntfy
 - [yt-dlp and PO tokens](ytdlp.md): updating yt-dlp in the app, PO tokens,

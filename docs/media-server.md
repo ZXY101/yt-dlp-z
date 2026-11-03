@@ -1,12 +1,27 @@
-# Media servers (Jellyfin, Plex, Kodi)
+# Folders, file names and media servers
 
-yt-dlp-z can save downloads the way media servers expect TV shows: one folder
-per channel, videos as episodes, with thumbnails and `.nfo` metadata. Turn it on
-per [preset](presets.md) or per download with the **Media server** setting.
+yt-dlp-z can save downloads in a folder per channel, with the file names you
+pick, and add the thumbnails and `.nfo` metadata media servers read. Three
+settings, per [preset](presets.md) or per download, each independent of the
+others:
 
-## Layouts
+| Setting                | Choices                                                                                                                             |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| **Sub-folders**        | none · `Channel/` · `Channel/Season 2026/`                                                                                          |
+| **File name**          | yt-dlp default or your template · `Title [id]` · `[20261103] Title` · `[20261103] Title [id]` · `Channel - S2026E1103 - Title [id]` |
+| **Media-server files** | off · thumbnail + `.nfo` per video, `tvshow.nfo` + artwork per channel                                                              |
 
-**Season folders** (`season`):
+A chosen file name replaces the file name template. With only a sub-folder
+chosen, your template (or yt-dlp's default `Title [id]`) is used inside it.
+
+**Dates are the day it aired**: a live stream's or premiere's start date, else
+the upload date. (YouTube's upload date for a stream is when its waiting room was
+made, often weeks earlier.)
+
+## For a TV library
+
+Pick `Channel/Season 2026/`, `Channel - S2026E1103 - Title [id]` and
+media-server files:
 
 ```
 Channel Name/
@@ -20,12 +35,17 @@ Channel Name/
     └── Channel Name - S2026E1031 - Video title [dQw4w9WgXcQ].jpg
 ```
 
-**Flat** (`flat`): the same, without the `Season YYYY` folder.
+Or `Channel/` for the same without season folders.
 
-- The season is the upload year; the episode number is the upload date
-  (`MMDD`), so episodes sort by date.
-- The media-server layout replaces the preset's file name template.
-- yt-dlp-z adds `--write-thumbnail --convert-thumbnails jpg --embed-metadata`.
+- The season is the year it aired; the episode number is the date (`MMDD`), so
+  episodes sort by date.
+- Media-server files add
+  `--write-thumbnail --convert-thumbnails jpg --embed-metadata`.
+
+## For a plain archive
+
+`Channel/` with `[20261103] Title` gives `Channel Name/[20261103] Video
+title.mkv`, sorted by date in any file browser.
 
 ## Metadata files
 

@@ -5,7 +5,6 @@ from yt_dlp_z.db.models.job import Job
 from yt_dlp_z.services.live.recorder import part_args
 from yt_dlp_z.services.media_server.layout import (
     job_media_args,
-    media_template,
     output_template,
 )
 from yt_dlp_z.services.media_server.nfo import write_nfo_files
@@ -28,28 +27,65 @@ def read(path: Path) -> dict[str, str | None]:
     return {element.tag: element.text for element in root}
 
 
-def test_templates_put_each_channel_in_its_own_folder() -> None:
-    assert media_template("season").startswith("%(channel,uploader|Unknown channel)s/Season ")
-    assert media_template("flat").count("/") == 1
-    assert media_template("flat").endswith(" [%(id)s].%(ext)s")
+EPISODE_LAYOUT = {"folders": "channel", "file_name": "episode", "media_files": True}
 
 
-def test_the_media_template_replaces_the_users_own() -> None:
-    job = Job(options={"--output": "%(title)s.%(ext)s"}, media_layout=None)
+def layout_job(**fields: object) -> Job:
+    return Job(
+        **{"options": {}, "folders": None, "file_name": None, "media_files": False, **fields}
+    )
+
+
+def test_folders_and_file_names_combine() -> None:
+    channel = "%(channel,uploader|Unknown channel)s"
+    assert output_template(layout_job(folders="channel", file_name="title_id")) == (
+        f"{channel}/%(title).200B [%(id)s].%(ext)s"
+    )
+    assert output_template(layout_job(folders="season", file_name="dated")) == (
+        f"{channel}/Season %(air_date>%Y|0000)s/[%(air_date|00000000)s] %(title).200B.%(ext)s"
+    )
+    assert output_template(layout_job(file_name="dated_id")) == (
+        "[%(air_date|00000000)s] %(title).190B [%(id)s].%(ext)s"
+    )
+
+
+def test_a_folder_wraps_the_users_own_template() -> None:
+    job = layout_job(options={"--output": "%(title)s.%(ext)s"})
     assert output_template(job) == "%(title)s.%(ext)s"
     assert job_media_args(job) == []
-    job.media_layout = "flat"
-    assert output_template(job) == media_template("flat")
+    job.folders = "channel"
+    assert output_template(job) == "%(channel,uploader|Unknown channel)s/%(title)s.%(ext)s"
+    job.options = {}
+    assert output_template(job) == "%(channel,uploader|Unknown channel)s/%(title)s [%(id)s].%(ext)s"
+
+
+def test_episodes_are_numbered_by_the_day_they_aired() -> None:
+    # A stream's upload_date is when its waiting room was made; release_date is the stream.
+    job = layout_job(**EPISODE_LAYOUT)
+    assert "S%(air_date>%Y|0000)sE%(air_date>%m%d|0000)s" in (output_template(job) or "")
     args = job_media_args(job)
-    assert args[:2] == ["--output", media_template("flat")]
+    assert args[:2] == ["--parse-metadata", r"%(release_date,upload_date|)s:(?P<air_date>\d{8})"]
+
+
+def test_the_layout_replaces_the_users_template() -> None:
+    job = layout_job(options={"--output": "%(title)s.%(ext)s"}, **EPISODE_LAYOUT)
+    args = job_media_args(job)
+    assert args[2:4] == ["--output", output_template(job)]
+    assert "%(title)s.%(ext)s" not in args
     assert "--write-thumbnail" in args
     assert any(arg.startswith(f"after_move:{NFO_MARKER}") for arg in args)
 
 
-def test_recording_parts_keep_the_media_layout() -> None:
-    job = Job(options={}, record_from_start=True, part_seconds=60, media_layout="season")
+def test_media_files_alone_keep_the_file_name() -> None:
+    args = job_media_args(layout_job(media_files=True))
+    assert "--output" not in args
+    assert "--write-thumbnail" in args
+
+
+def test_recording_parts_keep_the_layout() -> None:
+    job = layout_job(record_from_start=True, part_seconds=60, folders="season", file_name="episode")
     template = part_args(job, 2)[-1]
-    assert template.startswith(media_template("season").removesuffix(".%(ext)s"))
+    assert template.startswith((output_template(job) or "").removesuffix(".%(ext)s"))
     assert template.endswith(" (part 2).%(ext)s")
 
 
@@ -77,13 +113,29 @@ def test_season_layout_writes_episode_and_show_nfo(tmp_path: Path) -> None:
     assert show == {"title": "Vivi Ch.", "uniqueid": "UCvivi"}
 
 
+def test_the_nfo_uses_the_air_date(tmp_path: Path) -> None:
+    video = tmp_path / "Vivi Ch." / "stream [abc123].mp4"
+    video.parent.mkdir(parents=True)
+    video.write_bytes(b"video")
+    info = {**INFO, "upload_date": "20261016", "air_date": "20261103", "filepath": str(video)}
+    write_nfo_files(info, "channel", tmp_path)
+
+    episode = read(video.with_suffix(".nfo"))
+    assert (episode["season"], episode["episode"], episode["aired"]) == (
+        "2026",
+        "1103",
+        "2026-11-03",
+    )
+    assert (tmp_path / "Vivi Ch." / "tvshow.nfo").exists()
+
+
 def test_flat_layout_and_existing_show_nfo(tmp_path: Path) -> None:
     show_dir = tmp_path / "Uploader"
     show_dir.mkdir()
     (show_dir / "tvshow.nfo").write_text("edited by hand")
     video = show_dir / "clip.mkv"
     info = {"id": "z", "uploader": "Uploader", "upload_date": "bad", "filepath": str(video)}
-    write_nfo_files(info, "flat", tmp_path)
+    write_nfo_files(info, "channel", tmp_path)
 
     episode = read(show_dir / "clip.nfo")
     assert episode["showtitle"] == "Uploader"
@@ -95,13 +147,13 @@ def test_flat_layout_and_existing_show_nfo(tmp_path: Path) -> None:
 def test_files_outside_the_download_folder_are_left_alone(tmp_path: Path) -> None:
     outside = tmp_path / "elsewhere" / "video.mp4"
     outside.parent.mkdir()
-    write_nfo_files({**INFO, "filepath": str(outside)}, "flat", tmp_path / "downloads")
-    write_nfo_files({**INFO}, "flat", tmp_path)
+    write_nfo_files({**INFO, "filepath": str(outside)}, "channel", tmp_path / "downloads")
+    write_nfo_files({**INFO}, "channel", tmp_path)
     assert list(tmp_path.rglob("*.nfo")) == []
 
 
 def test_a_file_at_the_top_gets_no_show_nfo(tmp_path: Path) -> None:
     video = tmp_path / "video.mp4"
-    write_nfo_files({**INFO, "filepath": str(video)}, "flat", tmp_path)
+    write_nfo_files({**INFO, "filepath": str(video)}, "channel", tmp_path)
     assert (tmp_path / "video.nfo").exists()
     assert not (tmp_path / "tvshow.nfo").exists()

@@ -516,6 +516,20 @@ Still open:
   vod_replace. Also fixed the knip failure (unused MAX_KEEP_DAYS export) that
   had CI red on main.
 
+- **2026-11-04 · Layout settings.** The one "Media server" select (season/flat)
+  is now three settings on presets and jobs: `folders` (none/channel/season),
+  `file_name` (none = user's template or yt-dlp default / title_id / dated /
+  dated_id / episode) and `media_files` (thumbnail, .nfo, tvshow.nfo, artwork).
+  Migration b3f1c2d4e5a6 maps season → season+episode+files, flat →
+  channel+episode+files (tested up and down on a copy of the :9743 DB). Dates
+  are the day it aired: `--parse-metadata
+"%(release_date,upload_date|)s:(?P<air_date>\d{8})"`, because a stream's
+  upload_date is when its waiting room was made (seen: E1016 for a 11-03
+  stream) and yt-dlp ignores `>%Y` on a field with alternatives. User asked
+  for "[20200323] Title" like the Kanata archive (`dated`). Also fixed the
+  flaky test_the_vod_can_replace_the_recording (the VOD is published as
+  completed before the recording is deleted; the test now waits).
+
 **Next session:** :9743 runs yt-dlp-z:9c3c8fe (pushed). Milestone 6 is done; next is
 milestone 7 (release: publish images to ghcr, amd64+arm64; the docs say images
 aren't published yet). The repo is private, so README badges show broken until

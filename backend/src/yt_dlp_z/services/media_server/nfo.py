@@ -4,7 +4,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
 
-from yt_dlp_z.schemas.common import MediaLayout
+from yt_dlp_z.schemas.common import FolderLayout
 
 SECONDS_PER_MINUTE = 60
 DATE_LENGTH = 8
@@ -29,8 +29,8 @@ def _write(path: Path, root: ET.Element) -> None:
     tree.write(path, encoding="utf-8", xml_declaration=True)
 
 
-def _upload_date(info: dict[str, Any]) -> str | None:
-    date = _text(info, "upload_date")
+def _air_date(info: dict[str, Any]) -> str | None:
+    date = _text(info, "air_date", "upload_date")
     if date is None or len(date) != DATE_LENGTH or not date.isdigit():
         return None
     return date
@@ -40,7 +40,7 @@ def episode_nfo(info: dict[str, Any]) -> ET.Element:
     root = ET.Element("episodedetails")
     _add(root, "title", _text(info, "title"))
     _add(root, "showtitle", _text(info, "channel", "uploader"))
-    date = _upload_date(info)
+    date = _air_date(info)
     if date is not None:
         # Same numbers as the file name: season = year, episode = month and day.
         _add(root, "season", str(int(date[:4])))
@@ -66,7 +66,9 @@ def show_nfo(info: dict[str, Any]) -> ET.Element:
     return root
 
 
-def write_nfo_files(info: dict[str, Any], layout: MediaLayout, download_dir: Path) -> Path | None:
+def write_nfo_files(
+    info: dict[str, Any], folders: FolderLayout | None, download_dir: Path
+) -> Path | None:
     """The episode's .nfo next to its file, and the channel's tvshow.nfo once.
     Files outside the download folder are left alone. Returns the channel folder, if it
     is inside the download folder."""
@@ -77,7 +79,7 @@ def write_nfo_files(info: dict[str, Any], layout: MediaLayout, download_dir: Pat
     if not video.is_relative_to(download_dir.resolve()):
         return None
     _write(video.with_suffix(".nfo"), episode_nfo(info))
-    show_dir = video.parent.parent if layout == "season" else video.parent
+    show_dir = video.parent.parent if folders == "season" else video.parent
     show_file = show_dir / "tvshow.nfo"
     inside = show_dir != download_dir.resolve() and show_dir.is_relative_to(download_dir.resolve())
     if not inside:

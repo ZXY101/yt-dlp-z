@@ -58,7 +58,9 @@ describe("API conversion", () => {
       extraArgs: "--limit-rate 2M",
       outputDir: "  music  ",
       cookieId: 3,
-      mediaLayout: "season" as const,
+      folders: "season" as const,
+      fileName: "episode" as const,
+      mediaFiles: true,
       proxyMode: "sticky" as const,
     };
     const body = settingsForApi(settings);
@@ -67,7 +69,9 @@ describe("API conversion", () => {
       extra_args: "--limit-rate 2M",
       output_dir: "music",
       cookie_id: 3,
-      media_layout: "season",
+      folders: "season",
+      file_name: "episode",
+      media_files: true,
       proxy_mode: "sticky",
     });
     expect(settingsFromApi(body)).toEqual({ ...settings, ...settingsFromApi(body) });
@@ -76,7 +80,9 @@ describe("API conversion", () => {
       extraArgs: "",
       outputDir: "",
       cookieId: null,
-      mediaLayout: null,
+      folders: null,
+      fileName: null,
+      mediaFiles: false,
       proxyMode: "off",
     });
   });
