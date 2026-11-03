@@ -62,6 +62,11 @@ class Settings(BaseSettings):
         return self.config_dir / "ytdlp"
 
     @property
+    def plugins_dir(self) -> Path:
+        """yt-dlp plugins the app installs (the PO token plugin)."""
+        return self.config_dir / "plugins"
+
+    @property
     def secret_key_path(self) -> Path:
         return self.config_dir / "secret.key"
 

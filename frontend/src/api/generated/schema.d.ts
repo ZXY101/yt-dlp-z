@@ -353,6 +353,45 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/ytdlp/pot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Pot Provider */
+        get: operations["get_pot_provider_api_ytdlp_pot_get"];
+        /**
+         * Set Pot Provider
+         * @description Checks the server and installs the plugin for its version before saving, so a
+         *     saved provider always works at the time it is saved.
+         */
+        put: operations["set_pot_provider_api_ytdlp_pot_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/ytdlp/pot/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Test Pot Provider */
+        post: operations["test_pot_provider_api_ytdlp_pot_test_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/presets": {
         parameters: {
             query?: never;
@@ -961,6 +1000,34 @@ export interface components {
             help: string;
             /** Blocked Reason */
             blocked_reason?: string | null;
+        };
+        /** PotProviderIn */
+        PotProviderIn: {
+            /** Url */
+            url?: string | null;
+        };
+        /** PotProviderInfo */
+        PotProviderInfo: {
+            /** Url */
+            url: string | null;
+            /** Server Version */
+            server_version: string | null;
+            /** Error */
+            error: string | null;
+            /** Checked At */
+            checked_at: string | null;
+            /** Plugin Version */
+            plugin_version: string | null;
+        };
+        /** PotTestIn */
+        PotTestIn: {
+            /** Url */
+            url: string;
+        };
+        /** PotTestResult */
+        PotTestResult: {
+            /** Server Version */
+            server_version: string;
         };
         /** PresetIn */
         PresetIn: {
@@ -2108,6 +2175,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OptionSchema"];
+                };
+            };
+        };
+    };
+    get_pot_provider_api_ytdlp_pot_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PotProviderInfo"];
+                };
+            };
+        };
+    };
+    set_pot_provider_api_ytdlp_pot_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PotProviderIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PotProviderInfo"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    test_pot_provider_api_ytdlp_pot_test_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PotTestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PotTestResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

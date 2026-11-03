@@ -3,6 +3,7 @@
 network: it writes just the package metadata yt-dlp-z reads the version from.
 
 Installs yt-dlp 2099.1.1, or 2099.1.2.dev0 with --pre (the nightly channel).
+For bgutil-ytdlp-pot-provider==X (the PO token plugin) it installs that plugin version.
 With --dry-run --report - it prints the JSON report of what it would install instead.
 Fails like pip without network when FAKE_PIP_FAIL is set.
 """
@@ -13,11 +14,26 @@ import sys
 from pathlib import Path
 
 
+PLUGIN = "bgutil-ytdlp-pot-provider"
+
+
+def install_plugin(target: Path, version: str) -> None:
+    dist_info = target / f"bgutil_ytdlp_pot_provider-{version}.dist-info"
+    dist_info.mkdir(parents=True)
+    (dist_info / "METADATA").write_text(f"Metadata-Version: 2.1\nName: {PLUGIN}\nVersion: {version}\n")
+    (target / "yt_dlp_plugins" / "extractor").mkdir(parents=True)
+    print(f"Successfully installed {PLUGIN}-{version}")
+
+
 def main() -> None:
     args = sys.argv[1:]
     if os.environ.get("FAKE_PIP_FAIL"):
         print("ERROR: No matching distribution found for yt-dlp[default]")
         sys.exit(1)
+    plugin = next((arg for arg in args if arg.startswith(f"{PLUGIN}==")), None)
+    if plugin:
+        install_plugin(Path(args[args.index("--target") + 1]), plugin.split("==")[1])
+        return
     version = "2099.1.2.dev0" if "--pre" in args else "2099.1.1"
     if "--dry-run" in args:
         install = [{"metadata": {"name": "yt-dlp", "version": version}}]

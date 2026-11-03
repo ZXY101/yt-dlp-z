@@ -136,6 +136,38 @@ Updating needs internet access to PyPI. The app checks for a newer version a
 minute after it starts and then once a day (Settings shows "X is available");
 turn on **Update automatically** to install it then. It's off by default.
 
+### PO tokens
+
+YouTube asks some clients for a PO token before it serves their formats.
+Without one, yt-dlp skips those formats or gets HTTP 403 errors. The
+[bgutil provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider)
+makes tokens. Run it next to yt-dlp-z:
+
+```yaml
+services:
+  bgutil-provider:
+    image: brainicism/bgutil-ytdlp-pot-provider
+    restart: unless-stopped
+    # No ports needed when it shares a Docker network with yt-dlp-z.
+```
+
+Then set Settings → PO tokens → **Provider address** to
+`http://bgutil-provider:4416` (without Docker: `http://127.0.0.1:4416`) and
+save. Saving pings the provider and pip-installs the bgutil yt-dlp plugin of
+the **same version** into `<config>/plugins` (needs PyPI access). Every yt-dlp
+run then gets `--plugin-dirs <config>/plugins` and
+`--extractor-args youtubepot-bgutilhttp:base_url=…`. The plugin isn't installed
+next to the app because yt-dlp would then load it on every run and warn about
+an unreachable server whenever no provider is set up. The app checks the
+provider again at start and every 6 hours, and installs the matching plugin
+when the provider was updated. If the provider can't be reached then, Settings
+shows the error and yt-dlp keeps asking it (yt-dlp works without tokens, with
+fewer formats). Empty the address to turn PO tokens off and remove the plugin.
+
+The plugin passes a job's proxy to the provider, which makes the token through
+that proxy. So the provider must reach your proxies by the same address
+yt-dlp-z uses (put them on the same Docker network).
+
 ### Blocked yt-dlp options
 
 Every yt-dlp option is available, except these.

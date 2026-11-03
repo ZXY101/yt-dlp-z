@@ -64,6 +64,12 @@ async def ntfy_messages() -> list[dict[str, Any]]:
     return _ntfy
 
 
+@router.get("/pot/ping")
+async def pot_ping() -> dict[str, Any]:
+    """A stand-in bgutil PO token server: set the provider to <app>/api/test/pot."""
+    return {"server_uptime": 1.0, "version": "2.0.2"}
+
+
 @router.post("/reset", status_code=status.HTTP_204_NO_CONTENT)
 async def reset(state: State, db: Db) -> None:
     await state.watcher.stop_checks()
@@ -77,6 +83,7 @@ async def reset(state: State, db: Db) -> None:
         shutil.rmtree(state.settings.config_dir / folder, ignore_errors=True)
     state.login_limiter.reset()
     state.notifier.config = NtfyConfig()
+    await state.pot.configure(None)
     state.jobs.downloads.set_limit(state.settings.max_concurrent_downloads)
     state.jobs.recordings.set_limit(state.settings.max_concurrent_recordings)
     # Mirror a fresh start, which applies YTDLPZ_ADMIN_PASSWORD.

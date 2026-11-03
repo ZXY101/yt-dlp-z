@@ -7,3 +7,4 @@ export type YtdlpPreferences = components["schemas"]["YtdlpPreferences"];
 export type NotificationSettings = components["schemas"]["NotificationSettingsOut"];
 export type NotificationSettingsIn = components["schemas"]["NotificationSettingsIn"];
 export type NotifyEvent = NotificationSettings["events"][number];
+export type PotProviderInfo = components["schemas"]["PotProviderInfo"];

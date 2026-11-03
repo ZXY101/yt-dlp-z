@@ -6,8 +6,8 @@ Design and milestones: [PLAN.md](PLAN.md).
 
 ## Current status
 
-**Milestone 6 (ops): in progress.** Steps 1–5 (yt-dlp updates, ntfy, media-server
-output, proxy pool) done. Next: M6 step 6 (PO-token provider recipe). Milestone 5 is done (a real scheduled stream starting
+**Milestone 6 (ops): in progress.** Steps 1–6 (yt-dlp updates, ntfy, media-server
+output, proxy pool, PO tokens) done. Next: M6 step 7 (docs, healthcheck review). Milestone 5 is done (a real scheduled stream starting
 on time is still unchecked, see below).
 
 | Milestone                 | Status      |
@@ -92,7 +92,20 @@ Vitest, pytest and Playwright suites; Docker image; CI for all of it.
      pool. Checked for real through gluetun (Proton FR): Test shows the exit IP;
      YouTube answered the VPN IP with the bot check and the job moved on.
      `job_run.py` was split (`context.py`, `progress.py`).
-6. PO-token provider (bgutil) recipe.
+6. ~~PO-token provider (bgutil) recipe.~~ Done 2026-11-03: Settings → PO tokens
+   (provider address, Test, Save). `services/ytdlp/pot/`: saving pings
+   `<url>/ping`, pip-installs `bgutil-ytdlp-pot-provider==<server version>`
+   (`--no-deps`) into `<config>/plugins/bgutil` (staging + swap, shared
+   `services/ytdlp/pip.py` with the updater), then sets process-wide args
+   (`services/ytdlp/global_args.py`: `--plugin-dirs <config>/plugins` +
+   `youtubepot-bgutilhttp:base_url`) that `build_command`, `run_ytdlp_json` and
+   the cookies check add. Decisions: plugin outside sys.path, because installed
+   it pings 127.0.0.1:4416 and warns on every run without a server (and it's
+   GPL, so not in the image); exact version match (the plugin warns on any
+   difference); re-check at start + every 6 h; an unreachable server at a
+   re-check keeps the args. API `GET/PUT /api/ytdlp/pot`, `POST /test`. E2E
+   fake provider `/api/test/pot/ping`. Checked for real against the bgutil
+   container: a download forced to `player_client=mweb` got its GVS token.
 7. Docs: configuration.md, ops; healthcheck review.
 
 ## Presets per kind of link (done 2026-10-31)
@@ -285,8 +298,6 @@ Still open:
   start at 0.1.0. CI doesn't run on its PRs by itself: GITHUB_TOKEN-created PRs
   don't trigger workflows (shown as "action required"). Fine for now; a PAT or
   GitHub App token would fix it if needed.
-- PO tokens: YouTube is enforcing them for some clients. The usual fix is the
-  bgutil-ytdlp-pot-provider plugin (a helper container) — milestone 6.
 
 - `npm audit`: 3 low-severity advisories in `deepmerge`, pulled in by the
   shadcn CLI (dev only, nothing ships to the browser). No patched version
@@ -460,5 +471,12 @@ Still open:
   2 min killed yt-dlp while it embedded the thumbnail into a 2.5 GB part (left a
   .temp.mkv; the .mkv itself was complete).
 
-**Next session:** M6 step 6 (PO-token provider recipe). Still unverified: a real scheduled stream starting on time.
+- **2026-11-03 · PO tokens + caching.** M6 step 6 (see the step). Job 5
+  (Vivi #26, 3 parts) finished `completed`; it was only ~3.5 h, so the
+  link-expiry continue is still unverified. The user's phone showed the old
+  options dialog after a redeploy: `index.html` had no Cache-Control, so the
+  browser reused it. Now `no-cache` for pages and `immutable` for hashed
+  `assets/` (`web.py`).
+
+**Next session:** M6 step 7 (docs: configuration.md, ops; healthcheck review). Still unverified: link-expiry continue on a > 5 h stream; a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.

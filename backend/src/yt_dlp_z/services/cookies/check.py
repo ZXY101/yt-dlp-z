@@ -4,6 +4,7 @@ import asyncio
 from pathlib import Path
 
 from yt_dlp_z.schemas.cookies import CookieCheckResult
+from yt_dlp_z.services.ytdlp.global_args import global_args
 from yt_dlp_z.services.ytdlp.output import error_message
 
 CHECK_TIMEOUT_SECONDS = 60
@@ -21,6 +22,7 @@ def check_command(ytdlp_command: list[str], cookie_file: Path, url: str) -> list
         "%(title)s",
         "--cookies",
         str(cookie_file),
+        *global_args(),
         "--",
         url,
     ]

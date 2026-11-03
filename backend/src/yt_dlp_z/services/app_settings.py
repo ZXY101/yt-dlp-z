@@ -56,3 +56,14 @@ async def get_ytdlp_preferences(session: AsyncSession) -> YtdlpPreferences:
 async def set_ytdlp_preferences(session: AsyncSession, preferences: YtdlpPreferences) -> None:
     auto_update = "true" if preferences.auto_update else "false"
     await set_values(session, {YTDLP_CHANNEL: preferences.channel, YTDLP_AUTO_UPDATE: auto_update})
+
+
+POT_PROVIDER_URL = "pot_provider_url"
+
+
+async def get_pot_provider_url(session: AsyncSession) -> str | None:
+    return await get_value(session, POT_PROVIDER_URL) or None
+
+
+async def set_pot_provider_url(session: AsyncSession, url: str | None) -> None:
+    await set_values(session, {POT_PROVIDER_URL: url or ""})

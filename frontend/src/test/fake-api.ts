@@ -7,6 +7,7 @@ import { proxyRoutes } from "@/test/fake-proxies";
 import { subscriptionRoutes } from "@/test/fake-subscriptions";
 import { installFakeSocket } from "@/test/fake-socket";
 import { makeNotifications, notificationRoutes } from "@/test/fake-notifications";
+import { makePot, potRoutes } from "@/test/fake-pot";
 import { makeYtdlpInfo, ytdlpRoutes } from "@/test/fake-ytdlp";
 
 export type { FakeServer } from "@/test/fake-http";
@@ -55,6 +56,7 @@ const routes = [
   ...subscriptionRoutes,
   ...ytdlpRoutes,
   ...notificationRoutes,
+  ...potRoutes,
   ...proxyRoutes,
 ];
 
@@ -91,6 +93,7 @@ export function createFakeServer(status: Partial<AuthStatus> = {}): FakeServer {
     ytdlp: makeYtdlpInfo(),
     ytdlpUpdateFails: false,
     ...makeNotifications(),
+    ...makePot(),
     subscriptions: [],
     videos: {},
     proxies: [],

@@ -9,7 +9,8 @@ from typing import Any
 
 from yt_dlp_z.schemas.ytdlp import YtdlpChannel, YtdlpPreferences
 from yt_dlp_z.services.ytdlp.communicate import communicate
-from yt_dlp_z.services.ytdlp.updater import UpdateError, YtdlpUpdater, last_line
+from yt_dlp_z.services.ytdlp.pip import last_line
+from yt_dlp_z.services.ytdlp.updater import UpdateError, YtdlpUpdater
 
 logger = logging.getLogger(__name__)
 

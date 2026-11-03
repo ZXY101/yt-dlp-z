@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from yt_dlp_z.services.ytdlp.global_args import global_args
+
 # yt-dlp prints these prefixes (via the templates below) so the runner can pick
 # structured data out of its normal output. The E2E stub prints the same ones.
 PROGRESS_MARKER = "[ytdlpz:progress]"
@@ -30,6 +32,7 @@ def build_command(
         f"after_move:{FILE_MARKER}%(filepath)j",
         # --print implies --quiet; keep yt-dlp's normal messages for the job log.
         "--no-quiet",
+        *global_args(),
         *user_args,
         "--paths",
         f"home:{download_dir}",
