@@ -66,18 +66,22 @@ def show_nfo(info: dict[str, Any]) -> ET.Element:
     return root
 
 
-def write_nfo_files(info: dict[str, Any], layout: MediaLayout, download_dir: Path) -> None:
+def write_nfo_files(info: dict[str, Any], layout: MediaLayout, download_dir: Path) -> Path | None:
     """The episode's .nfo next to its file, and the channel's tvshow.nfo once.
-    Files outside the download folder are left alone."""
+    Files outside the download folder are left alone. Returns the channel folder, if it
+    is inside the download folder."""
     filepath = _text(info, "filepath")
     if filepath is None:
-        return
+        return None
     video = Path(filepath).resolve()
     if not video.is_relative_to(download_dir.resolve()):
-        return
+        return None
     _write(video.with_suffix(".nfo"), episode_nfo(info))
     show_dir = video.parent.parent if layout == "season" else video.parent
     show_file = show_dir / "tvshow.nfo"
     inside = show_dir != download_dir.resolve() and show_dir.is_relative_to(download_dir.resolve())
-    if inside and not show_file.exists():
+    if not inside:
+        return None
+    if not show_file.exists():
         _write(show_file, show_nfo(info))
+    return show_dir
