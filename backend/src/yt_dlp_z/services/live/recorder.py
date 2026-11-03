@@ -4,9 +4,14 @@ yt-dlp can't split a recording itself, so each part is its own yt-dlp run: when 
 time is up, yt-dlp gets SIGINT (it then finishes and merges the file, like Ctrl+C) and the
 next part starts, recording from now. There can be a gap of a few seconds between parts.
 A maximum length counts hours of the stream saved (see StreamClock), not hours spent.
+
+YouTube's stream links expire after about 6 hours. yt-dlp should renew them, but often
+can't ("Cannot find refreshed url"); it then stops and saves the file as if the stream
+had ended. When the stream is still live, the recording continues with the next part.
 """
 
 import asyncio
+import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
@@ -23,6 +28,8 @@ EXT_SUFFIX = ".%(ext)s"
 WAIT_ARGS = ["--wait-for-video", "30-300"]
 
 Outcome = tuple[JobStatus, str | None]
+# A part whose links expired sooner than this isn't continued: something else is wrong.
+MIN_EXPIRED_PART_SECONDS = 600
 
 
 @dataclass(frozen=True)
@@ -117,6 +124,8 @@ class RecordingHooks:
     is_cancelled: Callable[[], bool]
     # Saves the job (its part number) before each part starts.
     on_part: Callable[[int], Awaitable[None]]
+    # Whether the stream is still live (asked after a part's links expired).
+    still_live: Callable[[], Awaitable[bool]]
 
 
 @dataclass
@@ -146,6 +155,14 @@ class _Part:
             self.timer.stop()
 
 
+async def _links_expired_while_live(
+    result: ProcessResult, seconds: float, hooks: RecordingHooks
+) -> bool:
+    if not result.links_expired or seconds < MIN_EXPIRED_PART_SECONDS:
+        return False
+    return await hooks.still_live()
+
+
 async def record(job: Job, hooks: RecordingHooks) -> Outcome:
     # After a restart the recording continues with the next part.
     part = (job.part or 0) + 1
@@ -154,14 +171,20 @@ async def record(job: Job, hooks: RecordingHooks) -> Outcome:
         await hooks.on_part(part)
         left = job.max_seconds - saved if job.max_seconds else None
         running = _Part(_clock(job, part), PartTimer(part_length(job, saved)), left, hooks.on_start)
+        started = time.monotonic()
         try:
             result = await hooks.run_part(part_args(job, part), running.watch())
         finally:
             running.timer.cancel()
         saved += running.clock.seconds()
-        # A part stopped by its timer ends normally; anything else ends the recording.
-        if hooks.is_cancelled() or not running.timer.timed_out:
-            return _part_outcome(result, hooks.is_cancelled(), running.saved_file)
+        # A part stopped by its timer ends normally, and so does one whose links expired
+        # while the stream is still live; anything else ends the recording.
+        if hooks.is_cancelled():
+            return _part_outcome(result, True, running.saved_file)
+        if not running.timer.timed_out and not await _links_expired_while_live(
+            result, time.monotonic() - started, hooks
+        ):
+            return _part_outcome(result, False, running.saved_file)
         if job.max_seconds and saved >= job.max_seconds:
             return JobStatus.COMPLETED, None
         part += 1

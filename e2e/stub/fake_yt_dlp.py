@@ -128,6 +128,8 @@ def video_metadata(video_id: str, args: list[str]) -> int:
         data["availability"] = "subscriber_only"
     if "upcoming" in video_id:
         data.update(live_status="is_upcoming", duration=None, release_timestamp=4_102_444_800)
+    elif "ended" in video_id:
+        data.update(live_status="was_live")
     elif "live" in video_id:
         data.update(live_status="is_live", duration=None)
         if "old" in video_id:  # live for 10 hours already
@@ -320,6 +322,10 @@ def main() -> int:
     emit(PROGRESS + json.dumps({"status": "finished", "downloaded_bytes": TOTAL_BYTES}))
     emit(FILE + json.dumps(str(target)))
     emit_nfo(args, target, title, video_id)
+    if live and "expiring" in url and "--live-from-start" in args:
+        # YouTube's links expire after about 6 h; yt-dlp often can't renew them.
+        for _ in range(3):
+            emit("WARNING: [youtube] Cannot find refreshed url for format 303; Retrying...")
     if live and "gaps" in url:
         emit("ERROR: Did not get any data blocks")
         return 1
