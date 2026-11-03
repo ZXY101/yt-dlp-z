@@ -9,6 +9,7 @@ const NOW = "2026-10-30T10:00:00+00:00";
 export function makeSubscription(overrides: Partial<Subscription> = {}): Subscription {
   return {
     id: 1,
+    kind: "channel",
     channel_id: "UCdemo",
     name: "Demo channel",
     url: "https://www.youtube.com/channel/UCdemo",
@@ -19,6 +20,7 @@ export function makeSubscription(overrides: Partial<Subscription> = {}): Subscri
     filters: { content_types: ["video"], include_members_only: false },
     poll_minutes: 10,
     enabled: true,
+    keep_days: null,
     backfill: 0,
     last_checked_at: null,
     last_error: null,

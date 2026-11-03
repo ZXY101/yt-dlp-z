@@ -69,6 +69,9 @@ def test_a_live_stream_preset_comes_with_the_old_recording_defaults(
         "max_hours": None,
         "from_start_max_hours": 6,
         "long_streams": "from_now",
+        # Older presets have no VOD settings: off.
+        "vod_after_hours": None,
+        "vod_replace": False,
     }
 
 
@@ -78,6 +81,8 @@ def test_only_live_stream_presets_have_recording_settings(setup_client: TestClie
         "max_hours": 12,
         "from_start_max_hours": None,
         "long_streams": "first_hours",
+        "vod_after_hours": 8,
+        "vod_replace": True,
     }
     live = create(setup_client, name="Concerts", kind="live", recording=recording)
     assert live["recording"] == recording

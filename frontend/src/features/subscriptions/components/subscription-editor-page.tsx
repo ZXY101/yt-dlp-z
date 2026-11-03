@@ -22,6 +22,7 @@ function ChannelFields({ form }: { form: ReturnType<typeof useSubscriptionForm> 
       <FormField
         label="Channel"
         placeholder="https://www.youtube.com/@channel or @channel"
+        hint="Or a playlist link: videos added to it are downloaded instead."
         autoComplete="off"
         spellCheck={false}
         value={values.channel}

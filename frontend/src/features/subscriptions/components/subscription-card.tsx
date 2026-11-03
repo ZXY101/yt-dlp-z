@@ -98,6 +98,7 @@ function SubscriptionSummary({ subscription, open, panelId, onToggle }: SummaryP
           </span>
         )}
       </span>
+      {subscription.kind === "playlist" && <Badge variant="outline">Playlist</Badge>}
       {!subscription.enabled && <Badge variant="secondary">Paused</Badge>}
     </button>
   );

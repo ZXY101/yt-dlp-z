@@ -11,6 +11,9 @@ describe("Subscriptions", () => {
   it("expands a channel to show what it downloaded and recorded", async () => {
     const server = createFakeServer();
     server.subscriptions = [makeSubscription({ id: 1, name: "Vivi" })];
+    server.subscriptions.push(
+      makeSubscription({ id: 2, name: "Karaoke list", kind: "playlist", channel_id: "PLk" }),
+    );
     server.jobs = [
       makeJob({ id: 1, subscription_id: 1, title: "Karaoke", kind: "live", status: "completed" }),
       makeJob({ id: 2, subscription_id: 1, title: "New upload", status: "failed", error: "Gone" }),
@@ -20,6 +23,7 @@ describe("Subscriptions", () => {
     const { user } = renderApp("/subscriptions");
 
     const toggle = await screen.findByRole("button", { name: /^Vivi/, expanded: false });
+    expect(screen.getByRole("button", { name: /^Karaoke list.*Playlist/ })).toBeVisible();
     expect(screen.queryByText("Karaoke")).not.toBeInTheDocument();
     await user.click(toggle);
 
@@ -115,7 +119,7 @@ describe("Subscriptions", () => {
     await user.type(screen.getByLabelText("Delete downloads after (days)"), "0");
     await user.click(screen.getByRole("button", { name: "Save subscription" }));
 
-    expect(await screen.findByText("Enter a channel URL or @handle.")).toBeVisible();
+    expect(await screen.findByText("Enter a channel or playlist URL, or @handle.")).toBeVisible();
     expect(screen.getByText("Enter a whole number from 5 to 10080.")).toBeVisible();
     expect(screen.getByText("Pick at least one.")).toBeVisible();
     expect(screen.getByText("Enter a number of minutes.")).toBeVisible();

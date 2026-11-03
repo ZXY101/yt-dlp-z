@@ -57,7 +57,7 @@ def test_the_channel_limit(setup_client: TestClient, paused: dict[str, Any]) -> 
 @pytest.mark.parametrize(
     ("channel", "message"),
     [
-        ("https://example.com/@demo", "Enter a YouTube channel URL or @handle"),
+        ("https://example.com/@demo", "Enter a YouTube channel or playlist URL, or @handle"),
         ("@failing", "Couldn't open that channel: [fake] This channel does not exist"),
         ("https://www.youtube.com/watch?v=abc", "That address isn't a YouTube channel"),
     ],

@@ -65,6 +65,7 @@ async def create_subscription(
         channel_id=channel.channel_id,
         name=channel.name,
         url=channel.url,
+        kind=channel.kind,
         backfill=values.backfill,
     )
     _apply(subscription, values)

@@ -23,7 +23,7 @@ from yt_dlp_z.services.watch.feed import FeedEntry, FeedError
 from yt_dlp_z.services.watch.filters import skip_reason
 from yt_dlp_z.services.watch.probe import ProbeError, VideoInfo, probe_video
 from yt_dlp_z.services.watch.streams import fetch_stream_entries, sweep_due
-from yt_dlp_z.services.watch.tabs import latest_uploads
+from yt_dlp_z.services.watch.tabs import latest_uploads, playlist_entries
 
 BEFORE_SUBSCRIBING = "Uploaded before you subscribed"
 ENDED_STREAM = "Found on the streams tab after it ended"
@@ -36,20 +36,24 @@ async def check_subscription(context: WatchContext, subscription_id: int) -> Non
         if subscription is None:
             return
         try:
-            entries = await latest_uploads(
-                context.settings.youtube_feed_url,
-                context.settings.ytdlp_command,
-                subscription.channel_id,
-            )
+            entries = await _latest_entries(context, subscription)
         except FeedError as error:
             subscription.last_error = str(error)
             await session.commit()
             return
-        entries += await _sweep_streams(context, subscription, entries)
+        if subscription.kind != "playlist":
+            entries += await _sweep_streams(context, subscription, entries)
         await _handle_entries(context, session, subscription, entries)
         subscription.last_checked_at = utcnow()
         subscription.last_error = None
         await session.commit()
+
+
+async def _latest_entries(context: WatchContext, subscription: Subscription) -> list[FeedEntry]:
+    command = context.settings.ytdlp_command
+    if subscription.kind == "playlist":
+        return await playlist_entries(command, subscription.channel_id)
+    return await latest_uploads(context.settings.youtube_feed_url, command, subscription.channel_id)
 
 
 async def _sweep_streams(
