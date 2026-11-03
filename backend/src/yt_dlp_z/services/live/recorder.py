@@ -27,6 +27,7 @@ DEFAULT_OUTPUT = "%(title)s [%(id)s].%(ext)s"
 EXT_SUFFIX = ".%(ext)s"
 # Waits (retrying every 30 s to 5 min) when the stream starts later than announced.
 WAIT_ARGS = ["--wait-for-video", "30-300"]
+FIRST_PART_SUFFIX = " (part 1)"
 
 Outcome = tuple[JobStatus, str | None]
 # A part whose links expired sooner than this isn't continued: something else is wrong.
@@ -70,14 +71,15 @@ def number_first_part(filepath: str) -> str:
     """Renames the first part's file, and files saved beside it with the same name (its
     .nfo and thumbnail), to "… (part 1)". Returns the file's new path."""
     path = Path(filepath)
-    if not path.exists():
-        return filepath
     stem = path.stem
+    # Already numbered: recorded by an older version, which numbered every split part.
+    if not path.exists() or stem.endswith(FIRST_PART_SUFFIX):
+        return filepath
     for sibling in path.parent.iterdir():
         if sibling.is_file() and sibling.name.startswith(f"{stem}."):
             rest = sibling.name.removeprefix(stem)
-            sibling.rename(sibling.with_name(f"{stem} (part 1){rest}"))
-    return str(path.with_name(f"{stem} (part 1){path.suffix}"))
+            sibling.rename(sibling.with_name(f"{stem}{FIRST_PART_SUFFIX}{rest}"))
+    return str(path.with_name(f"{stem}{FIRST_PART_SUFFIX}{path.suffix}"))
 
 
 @dataclass

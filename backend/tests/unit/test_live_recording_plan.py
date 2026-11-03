@@ -1,9 +1,15 @@
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 from yt_dlp_z.db.models.job import Job
 from yt_dlp_z.schemas.recording import DEFAULT_RECORDING, RecordingSettings
 from yt_dlp_z.services.live.plan import RecordingPlan, plan_recording
-from yt_dlp_z.services.live.recorder import part_args, part_length, part_template
+from yt_dlp_z.services.live.recorder import (
+    number_first_part,
+    part_args,
+    part_length,
+    part_template,
+)
 
 NOW = datetime(2026, 10, 30, 12, 0, tzinfo=UTC)
 
@@ -65,3 +71,20 @@ def test_part_length_respects_the_maximum() -> None:
     assert part_length(Job(part_seconds=60, max_seconds=None), 500) == 60
     assert part_length(Job(part_seconds=60, max_seconds=100), 70) == 30
     assert part_length(Job(part_seconds=None, max_seconds=100), 130) == 0
+
+
+def test_number_first_part(tmp_path: Path) -> None:
+    video = tmp_path / "Stream [id].mkv"
+    video.write_bytes(b"video")
+    (tmp_path / "Stream [id].nfo").write_text("nfo")
+    (tmp_path / "Stream [id] (part 2).mkv").write_bytes(b"other part")
+    renamed = number_first_part(str(video))
+    assert renamed == str(tmp_path / "Stream [id] (part 1).mkv")
+    assert sorted(path.name for path in tmp_path.iterdir()) == [
+        "Stream [id] (part 1).mkv",
+        "Stream [id] (part 1).nfo",
+        "Stream [id] (part 2).mkv",
+    ]
+    # Already numbered (an older version numbered every split part), or gone: left alone.
+    assert number_first_part(renamed) == renamed
+    assert number_first_part(str(tmp_path / "gone.mkv")) == str(tmp_path / "gone.mkv")
