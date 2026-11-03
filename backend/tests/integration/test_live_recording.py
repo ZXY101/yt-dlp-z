@@ -4,6 +4,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
 
 from tests.conftest import wait_for_job
@@ -19,6 +20,7 @@ from yt_dlp_z.api.state import AppState
 from yt_dlp_z.db.models.job import Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.db.models.video import Video, VideoState
 from yt_dlp_z.schemas.recording import DEFAULT_RECORDING
+from yt_dlp_z.services.live import recorder
 
 FINISHED = {"completed", "failed", "cancelled"}
 STREAMS_TOO = {"content_types": ["video", "stream"]}
@@ -270,6 +272,37 @@ def test_missing_fragments_at_the_end_of_a_stream_are_not_an_error(
     assert job["status"] == "completed"
     assert job["error"] is None
     assert saved_files(watch_client) == ["Fake video gaps-live [gaps-live].mp4"]
+
+
+@pytest.fixture
+def quick_link_expiry(monkeypatch: pytest.MonkeyPatch) -> None:
+    # The stub's links "expire" within a second; real ones last about 6 hours.
+    monkeypatch.setattr(recorder, "MIN_EXPIRED_PART_SECONDS", 0)
+
+
+@pytest.mark.usefixtures("quick_link_expiry")
+def test_expired_links_continue_a_stream_that_is_still_live(watch_client: TestClient) -> None:
+    job_id = start_recording(watch_client, watch_url("expiring-live"), record_from_start=True)
+    job = wait_for_job(watch_client, job_id, FINISHED)
+    assert job["status"] == "completed"
+    assert job["part"] == 2
+    assert saved_files(watch_client) == [
+        "Fake video expiring-live [expiring-live] (part 2).mp4",
+        "Fake video expiring-live [expiring-live].mp4",
+    ]
+    log = watch_client.get(f"/api/jobs/{job_id}/log").text
+    assert "still live; continuing in the next part" in log
+
+
+@pytest.mark.usefixtures("quick_link_expiry")
+def test_expired_links_of_a_stream_that_ended_finish_the_recording(
+    watch_client: TestClient,
+) -> None:
+    url = watch_url("expiring-ended-live")
+    job_id = start_recording(watch_client, url, record_from_start=True)
+    job = wait_for_job(watch_client, job_id, FINISHED)
+    assert (job["status"], job["part"]) == ("completed", 1)
+    assert saved_files(watch_client) == ["Fake video expiring-ended-live [expiring-ended-live].mp4"]
 
 
 def test_streams_live_for_hours_are_recorded_from_now(

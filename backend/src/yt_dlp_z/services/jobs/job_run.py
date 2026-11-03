@@ -28,6 +28,7 @@ from yt_dlp_z.services.proxies.pool import NoProxyError
 from yt_dlp_z.services.ytdlp.args import build_user_args
 from yt_dlp_z.services.ytdlp.command import build_command
 from yt_dlp_z.services.ytdlp.errors import ArgumentError, SchemaUnavailableError
+from yt_dlp_z.services.ytdlp.json_run import YtdlpJsonError, run_ytdlp_json
 from yt_dlp_z.services.ytdlp.output import FileUpdate, ProgressUpdate, Update
 
 # Proxies a download tries before giving up. Each one YouTube blocks goes on cooldown.
@@ -127,8 +128,23 @@ async def _record(running: Running, proxy_args: list[str]) -> Outcome:
         await repository.save(session, job, part=part, **PROGRESS_RESET)
         publish_job(context.hub, job)
 
+    async def still_live() -> bool:
+        args = ["--no-playlist", *access_args]
+        try:
+            data = await run_ytdlp_json(context.settings.ytdlp_command, args, job.url)
+        except YtdlpJsonError:
+            return False
+        live = data.get("live_status") == "is_live"
+        if live:
+            with log_path.open("a", encoding="utf-8") as log:
+                log.write(
+                    "[yt-dlp-z] The stream's links expired but it is still live; "
+                    "continuing in the next part.\n"
+                )
+        return live
+
     control = running.control
-    hooks = RecordingHooks(run_part, control.on_start, control.is_cancelled, on_part)
+    hooks = RecordingHooks(run_part, control.on_start, control.is_cancelled, on_part, still_live)
     outcome = await record(job, hooks)
     await cool_down_if_blocked(session, job, outcome)
     return outcome

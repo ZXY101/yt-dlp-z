@@ -13,6 +13,9 @@ KILL_AFTER_SECONDS = 5
 READ_CHUNK_BYTES = 65_536
 # ffmpeg ends its progress updates with \r only; they count as lines too.
 LINE_END = re.compile(rb"\r\n|\r|\n")
+# yt-dlp's warning when it can't renew a live stream's expired links ("Cannot find
+# refreshed url for format 303"); after three tries it stops and saves what it has.
+EXPIRED_LINKS_HINT = "Cannot find refreshed url"
 # A recording stopped with SIGINT merges what it has; for hours of video that takes a while.
 GRACEFUL_STOP_SECONDS = 600
 
@@ -29,6 +32,9 @@ class ProcessHooks:
 class ProcessResult:
     returncode: int
     error: str | None
+    # yt-dlp couldn't renew a live stream's expired links (YouTube's expire after about
+    # 6 h) and stopped recording, although the stream may still be live.
+    links_expired: bool = False
 
 
 async def run_ytdlp(command: list[str], log_path: Path, hooks: ProcessHooks) -> ProcessResult:
@@ -44,14 +50,14 @@ async def run_ytdlp(command: list[str], log_path: Path, hooks: ProcessHooks) -> 
     )
     hooks.on_start(process)
     try:
-        last_error = await _stream_output(process, log_path, hooks.on_update)
+        output = await _stream_output(process, log_path, hooks.on_update)
     except asyncio.CancelledError:
         # The app is shutting down. yt-dlp runs in its own session, so without this
         # it would keep downloading after the app exits.
         await stop_process(process, graceful=hooks.graceful)
         raise
     returncode = await process.wait()
-    return ProcessResult(returncode=returncode, error=last_error)
+    return ProcessResult(returncode, output.last_error, output.links_expired)
 
 
 async def _lines(stdout: asyncio.StreamReader) -> AsyncIterator[bytes]:
@@ -66,13 +72,19 @@ async def _lines(stdout: asyncio.StreamReader) -> AsyncIterator[bytes]:
         yield pending
 
 
+@dataclass
+class _Output:
+    last_error: str | None = None
+    links_expired: bool = False
+
+
 async def _stream_output(
     process: asyncio.subprocess.Process,
     log_path: Path,
     on_update: Callable[[Update], Awaitable[None]],
-) -> str | None:
-    """Sends marker lines to on_update, logs everything else; returns the last error line."""
-    last_error = None
+) -> _Output:
+    """Sends marker lines to on_update, logs everything else; returns what the log showed."""
+    output = _Output()
     stdout = process.stdout
     if stdout is None:  # pragma: no cover  (always set with stdout=PIPE)
         raise RuntimeError("yt-dlp output is not available")
@@ -85,8 +97,10 @@ async def _stream_output(
                 continue
             log.write(line + "\n")
             log.flush()
-            last_error = error_message(line) or last_error
-    return last_error
+            output.last_error = error_message(line) or output.last_error
+            if EXPIRED_LINKS_HINT in line:
+                output.links_expired = True
+    return output
 
 
 def interrupt_process(process: asyncio.subprocess.Process) -> None:
