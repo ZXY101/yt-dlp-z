@@ -44,6 +44,23 @@ test.describe("downloads", () => {
     await expectNoHorizontalScroll(page);
   });
 
+  test("the log of a long title fits on a phone", async ({ page }) => {
+    // Regression: a truncated title widened the dialog past the screen edge.
+    const longId = "ガルガンターテイム初めてのホロ鯖ARK".repeat(2);
+    await startDownload(page, `https://example.com/watch/${longId}`);
+    const finished = page.getByRole("list", { name: "Finished" });
+    await finished.getByRole("button", { name: "Log" }).click();
+    const dialog = page.getByRole("dialog");
+    const text = dialog.getByText(/\[fake\] done/);
+    await expect(text).toBeVisible();
+    // The dialog itself is capped at the screen width; its content used to spill past it.
+    const dialogBox = await dialog.boundingBox();
+    const textBox = await text.boundingBox();
+    expect(dialogBox && textBox && textBox.x + textBox.width <= dialogBox.x + dialogBox.width).toBe(
+      true,
+    );
+  });
+
   test("a failed download explains why and can be retried", async ({ page }) => {
     await startDownload(page, FAILING_URL);
     const finished = page.getByRole("list", { name: "Finished" });
