@@ -100,6 +100,33 @@ describe("QueuePage", () => {
     expect(server.deletedJobFiles).toEqual([3]);
   });
 
+  it("explains VOD downloads", async () => {
+    const server = createFakeServer();
+    server.jobs = [
+      makeJob({
+        id: 1,
+        kind: "live",
+        status: "completed",
+        title: "Stream",
+        vod_after_seconds: 7200,
+      }),
+      makeJob({
+        id: 2,
+        status: "scheduled",
+        scheduled_at: "2100-01-01T10:00:00Z",
+        title: "Stream VOD",
+        source_job_id: 1,
+        vod_replace: true,
+      }),
+    ];
+    installFakeApi(server);
+    renderApp("/queue");
+
+    expect(await screen.findByText("VOD downloaded 2 h after the stream")).toBeVisible();
+    expect(screen.getByText("VOD of a recording · replaces it once saved")).toBeVisible();
+    expect(screen.getByText(/once YouTube has processed the stream/)).toBeVisible();
+  });
+
   it("shows the download log", async () => {
     const server = createFakeServer();
     server.jobs = [makeJob({ id: 4, status: "failed", title: "Clip" })];

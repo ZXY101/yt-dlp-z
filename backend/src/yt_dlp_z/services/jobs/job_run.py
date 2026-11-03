@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import logging
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -24,6 +25,7 @@ from yt_dlp_z.services.live.recorder import (
     part_args,
     record,
 )
+from yt_dlp_z.services.live.vod import after_finish, vod_args
 from yt_dlp_z.services.media_server.layout import job_media_args
 from yt_dlp_z.services.proxies.pool import NoProxyError
 from yt_dlp_z.services.ytdlp.args import build_user_args
@@ -33,6 +35,7 @@ from yt_dlp_z.services.ytdlp.json_run import YtdlpJsonError, run_ytdlp_json
 from yt_dlp_z.services.ytdlp.output import FileUpdate, ProgressUpdate, Update
 
 # Proxies a download tries before giving up. Each one YouTube blocks goes on cooldown.
+logger = logging.getLogger(__name__)
 MAX_PROXY_ATTEMPTS = 3
 SECOND_PART = 2
 
@@ -51,6 +54,11 @@ async def _finish(context: JobContext, session: AsyncSession, job: Job, outcome:
         session, job, status=status, error=error, speed=None, eta=None, finished_at=utcnow()
     )
     publish_job(context.hub, job)
+    try:
+        await after_finish(context, session, job)
+    except Exception:
+        # The job itself is done; a VOD that couldn't be scheduled is only logged.
+        logger.exception("Follow-up of job %s failed", job.id)
 
 
 class MissingCookiesError(Exception):
@@ -103,7 +111,7 @@ class Running:
 def _first_app_args(job: Job) -> list[str]:
     if job.kind == JobKind.LIVE:
         return [*job_media_args(job), *part_args(job, (job.part or 0) + 1)]
-    return job_media_args(job)
+    return [*job_media_args(job), *vod_args(job)]
 
 
 async def _record(running: Running, proxy_args: list[str]) -> Outcome:

@@ -16,6 +16,8 @@ export const DEFAULT_RECORDING: RecordingSettings = {
   max_hours: null,
   from_start_max_hours: 6,
   long_streams: "from_now",
+  vod_after_hours: null,
+  vod_replace: false,
 };
 
 type MediaKind = "video" | "playlist" | "channel" | "live" | "upcoming";

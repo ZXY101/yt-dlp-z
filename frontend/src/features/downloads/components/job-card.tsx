@@ -49,6 +49,13 @@ function JobDetails({ job }: { job: Job }) {
   if (job.kind === "live") {
     return <RecordingDetails job={job} />;
   }
+  if (job.status === "scheduled" && job.scheduled_at) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Downloads {formatStartTime(job.scheduled_at)}, once YouTube has processed the stream.
+      </p>
+    );
+  }
   if (job.status === "running") {
     return (
       <div className="space-y-1.5">
@@ -61,6 +68,20 @@ function JobDetails({ job }: { job: Job }) {
     return <p className="text-sm text-muted-foreground">Waiting for a free download slot…</p>;
   }
   return <JobOutcome job={job} />;
+}
+
+const SECONDS_PER_HOUR = 3600;
+
+/** A recording's VOD, or the VOD a recording will get. */
+function vodNote(job: Job) {
+  if (job.source_job_id !== null) {
+    return job.vod_replace ? "VOD of a recording · replaces it once saved" : "VOD of a recording";
+  }
+  if (job.kind === "live" && job.vod_after_seconds) {
+    const hours = Math.round(job.vod_after_seconds / SECONDS_PER_HOUR);
+    return `VOD downloaded ${hours} h after the stream`;
+  }
+  return null;
 }
 
 /** Which proxy of the pool the download went through. */
@@ -85,6 +106,7 @@ function JobCard({ job }: { job: Job }) {
           <p className="truncate font-medium">{job.title ?? job.url}</p>
           {job.title && <p className="truncate text-xs text-muted-foreground">{job.url}</p>}
           {job.proxy_id !== null && <ProxyNote proxyId={job.proxy_id} />}
+          {vodNote(job) && <p className="text-xs text-muted-foreground">{vodNote(job)}</p>}
         </div>
         <JobStatusBadge job={job} />
       </div>

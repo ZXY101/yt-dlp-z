@@ -63,6 +63,9 @@ export function useRecordingChoice(input: RecordingChoiceInput) {
       starts_at: stream.starts_at,
       part_hours: part.parsed(),
       max_hours: max.parsed(),
+      // From the preset; not changeable per recording.
+      vod_after_hours: recording.vod_after_hours ?? null,
+      vod_replace: recording.vod_replace ?? false,
     };
   }
 

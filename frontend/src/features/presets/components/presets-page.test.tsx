@@ -156,14 +156,29 @@ describe("Presets", () => {
     const max = screen.getByLabelText("Stop after (hours)");
     await user.clear(max);
     await user.type(max, "12");
+    const replace = "Delete the recording once the VOD is saved";
+    expect(screen.queryByLabelText(replace)).not.toBeInTheDocument();
+    await user.type(
+      screen.getByLabelText("Download the VOD afterwards (hours after the stream)"),
+      "8",
+    );
+    await user.click(screen.getByLabelText(replace));
     await user.click(screen.getByRole("button", { name: "Save preset" }));
     const list = await screen.findByRole("list", { name: "Presets" });
     expect(within(list).getByText("Live streams")).toBeInTheDocument();
-    expect(within(list).getByText(/one file · stops after 12 hours/)).toBeVisible();
+    expect(
+      within(list).getByText(/one file · stops after 12 hours · VOD after 8 hours/),
+    ).toBeVisible();
     expect(server.presets[0]).toMatchObject({
       kind: "live",
       is_default: true,
-      recording: { part_hours: null, max_hours: 12, from_start_max_hours: 6 },
+      recording: {
+        part_hours: null,
+        max_hours: 12,
+        from_start_max_hours: 6,
+        vod_after_hours: 8,
+        vod_replace: true,
+      },
     });
   });
 

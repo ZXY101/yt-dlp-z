@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import { CheckboxField } from "@/components/checkbox-field";
 import { FormField } from "@/components/form-field";
 import { RadioOption } from "@/components/radio-option";
 import { MAX_RECORDING_HOURS } from "@/features/presets/kinds";
@@ -14,8 +15,10 @@ export function useRecordingFields(recording: RecordingSettings) {
     part: useLimitField(recording.part_hours, options),
     max: useLimitField(recording.max_hours, options),
     fromStart: useLimitField(recording.from_start_max_hours, options),
+    vodAfter: useLimitField(recording.vod_after_hours ?? null, options),
   };
   const [longStreams, setLongStreams] = useState<LongStreams>(recording.long_streams);
+  const [vodReplace, setVodReplace] = useState(recording.vod_replace ?? false);
 
   function check() {
     return Object.values(fields)
@@ -29,10 +32,12 @@ export function useRecordingFields(recording: RecordingSettings) {
       max_hours: fields.max.parsed(),
       from_start_max_hours: fields.fromStart.parsed(),
       long_streams: longStreams,
+      vod_after_hours: fields.vodAfter.parsed(),
+      vod_replace: vodReplace,
     };
   }
 
-  return { fields, longStreams, setLongStreams, check, values };
+  return { fields, longStreams, setLongStreams, vodReplace, setVodReplace, check, values };
 }
 
 export type RecordingFieldsState = ReturnType<typeof useRecordingFields>;
@@ -92,6 +97,28 @@ function LongStreamsChoice({ hours, value, onChange }: LongStreamsChoiceProps) {
   );
 }
 
+/** The VOD YouTube keeps after the stream: optional, downloaded some hours later. */
+function VodFields({ recording }: { recording: RecordingFieldsState }) {
+  const { vodAfter } = recording.fields;
+  return (
+    <>
+      <HoursField
+        label="Download the VOD afterwards (hours after the stream)"
+        hint="Optional. Fills gaps a recording can have; YouTube needs time to process long streams. The VOD gets “(VOD)” in its name. Empty: no VOD."
+        field={vodAfter}
+      />
+      {typedHours(vodAfter) !== null && (
+        <CheckboxField
+          label="Delete the recording once the VOD is saved"
+          description="If the VOD can't be downloaded (members-only, not archived), the recording stays."
+          checked={recording.vodReplace}
+          onCheckedChange={recording.setVodReplace}
+        />
+      )}
+    </>
+  );
+}
+
 /** How a live-stream preset records. Each recording keeps the values it started with. */
 export function RecordingFields({ recording }: { recording: RecordingFieldsState }) {
   const { part, max, fromStart } = recording.fields;
@@ -121,6 +148,7 @@ export function RecordingFields({ recording }: { recording: RecordingFieldsState
           onChange={recording.setLongStreams}
         />
       )}
+      <VodFields recording={recording} />
     </fieldset>
   );
 }
