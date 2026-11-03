@@ -52,6 +52,15 @@ test.describe("subscriptions", () => {
     const finished = page.getByRole("list", { name: "Finished" });
     await expect(finished.getByText("Fake video plain1", { exact: true })).toBeVisible();
 
+    // Tapping the channel shows what it downloaded, with the queue's actions.
+    await page.goto("/subscriptions");
+    await page.getByRole("button", { name: /^Fake demo/, expanded: false }).click();
+    const downloads = page.getByRole("list", { name: "Downloads from Fake demo" });
+    await expect(downloads.getByText("Fake video plain1", { exact: true })).toBeVisible();
+    await expect(downloads.getByText(/Saved to /)).toBeVisible();
+    await expect(downloads.getByRole("button", { name: /Log/ })).toBeVisible();
+    await expectNoHorizontalScroll(page);
+
     await setFeed(request, DEMO_ID, ["upcoming1", "plain1", "short1", "older"]);
     await page.goto("/subscriptions");
     await page.getByRole("button", { name: "Check Fake demo now" }).click();

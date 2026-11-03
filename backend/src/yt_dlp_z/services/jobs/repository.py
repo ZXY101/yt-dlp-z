@@ -14,8 +14,13 @@ async def get_job(session: AsyncSession, job_id: int) -> Job | None:
     return await session.get(Job, job_id)
 
 
-async def list_jobs(session: AsyncSession, limit: int) -> Sequence[Job]:
-    result = await session.execute(select(Job).order_by(Job.id.desc()).limit(limit))
+async def list_jobs(
+    session: AsyncSession, limit: int, subscription_id: int | None = None
+) -> Sequence[Job]:
+    query = select(Job).order_by(Job.id.desc()).limit(limit)
+    if subscription_id is not None:
+        query = query.where(Job.subscription_id == subscription_id)
+    result = await session.execute(query)
     return result.scalars().all()
 
 

@@ -105,7 +105,13 @@ export const jobRoutes: Route[] = [
   {
     method: "GET",
     path: /^\/api\/jobs$/,
-    handle: (server) => json(server.jobs.toSorted((a, b) => b.id - a.id)),
+    handle: (server, { query }) => {
+      const subscription = query.get("subscription_id");
+      const jobs = subscription
+        ? server.jobs.filter((job) => job.subscription_id === Number(subscription))
+        : server.jobs;
+      return json(jobs.toSorted((a, b) => b.id - a.id));
+    },
   },
   { method: "POST", path: /^\/api\/jobs$/, handle: (server, { body }) => createJob(server, body) },
   {

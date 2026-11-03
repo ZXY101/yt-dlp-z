@@ -63,8 +63,14 @@ async def create_job(body: JobCreate, state: State, db: Db) -> JobOut:
 
 
 @router.get("")
-async def list_jobs(db: Db, limit: int = Query(default=200, ge=1, le=1000)) -> list[JobOut]:
-    return [JobOut.model_validate(job) for job in await repository.list_jobs(db, limit)]
+async def list_jobs(
+    db: Db,
+    limit: int = Query(default=200, ge=1, le=1000),
+    subscription_id: int | None = None,
+) -> list[JobOut]:
+    """Newest first. subscription_id: only what that channel subscription queued."""
+    jobs = await repository.list_jobs(db, limit, subscription_id)
+    return [JobOut.model_validate(job) for job in jobs]
 
 
 @router.get("/{job_id}")

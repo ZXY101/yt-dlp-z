@@ -1,4 +1,5 @@
-import { Pause, Pencil, Play, RefreshCw, Trash2 } from "lucide-react";
+import { ChevronRight, ExternalLink, Pause, Pencil, Play, RefreshCw, Trash2 } from "lucide-react";
+import { useId, useState } from "react";
 import { Link } from "react-router";
 
 import { describeError } from "@/api/errors";
@@ -11,6 +12,7 @@ import {
   useDeleteSubscription,
   useUpdateSubscription,
 } from "@/features/subscriptions/api";
+import { SubscriptionDownloads } from "@/features/subscriptions/components/subscription-downloads";
 import { describeCheck } from "@/features/subscriptions/format";
 import type { Subscription } from "@/features/subscriptions/types";
 
@@ -56,38 +58,75 @@ function PauseButton({
   );
 }
 
-function SubscriptionSummary({ subscription }: { subscription: Subscription }) {
+interface SummaryProps {
+  subscription: Subscription;
+  open: boolean;
+  panelId: string;
+  onToggle: () => void;
+}
+
+/** The whole summary is the expand button, so a tap anywhere on it opens the downloads. */
+function SubscriptionSummary({ subscription, open, panelId, onToggle }: SummaryProps) {
   return (
-    <div className="flex items-start gap-3">
-      <div className="min-w-0 flex-1 space-y-1">
-        <a
-          href={subscription.url}
-          target="_blank"
-          rel="noreferrer"
-          className="block truncate font-medium hover:underline"
-        >
-          {subscription.name}
-        </a>
-        <p className="text-xs text-muted-foreground">
+    <button
+      type="button"
+      className="flex w-full cursor-pointer items-start gap-3 rounded-md text-left focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      aria-expanded={open}
+      aria-controls={panelId}
+      onClick={onToggle}
+    >
+      <ChevronRight
+        aria-hidden
+        className={`mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-90" : ""}`}
+      />
+      <span className="min-w-0 flex-1 space-y-1">
+        <span className="block truncate font-medium">{subscription.name}</span>
+        <span className="block text-xs text-muted-foreground">
           {describeCheck(subscription)} · every {subscription.poll_minutes} min
-        </p>
+        </span>
         {subscription.last_error && (
-          <p className="text-xs break-words text-destructive">{subscription.last_error}</p>
+          <span className="block text-xs break-words text-destructive">
+            {subscription.last_error}
+          </span>
         )}
-      </div>
+      </span>
       {!subscription.enabled && <Badge variant="secondary">Paused</Badge>}
-    </div>
+    </button>
+  );
+}
+
+function ChannelLink({ subscription }: { subscription: Subscription }) {
+  return (
+    <Button asChild variant="ghost" className="h-10">
+      <a
+        href={subscription.url}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={`Open ${subscription.name} on YouTube`}
+      >
+        <ExternalLink aria-hidden />
+        YouTube
+      </a>
+    </Button>
   );
 }
 
 export function SubscriptionCard({ subscription }: { subscription: Subscription }) {
   const actions = useCardActions(subscription);
+  const [open, setOpen] = useState(false);
+  const panelId = useId();
   const { name } = subscription;
   return (
     <li className="space-y-3 rounded-xl border p-4">
-      <SubscriptionSummary subscription={subscription} />
+      <SubscriptionSummary
+        subscription={subscription}
+        open={open}
+        panelId={panelId}
+        onToggle={() => setOpen((value) => !value)}
+      />
       <FormError message={actions.error} />
       <div className="flex flex-wrap justify-end gap-2">
+        <ChannelLink subscription={subscription} />
         <Button
           variant="ghost"
           className="h-10"
@@ -118,6 +157,7 @@ export function SubscriptionCard({ subscription }: { subscription: Subscription 
           onConfirm={actions.remove}
         />
       </div>
+      {open && <SubscriptionDownloads subscription={subscription} id={panelId} />}
     </li>
   );
 }
