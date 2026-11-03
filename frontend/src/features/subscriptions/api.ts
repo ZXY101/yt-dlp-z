@@ -83,3 +83,30 @@ export function useCheckSubscription() {
     unwrap(api.POST("/api/subscriptions/{subscription_id}/check", subscriptionPath(id))),
   );
 }
+
+/** What the subscription's downloads take up on disk. `version` changes when they do. */
+export function useSubscriptionUsage(subscriptionId: number, version: string) {
+  return useQuery({
+    queryKey: [...SUBSCRIPTIONS_KEY, subscriptionId, "usage", version],
+    queryFn: () =>
+      unwrap(
+        api.GET("/api/subscriptions/{subscription_id}/usage", subscriptionPath(subscriptionId)),
+      ),
+  });
+}
+
+/** Never download a video (true), or look at it again on the next check (false). */
+export function useSetVideoIgnored(subscriptionId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ videoId, ignored }: { videoId: number; ignored: boolean }) =>
+      unwrap(
+        api.PUT("/api/subscriptions/{subscription_id}/videos/{video_id}", {
+          params: { path: { subscription_id: subscriptionId, video_id: videoId } },
+          body: { ignored },
+        }),
+      ),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: [...SUBSCRIPTIONS_KEY, subscriptionId, "videos"] }),
+  });
+}

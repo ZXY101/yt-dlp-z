@@ -110,6 +110,20 @@ class SubscriptionOut(SubscriptionUpdate):
         return as_utc_iso(value)
 
 
+class DiskUsageOut(BaseModel):
+    """What a subscription's downloads take up on disk now."""
+
+    downloads: int
+    files: int
+    bytes: int
+
+
+class VideoUpdate(BaseModel):
+    # True: never download it (cancels a download or recording not finished yet).
+    # False: look at it again on the next check.
+    ignored: bool
+
+
 class VideoOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

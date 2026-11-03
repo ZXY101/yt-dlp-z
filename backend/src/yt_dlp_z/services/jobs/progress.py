@@ -60,6 +60,9 @@ class ProgressTracker:
             update = combine_parts(self._parts)
         for name, value in _changes_for(update).items():
             setattr(self._job, name, value)
+        if isinstance(update, FileUpdate) and update.filepath not in self._job.files:
+            # A new list, so SQLAlchemy sees the change to the JSON column.
+            self._job.files = [*self._job.files, update.filepath]
         due = time.monotonic() - self._last_flush >= PUBLISH_INTERVAL_SECONDS
         if due or isinstance(update, InfoUpdate | FileUpdate):
             await self.flush()

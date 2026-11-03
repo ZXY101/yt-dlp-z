@@ -1,10 +1,11 @@
-import { FileText, type LucideIcon, RotateCcw, Square, Trash2 } from "lucide-react";
+import { FileText, type LucideIcon, RotateCcw, Square } from "lucide-react";
 import { useState } from "react";
 
 import { describeError } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { useCancelJob, useDeleteJob, useRetryJob } from "@/features/downloads/api";
 import { JobLogDialog } from "@/features/downloads/components/job-log-dialog";
+import { RemoveJobButton } from "@/features/downloads/components/remove-job-button";
 import { isFinishedJob } from "@/features/downloads/jobs";
 import type { Job } from "@/features/downloads/types";
 
@@ -67,12 +68,10 @@ export function JobActions({ job }: { job: Job }) {
           />
         )}
         {finished && (
-          <ActionButton
-            icon={Trash2}
-            text="Remove"
-            label={`Remove ${name} from the list`}
+          <RemoveJobButton
+            job={job}
             disabled={remove.isPending}
-            onClick={() => remove.mutate(job.id)}
+            onRemove={(deleteFiles) => remove.mutate({ jobId: job.id, deleteFiles })}
           />
         )}
       </div>

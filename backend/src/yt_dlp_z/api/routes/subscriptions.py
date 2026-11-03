@@ -1,15 +1,25 @@
+import asyncio
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from yt_dlp_z.api.deps import Db, State, require_auth
+from yt_dlp_z.api.routes.job_actions import stop_job
 from yt_dlp_z.api.state import AppState
 from yt_dlp_z.api.validation import check_cookie_id, check_output_dir
+from yt_dlp_z.db.models.job import FINISHED_STATUSES, Job
 from yt_dlp_z.db.models.subscription import Subscription
+from yt_dlp_z.db.models.video import Video, VideoState
 from yt_dlp_z.schemas.subscriptions import (
+    DiskUsageOut,
     SubscriptionCreate,
     SubscriptionOut,
     SubscriptionUpdate,
     VideoOut,
+    VideoUpdate,
 )
+from yt_dlp_z.services.jobs import repository
+from yt_dlp_z.services.jobs.files import disk_usage
 from yt_dlp_z.services.presets import get_preset
 from yt_dlp_z.services.watch import store
 from yt_dlp_z.services.watch.channel import ChannelError, resolve_channel
@@ -97,3 +107,42 @@ async def list_videos(subscription_id: int, db: Db) -> list[VideoOut]:
     return [
         VideoOut.model_validate(video) for video in await store.list_videos(db, subscription_id)
     ]
+
+
+IGNORED_REASON = "You chose not to download it"
+RECHECK_REASON = "Checked again on the next check"
+
+
+async def find_video(subscription_id: int, video_id: int, db: Db) -> Video:
+    video = await store.get_video(db, subscription_id, video_id)
+    if video is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Video not found")
+    return video
+
+
+@router.put("/{subscription_id}/videos/{video_id}")
+async def update_video(
+    video: Annotated[Video, Depends(find_video)], body: VideoUpdate, state: State, db: Db
+) -> VideoOut:
+    if body.ignored:
+        job = await db.get(Job, video.job_id) if video.job_id is not None else None
+        if job is not None and job.status not in FINISHED_STATUSES:
+            await stop_job(state, db, job)
+        video.state, video.reason = VideoState.IGNORED, IGNORED_REASON
+    else:
+        # A failed video is looked at again on the next check, filters and all.
+        video.state, video.reason = VideoState.FAILED, RECHECK_REASON
+    await db.commit()
+    return VideoOut.model_validate(video)
+
+
+# More downloads than this per subscription aren't counted.
+USAGE_JOB_LIMIT = 10_000
+
+
+@router.get("/{subscription_id}/usage")
+async def get_disk_usage(subscription_id: int, db: Db) -> DiskUsageOut:
+    await find_subscription(db, subscription_id)
+    jobs = list(await repository.list_jobs(db, USAGE_JOB_LIMIT, subscription_id))
+    usage = await asyncio.to_thread(disk_usage, jobs)
+    return DiskUsageOut(downloads=len(jobs), files=usage.files, bytes=usage.bytes)

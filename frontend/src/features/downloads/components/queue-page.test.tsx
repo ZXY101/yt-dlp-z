@@ -81,8 +81,23 @@ describe("QueuePage", () => {
     expect(screen.getByText(/Waiting for a free download slot/)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Cancel Clip" }));
-    await user.click(await screen.findByRole("button", { name: "Remove Clip from the list" }));
+    await user.click(await screen.findByRole("button", { name: "Remove Clip" }));
+    await user.click(await screen.findByRole("button", { name: "Remove from list" }));
     expect(await screen.findByText("No downloads yet")).toBeInTheDocument();
+    expect(server.deletedJobFiles).toEqual([]);
+  });
+
+  it("can delete a download's files", async () => {
+    const server = createFakeServer();
+    server.jobs = [makeJob({ id: 3, status: "completed", title: "Clip", subscription_id: 2 })];
+    installFakeApi(server);
+    const { user } = renderApp("/queue");
+
+    await user.click(await screen.findByRole("button", { name: "Remove Clip" }));
+    expect(await screen.findByText(/The channel won't download it again/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Delete files" }));
+    expect(await screen.findByText("No downloads yet")).toBeInTheDocument();
+    expect(server.deletedJobFiles).toEqual([3]);
   });
 
   it("shows the download log", async () => {

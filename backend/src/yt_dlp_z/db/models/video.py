@@ -14,6 +14,7 @@ class VideoState(StrEnum):
     UPCOMING = "upcoming"  # scheduled stream or premiere (recorded from milestone 5)
     LIVE = "live"  # live right now (recorded from milestone 5)
     FAILED = "failed"  # yt-dlp couldn't read it; retried on the next check
+    IGNORED = "ignored"  # the user chose not to download it, or deleted its files
 
 
 class Video(Base):

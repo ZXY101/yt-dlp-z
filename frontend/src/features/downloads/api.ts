@@ -66,11 +66,17 @@ export function useRetryJob() {
   return useJobUpdate((jobId) => unwrap(api.POST("/api/jobs/{job_id}/retry", jobPath(jobId))));
 }
 
+/** Removes a finished job from the list; with deleteFiles, its files from disk too. */
 export function useDeleteJob() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (jobId: number) => unwrap(api.DELETE("/api/jobs/{job_id}", jobPath(jobId))),
-    onSuccess: (_data, jobId) => forgetJob(queryClient, jobId),
+    mutationFn: ({ jobId, deleteFiles }: { jobId: number; deleteFiles: boolean }) =>
+      unwrap(
+        api.DELETE("/api/jobs/{job_id}", {
+          params: { path: { job_id: jobId }, query: { delete_files: deleteFiles } },
+        }),
+      ),
+    onSuccess: (_data, { jobId }) => forgetJob(queryClient, jobId),
   });
 }
 

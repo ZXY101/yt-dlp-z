@@ -130,7 +130,9 @@ async def _record(running: Running, proxy_args: list[str]) -> Outcome:
         fields: dict[str, object] = {}
         # The recording became several files: the first one gets its part number too.
         if part == SECOND_PART and job.filepath:
-            fields["filepath"] = number_first_part(job.filepath)
+            renamed = number_first_part(job.filepath)
+            fields["filepath"] = renamed
+            fields["files"] = [renamed if file == job.filepath else file for file in job.files]
         await repository.save(session, job, part=part, **PROGRESS_RESET, **fields)
         publish_job(context.hub, job)
 

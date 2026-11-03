@@ -1,4 +1,5 @@
 import { type Page } from "@playwright/test";
+import { existsSync } from "node:fs";
 
 import {
   completeSetupViaApi,
@@ -214,10 +215,23 @@ test.describe("downloads", () => {
     await expect(page.getByRole("listbox", { name: "Existing folders" })).toBeHidden();
   });
 
-  test("finished downloads can be removed from the list", async ({ page }) => {
+  test("removing keeps the file unless Delete files is chosen", async ({ page }) => {
     await startDownload(page, QUICK_URL);
     const finished = page.getByRole("list", { name: "Finished" });
-    await finished.getByRole("button", { name: "Remove Fake video quick from the list" }).click();
+    await expect(finished.getByText(/Saved to /)).toBeVisible();
+    const [kept] = await (await page.request.get("/api/jobs")).json();
+    await finished.getByRole("button", { name: "Remove Fake video quick" }).click();
+    await expectNoHorizontalScroll(page);
+    await page.getByRole("button", { name: "Remove from list" }).click();
     await expect(page.getByText("No downloads yet")).toBeVisible();
+    expect(existsSync(kept.filepath)).toBe(true);
+
+    await startDownload(page, "https://example.com/watch/deleted");
+    await expect(finished.getByText(/Saved to /)).toBeVisible();
+    const [deleted] = await (await page.request.get("/api/jobs")).json();
+    await finished.getByRole("button", { name: "Remove Fake video deleted" }).click();
+    await page.getByRole("button", { name: "Delete files" }).click();
+    await expect(page.getByText("No downloads yet")).toBeVisible();
+    expect(existsSync(deleted.filepath)).toBe(false);
   });
 });

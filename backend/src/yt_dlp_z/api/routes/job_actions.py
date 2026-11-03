@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import PlainTextResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from yt_dlp_z.api.deps import Db, State, require_auth
 from yt_dlp_z.api.routes.jobs import find_job
-from yt_dlp_z.db.models.job import FINISHED_STATUSES, JobStatus, utcnow
+from yt_dlp_z.api.state import AppState
+from yt_dlp_z.db.models.job import FINISHED_STATUSES, Job, JobStatus, utcnow
 from yt_dlp_z.schemas.jobs import JobOut
 from yt_dlp_z.services.jobs import repository
 from yt_dlp_z.services.jobs.context import job_log_path, publish_job
@@ -13,17 +15,23 @@ router = APIRouter(prefix="/api/jobs", tags=["jobs"], dependencies=[Depends(requ
 LOG_TAIL_BYTES = 200_000
 
 
+async def stop_job(state: AppState, db: AsyncSession, job: Job) -> None:
+    """Cancels a job that hasn't finished: a waiting one at once, a running one through
+    its queue (a recording keeps what it recorded)."""
+    if job.status in {JobStatus.SCHEDULED, JobStatus.QUEUED}:
+        await repository.save(db, job, status=JobStatus.CANCELLED, finished_at=utcnow())
+        publish_job(state.hub, job)
+        return
+    await state.jobs.cancel(job)
+    await db.refresh(job)
+
+
 @router.post("/{job_id}/cancel")
 async def cancel_job(job_id: int, state: State, db: Db) -> JobOut:
     job = await find_job(db, job_id)
     if job.status in FINISHED_STATUSES:
         raise HTTPException(status.HTTP_409_CONFLICT, "This download has already finished")
-    if job.status in {JobStatus.SCHEDULED, JobStatus.QUEUED}:
-        await repository.save(db, job, status=JobStatus.CANCELLED, finished_at=utcnow())
-        publish_job(state.hub, job)
-    else:
-        await state.jobs.cancel(job)
-        await db.refresh(job)
+    await stop_job(state, db, job)
     return JobOut.model_validate(job)
 
 
