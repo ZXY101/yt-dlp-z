@@ -38,6 +38,13 @@ def test_first_check_downloads_only_the_backfill(watch_client: TestClient, feeds
     assert job["url"] == "https://www.youtube.com/watch?v=new"
     assert job["subscription_id"] == created["id"]
 
+    # The subscriptions page lists what each channel downloaded; one-off downloads don't count.
+    watch_client.post("/api/jobs", json={"url": "https://example.com/watch/other"})
+    mine = watch_client.get("/api/jobs", params={"subscription_id": created["id"]}).json()
+    assert [item["id"] for item in mine] == [job["id"]]
+    other = watch_client.get("/api/jobs", params={"subscription_id": created["id"] + 1}).json()
+    assert other == []
+
 
 def test_later_checks_filter_each_new_video(watch_client: TestClient, feeds: Path) -> None:
     write_feed(feeds, CHANNEL_ID, ["old"])

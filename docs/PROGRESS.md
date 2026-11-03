@@ -478,5 +478,13 @@ Still open:
   browser reused it. Now `no-cache` for pages and `immutable` for hashed
   `assets/` (`web.py`).
 
+- **2026-11-03 · Subscription downloads.** Tapping a channel card on
+  Subscriptions expands it to list everything that subscription downloaded or
+  recorded (the queue's job cards: log, retry, cancel, remove). `GET /api/jobs`
+  takes `subscription_id`; the list lives under `["jobs","subscription",id]`
+  and `saveJob`/`forgetJob` keep it in step with job events. The channel name
+  is no longer a link; a "YouTube" button opens the channel. The server now
+  runs a bgutil provider next to :9743 (hosting compose).
+
 **Next session:** M6 step 7 (docs: configuration.md, ops; healthcheck review). Still unverified: link-expiry continue on a > 5 h stream; a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.

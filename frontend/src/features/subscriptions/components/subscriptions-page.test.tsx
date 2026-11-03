@@ -2,11 +2,57 @@ import { screen, within } from "@testing-library/react";
 
 import { DEFAULT_RECORDING } from "@/features/presets";
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
+import { makeJob } from "@/test/fake-jobs";
 import { makeCookieFile, makePreset } from "@/test/fake-library";
 import { makeSubscription, makeVideo } from "@/test/fake-subscriptions";
 import { renderApp } from "@/test/render";
 
 describe("Subscriptions", () => {
+  it("expands a channel to show what it downloaded and recorded", async () => {
+    const server = createFakeServer();
+    server.subscriptions = [makeSubscription({ id: 1, name: "Vivi" })];
+    server.jobs = [
+      makeJob({ id: 1, subscription_id: 1, title: "Karaoke", kind: "live", status: "completed" }),
+      makeJob({ id: 2, subscription_id: 1, title: "New upload", status: "failed", error: "Gone" }),
+      makeJob({ id: 3, subscription_id: null, title: "Something else" }),
+    ];
+    installFakeApi(server);
+    const { user } = renderApp("/subscriptions");
+
+    const toggle = await screen.findByRole("button", { name: /^Vivi/, expanded: false });
+    expect(screen.queryByText("Karaoke")).not.toBeInTheDocument();
+    await user.click(toggle);
+
+    const list = await screen.findByRole("list", { name: "Downloads from Vivi" });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    const titles = within(list)
+      .getAllByRole("listitem")
+      .map((item) => item.textContent);
+    expect(titles[0]).toContain("New upload");
+    expect(titles[1]).toContain("Karaoke");
+    expect(titles).toHaveLength(2);
+    expect(within(list).getByText("Gone")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Open Vivi on YouTube" })).toHaveAttribute(
+      "href",
+      server.subscriptions[0]?.url,
+    );
+
+    await user.click(toggle);
+    expect(screen.queryByRole("list", { name: "Downloads from Vivi" })).not.toBeInTheDocument();
+  });
+
+  it("says so when a channel has downloaded nothing yet", async () => {
+    const server = createFakeServer();
+    server.subscriptions = [makeSubscription({ id: 1, name: "Vivi" })];
+    installFakeApi(server);
+    const { user } = renderApp("/subscriptions");
+
+    await user.click(await screen.findByRole("button", { name: /^Vivi/ }));
+    expect(
+      await screen.findByText("Nothing downloaded or recorded from this channel yet."),
+    ).toBeInTheDocument();
+  });
+
   it("explains subscriptions when there are none, and links to adding one", async () => {
     installFakeApi(createFakeServer());
     const { user, router } = renderApp("/subscriptions");

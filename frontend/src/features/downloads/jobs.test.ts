@@ -5,6 +5,7 @@ import {
   applyJobEvent,
   isActiveJob,
   removeJob,
+  subscriptionJobsKey,
   upsertJob,
 } from "@/features/downloads/jobs";
 import type { Job } from "@/features/downloads/types";
@@ -54,5 +55,25 @@ describe("job cache helpers", () => {
     expect(client.getQueryData(JOBS_KEY)).toEqual([newer, older]);
     applyJobEvent(client, { type: "job_deleted", id: 1 });
     expect(client.getQueryData(JOBS_KEY)).toEqual([newer]);
+  });
+
+  it("keeps an open subscription's list in step with job events", () => {
+    const client = new QueryClient();
+    const channel = subscriptionJobsKey(7);
+    const first = makeJob({ id: 1, subscription_id: 7, status: "running" });
+    client.setQueryData<Job[]>(channel, [first]);
+    client.setQueryData<Job[]>(subscriptionJobsKey(8), []);
+
+    applyJobEvent(client, { type: "job", job: { ...first, status: "completed", revision: 1 } });
+    applyJobEvent(client, { type: "job", job: makeJob({ id: 2, subscription_id: 7 }) });
+    applyJobEvent(client, { type: "job", job: makeJob({ id: 3, subscription_id: null }) });
+    expect(client.getQueryData<Job[]>(channel)?.map((job) => [job.id, job.status])).toEqual([
+      [2, "queued"],
+      [1, "completed"],
+    ]);
+    expect(client.getQueryData(subscriptionJobsKey(8))).toEqual([]);
+
+    applyJobEvent(client, { type: "job_deleted", id: 1 });
+    expect(client.getQueryData<Job[]>(channel)?.map((job) => job.id)).toEqual([2]);
   });
 });

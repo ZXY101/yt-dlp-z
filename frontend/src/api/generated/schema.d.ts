@@ -194,7 +194,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Jobs */
+        /**
+         * List Jobs
+         * @description Newest first. subscription_id: only what that channel subscription queued.
+         */
         get: operations["list_jobs_api_jobs_get"];
         put?: never;
         /** Create Job */
@@ -1829,6 +1832,7 @@ export interface operations {
         parameters: {
             query?: {
                 limit?: number;
+                subscription_id?: number | null;
             };
             header?: never;
             path?: never;

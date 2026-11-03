@@ -1,7 +1,7 @@
 import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, unwrap } from "@/api/client";
-import { JOBS_KEY, removeJob, upsertJob } from "@/features/downloads/jobs";
+import { JOBS_KEY, forgetJob, saveJob, subscriptionJobsKey } from "@/features/downloads/jobs";
 import type { Job, JobCreate, MediaProbeRequest } from "@/features/downloads/types";
 
 const LOG_REFRESH_MS = 2000;
@@ -16,11 +16,24 @@ export function useJobs() {
   return useQuery({ queryKey: JOBS_KEY, queryFn: () => unwrap(api.GET("/api/jobs")) });
 }
 
+/** Everything one channel subscription queued, newest first. Kept live by job events. */
+export function useSubscriptionJobs(subscriptionId: number) {
+  return useQuery({
+    queryKey: subscriptionJobsKey(subscriptionId),
+    queryFn: () =>
+      unwrap(
+        api.GET("/api/jobs", {
+          params: { query: { subscription_id: subscriptionId, limit: 1000 } },
+        }),
+      ),
+  });
+}
+
 export function useCreateJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: JobCreate) => unwrap(api.POST("/api/jobs", { body })),
-    onSuccess: (job) => queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs) => upsertJob(jobs, job)),
+    onSuccess: (job) => saveJob(queryClient, job),
   });
 }
 
@@ -41,7 +54,7 @@ function useJobUpdate(send: (jobId: number) => Promise<Job>) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: send,
-    onSuccess: (job) => queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs) => upsertJob(jobs, job)),
+    onSuccess: (job) => saveJob(queryClient, job),
   });
 }
 
@@ -57,8 +70,7 @@ export function useDeleteJob() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (jobId: number) => unwrap(api.DELETE("/api/jobs/{job_id}", jobPath(jobId))),
-    onSuccess: (_data, jobId) =>
-      queryClient.setQueryData<Job[]>(JOBS_KEY, (jobs) => removeJob(jobs, jobId)),
+    onSuccess: (_data, jobId) => forgetJob(queryClient, jobId),
   });
 }
 
