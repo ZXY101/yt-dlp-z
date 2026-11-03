@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 
-FROM node:26.13.0-slim AS frontend
+# The web app is plain static files, so build it natively even for other platforms.
+FROM --platform=$BUILDPLATFORM node:26.13.0-slim AS frontend
 WORKDIR /src
 COPY package.json package-lock.json ./
 COPY frontend/package.json frontend/
