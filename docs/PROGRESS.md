@@ -272,6 +272,10 @@ Still open:
 
 ## Open items
 
+- Ideas from Pinchflat: SponsorBlock and Shorts include/exclude/only as preset
+  settings, auto-delete old videos, re-download after N days, channel poster,
+  podcast RSS feed, Apprise notifications.
+
 - The `layout.spec.ts` "dark mode also darkens native controls" test failed
   once on mobile in a full run (passed 15/15 on repeat). Watch for flakiness.
 
@@ -435,6 +439,19 @@ Still open:
   Cancelling a recording still waiting for its stream hung for up to 10 min:
   yt-dlp answers SIGINT during `--wait-for-video` by checking again. Cancel now
   stops gracefully only once something was recorded. Stub: `waiting`, `gaps` ids.
+
+- **2026-11-03:** Recordings stopped ~5 h in (real streams lost 30 min and
+  1 h 40): YouTube's stream links expire after ~6 h and yt-dlp 2026.10.26 often
+  can't renew them ("Cannot find refreshed url for format 303", 3 retries, then
+  it saves the file and exits 0). `ProcessResult.links_expired` spots that line;
+  the recorder then asks yt-dlp (-J) whether the stream is still live and, if so,
+  continues with the next part from now (a gap of seconds). Parts that expire
+  in under 10 min aren't continued. Stub: `expiring` (warning on the
+  --live-from-start part) and `ended` (was_live) ids. Options dialog is full
+  screen on phones, with a compact header and the group picker beside "Only set"
+  (was "Only options that are set", which wrapped); one toolbar row on desktop.
+  Compared with Pinchflat (dormant since 2025-12, no live recording): keep going;
+  ideas from it in Open items.
 
 **Next session:** M6 step 6 (PO-token provider recipe). Still unverified: a real scheduled stream starting on time.
 `cd ~/dev/yt-dlp-z && git pull && npm run check`.

@@ -74,7 +74,7 @@ describe("OptionsEditor", () => {
     expect(screen.getByText("No options match.")).toBeInTheDocument();
 
     await user.clear(screen.getByLabelText("Search options"));
-    await user.click(screen.getByLabelText("Only options that are set"));
+    await user.click(screen.getByLabelText("Only set"));
     expect(screen.getByLabelText("--embed-thumbnail")).toBeChecked();
     expect(screen.queryByLabelText("--embed-subs")).not.toBeInTheDocument();
   });

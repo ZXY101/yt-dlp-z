@@ -29,13 +29,16 @@ export function OptionsDialog({ options, onChange }: OptionsProps) {
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="flex h-[85dvh] flex-col gap-0 p-0 sm:max-w-4xl">
-        <DialogHeader className="border-b p-4 pr-12">
+      {/* Full screen on phones, so the options get the room, not the dialog's frame. */}
+      <DialogContent className="flex h-dvh max-w-none flex-col gap-0 rounded-none p-0 ring-0 sm:h-[85dvh] sm:max-w-4xl sm:rounded-xl sm:ring-1">
+        <DialogHeader className="border-b px-4 py-3 pr-12 sm:p-4 sm:pr-12">
           <DialogTitle>yt-dlp options</DialogTitle>
-          <DialogDescription>Changes apply as you make them.</DialogDescription>
+          <DialogDescription className="max-sm:sr-only">
+            Changes apply as you make them.
+          </DialogDescription>
         </DialogHeader>
         <OptionsEditor options={options} onChange={onChange} />
-        <DialogFooter className="mx-0 mb-0">
+        <DialogFooter className="mx-0 mb-0 rounded-none px-4 py-2 sm:rounded-b-xl sm:p-4">
           <DialogClose asChild>
             <Button type="button" className="h-10">
               Done
