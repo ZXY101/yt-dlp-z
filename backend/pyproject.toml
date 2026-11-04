@@ -1,6 +1,6 @@
 [project]
 name = "yt-dlp-z"
-version = "0.1.1"
+version = "0.2.0"
 description = "Self-hosted web dashboard for yt-dlp with channel watching and live recording"
 license = "Unlicense"
 authors = [
