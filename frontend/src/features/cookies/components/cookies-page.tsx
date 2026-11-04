@@ -7,6 +7,7 @@ import { FormError } from "@/components/form-error";
 import { PageHeader } from "@/components/page-header";
 import { useCookieFiles } from "@/features/cookies/api";
 import { CookieCard } from "@/features/cookies/components/cookie-card";
+import { CookieExportSteps } from "@/features/cookies/components/cookie-export-steps";
 import { CookieUploadForm } from "@/features/cookies/components/cookie-upload-form";
 import type { CookieFile } from "@/features/cookies/types";
 
@@ -53,6 +54,7 @@ export function CookiesPage() {
         them from a browser where you're signed in. They're stored privately on the server and never
         shown again.
       </p>
+      <CookieExportSteps />
       <CookieUploadForm id={UPLOAD_FORM_ID} />
       <CookieList files={files} />
     </>
