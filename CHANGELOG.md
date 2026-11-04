@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.3](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.2...yt-dlp-z-v0.1.3) (2026-11-04)
+
+
+### Features
+
+* **backend:** save live chat and build a scrolling overlay ([ed53447](https://github.com/ZXY101/yt-dlp-z/commit/ed534478fd70cfec00fff36d853781c4f66a75bb))
+* **frontend:** add live chat settings and overlay rebuilding ([7e291d7](https://github.com/ZXY101/yt-dlp-z/commit/7e291d7dac730863ceaa5204423f63282752d315))
+* save live chat and show it as a scrolling overlay ([f052a0b](https://github.com/ZXY101/yt-dlp-z/commit/f052a0b7860f1f9f3feacd5d03133ca0cf883550))
+
+
+### Bug Fixes
+
+* **backend:** keep a recording when its VOD looks edited ([869b526](https://github.com/ZXY101/yt-dlp-z/commit/869b5265ec0bcc0abbd228ed35e13bbfd4b8972c))
+* **backend:** time a recording's chat from ffmpeg's position ([21b8d77](https://github.com/ZXY101/yt-dlp-z/commit/21b8d77c178bd81a5b61140998445feff813a939))
+
 ## [0.1.2](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.1...yt-dlp-z-v0.1.2) (2026-11-04)
 
 
