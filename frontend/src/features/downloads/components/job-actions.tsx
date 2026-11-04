@@ -1,9 +1,18 @@
-import { FileText, type LucideIcon, Pin, PinOff, RotateCcw, Square } from "lucide-react";
+import {
+  FileText,
+  type LucideIcon,
+  MessagesSquare,
+  Pin,
+  PinOff,
+  RotateCcw,
+  Square,
+} from "lucide-react";
 import { useState } from "react";
 
 import { describeError } from "@/api/errors";
 import { Button } from "@/components/ui/button";
 import { useCancelJob, useDeleteJob, useRetryJob, useSetJobKeep } from "@/features/downloads/api";
+import { ChatOverlayDialog } from "@/features/downloads/components/chat-overlay-dialog";
 import { JobLogDialog } from "@/features/downloads/components/job-log-dialog";
 import { RemoveJobButton } from "@/features/downloads/components/remove-job-button";
 import { isFinishedJob } from "@/features/downloads/jobs";
@@ -55,6 +64,27 @@ function KeepButton({ job, mutation }: { job: Job; mutation: ReturnType<typeof u
   );
 }
 
+/** A job with a saved chat. "failed" too: it may only be the overlay that failed, and if the
+ * chat itself is missing, the server says so. */
+function hasChatToRebuild(job: Job) {
+  return isFinishedJob(job) && ["saved", "overlay", "failed"].includes(job.chat_status ?? "");
+}
+
+function ChatOverlayButton({ job }: { job: Job }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <ActionButton
+        icon={MessagesSquare}
+        text="Chat overlay"
+        label={`Chat overlay of ${job.title ?? job.url}`}
+        onClick={() => setOpen(true)}
+      />
+      <ChatOverlayDialog job={job} open={open} onOpenChange={setOpen} />
+    </>
+  );
+}
+
 export function JobActions({ job }: { job: Job }) {
   const [logOpen, setLogOpen] = useState(false);
   const { cancel, retry, remove, keep, error } = useJobMutations();
@@ -86,6 +116,7 @@ export function JobActions({ job }: { job: Job }) {
             onClick={() => retry.mutate(job.id)}
           />
         )}
+        {hasChatToRebuild(job) && <ChatOverlayButton job={job} />}
         {finished && job.subscription_id !== null && <KeepButton job={job} mutation={keep} />}
         {finished && (
           <RemoveJobButton

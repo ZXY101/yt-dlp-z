@@ -64,6 +64,12 @@ class Job(Base):
     # it: switching mid-download breaks recordings (services/proxies).
     proxy_mode: Mapped[ProxyMode] = mapped_column(String(20), default="off", server_default="off")
     proxy_id: Mapped[int | None] = mapped_column(Integer, default=None)
+    # Copied from the preset: schemas/live_chat.py LiveChatSettings, None for off.
+    live_chat: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
+    # schemas/live_chat.py ChatStatus. None: it hasn't been looked for.
+    chat_status: Mapped[str | None] = mapped_column(String(20), default=None)
+    # Recordings: each part's start and file, for placing the captured chat (services/live_chat).
+    chat_capture: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
     title: Mapped[str | None] = mapped_column(Text, default=None)
     progress: Mapped[float | None] = mapped_column(Float, default=None)
     downloaded_bytes: Mapped[int | None] = mapped_column(Integer, default=None)
@@ -82,6 +88,10 @@ class Job(Base):
     vod_replace: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     # A VOD download: the recording it follows (no foreign key, like cookie_id).
     source_job_id: Mapped[int | None] = mapped_column(Integer, default=None)
+    # Why a VOD didn't replace its recording, although it was set to.
+    vod_note: Mapped[str | None] = mapped_column(Text, default=None)
+    # When the stream really went live (epoch seconds), as yt-dlp reports it.
+    stream_started: Mapped[float | None] = mapped_column(Float, default=None)
     error: Mapped[str | None] = mapped_column(Text, default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)

@@ -26,15 +26,11 @@ function describeRecording(recording: RecordingSettings) {
   return parts.join(" · ");
 }
 
-function describePreset(preset: Preset) {
-  const optionCount = Object.keys(preset.options ?? {}).length;
-  const parts = [
-    preset.output_dir ? `Saves to ${preset.output_dir}` : "Default folder",
-    optionCount === 1 ? "1 option" : `${optionCount} options`,
-  ];
-  if (preset.extra_args) {
-    parts.push("extra options");
-  }
+const CHAT_NOTES = { save: "saves live chat", overlay: "makes a chat overlay" };
+
+function extrasOf(preset: Preset) {
+  const parts: string[] = [];
+  const chatMode = preset.live_chat?.mode;
   if (preset.cookie_id !== null) {
     parts.push("with cookies");
   }
@@ -47,6 +43,22 @@ function describePreset(preset: Preset) {
   if (preset.proxy_mode !== "off") {
     parts.push("through proxies");
   }
+  if (chatMode === "save" || chatMode === "overlay") {
+    parts.push(CHAT_NOTES[chatMode]);
+  }
+  return parts;
+}
+
+function describePreset(preset: Preset) {
+  const optionCount = Object.keys(preset.options ?? {}).length;
+  const parts = [
+    preset.output_dir ? `Saves to ${preset.output_dir}` : "Default folder",
+    optionCount === 1 ? "1 option" : `${optionCount} options`,
+  ];
+  if (preset.extra_args) {
+    parts.push("extra options");
+  }
+  parts.push(...extrasOf(preset));
   if (preset.recording) {
     const recording = describeRecording(preset.recording);
     // Mid-sentence here: only the first letter goes lower case ("VOD" stays).

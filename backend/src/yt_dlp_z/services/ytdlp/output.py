@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from yt_dlp_z.services.ytdlp.command import (
+    CHAT_MARKER,
     FILE_MARKER,
     INFO_MARKER,
     NFO_MARKER,
@@ -20,6 +21,7 @@ PARALLEL_PREFIX = re.compile(r"^\d+: ")
 # Recordings joined mid-stream are written by ffmpeg, which reports its own progress:
 # "frame=  449 fps=112 q=-1.0 size=     512KiB time=00:00:14.96 bitrate= 280.2kbits/s".
 FFMPEG_PROGRESS = re.compile(r"size=\s*(?P<size>[\d.]+)(?P<unit>[KMG]i?B|kB|B)\s+time=")
+FFMPEG_TIME = re.compile(r"time=\s*(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>[\d.]+)")
 FFMPEG_BITRATE = re.compile(r"bitrate=\s*(?P<kbits>[\d.]+)kbits/s")
 UNIT_BYTES = {
     "B": 1,
@@ -43,11 +45,15 @@ class ProgressUpdate:
     part: int = 0
     # (fragments saved, newest fragment's number) when downloading a stream in fragments.
     fragments: tuple[int, int] | None = None
+    # How far into its video ffmpeg is, when ffmpeg writes the file.
+    media_seconds: float | None = None
 
 
 @dataclass(frozen=True)
 class InfoUpdate:
     title: str | None
+    # When a live stream really started (epoch seconds).
+    release_timestamp: float | None = None
 
 
 @dataclass(frozen=True)
@@ -62,7 +68,16 @@ class NfoUpdate:
     info: dict[str, Any]
 
 
-Update = ProgressUpdate | InfoUpdate | FileUpdate | NfoUpdate
+@dataclass(frozen=True)
+class ChatUpdate:
+    """A finished video whose live chat the job should fetch afterwards."""
+
+    filepath: str
+    url: str
+    live_status: str | None
+
+
+Update = ProgressUpdate | InfoUpdate | FileUpdate | NfoUpdate | ChatUpdate
 
 
 def _number(data: dict[str, Any], key: str) -> float | None:
@@ -128,7 +143,12 @@ def _ffmpeg_progress(line: str) -> ProgressUpdate | None:
     bitrate = FFMPEG_BITRATE.search(line)
     speed = float(bitrate["kbits"]) * 1000 / 8 if bitrate else None
     downloaded = int(float(size["size"]) * UNIT_BYTES[size["unit"]])
-    return ProgressUpdate(downloaded, None, speed, None, None)
+    position = FFMPEG_TIME.search(line)
+    media_seconds = None
+    if position:
+        minutes = int(position["hours"]) * 60 + int(position["minutes"])
+        media_seconds = minutes * 60 + float(position["seconds"])
+    return ProgressUpdate(downloaded, None, speed, None, None, media_seconds=media_seconds)
 
 
 def parse_line(line: str) -> Update | None:
@@ -144,7 +164,11 @@ def _parse_info(data: object) -> Update | None:
     if not isinstance(data, dict):
         return None
     title = data.get("title")
-    return InfoUpdate(title=title if isinstance(title, str) else None)
+    started = data.get("release_timestamp")
+    return InfoUpdate(
+        title=title if isinstance(title, str) else None,
+        release_timestamp=float(started) if isinstance(started, int | float) else None,
+    )
 
 
 def _parse_file(data: object) -> Update | None:
@@ -155,11 +179,22 @@ def _parse_nfo(data: object) -> Update | None:
     return NfoUpdate(info=data) if isinstance(data, dict) else None
 
 
+def _parse_chat(data: object) -> Update | None:
+    if not isinstance(data, dict):
+        return None
+    filepath, url = data.get("filepath"), data.get("webpage_url")
+    if not isinstance(filepath, str) or not isinstance(url, str):
+        return None
+    status = data.get("live_status")
+    return ChatUpdate(filepath, url, status if isinstance(status, str) else None)
+
+
 MARKER_PARSERS: dict[str, Callable[[object], Update | None]] = {
     PROGRESS_MARKER: _parse_progress,
     INFO_MARKER: _parse_info,
     FILE_MARKER: _parse_file,
     NFO_MARKER: _parse_nfo,
+    CHAT_MARKER: _parse_chat,
 }
 
 

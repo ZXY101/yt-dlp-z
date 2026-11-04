@@ -29,6 +29,12 @@ fields media-server output uses (channel, upload_date with a >%Y or >%m%d format
 a .150B length, air_date when a --parse-metadata sets it); with --write-thumbnail it saves a .jpg next to the video; a
 --print after_move:[ytdlpz:nfo] template gets the NFO fields;
 --replace-in-metadata title REGEX REPLACE changes the title (and so the file name);
+--write-subs --skip-download with --sub-langs live_chat fetches the chat instead of the video
+and saves a sample (see save_chat): ...nochat... URLs have none, ...badchat... URLs fail,
+...draggingchat... URLs take a minute. Saved as chat-N (a recording's capture) it's written as
+live chat, a comment every 0.1 s until stopped, into the .part file yt-dlp keeps until a
+chat ends; ...livechatoff... URLs have none yet, ...livechatdies... URLs fail the first time. A --print after_move:[ytdlpz:chat] template reports each
+video as an ended stream, or as not a stream for ...plainvideo... URLs.
 ...upcoming... URLs first print yt-dlp's wait message. ...waiting... recordings keep
 waiting for the stream and, like real yt-dlp, treat SIGINT as "check again" (only SIGTERM
 stops them). ...gaps... recordings save the file but exit with yt-dlp's "Did not get any
@@ -48,6 +54,7 @@ PROGRESS = "[ytdlpz:progress]"
 INFO = "[ytdlpz:info]"
 FILE = "[ytdlpz:file]"
 NFO = "[ytdlpz:nfo]"
+CHAT = "[ytdlpz:chat]"
 # %(name)s, %(a,b|default)s, %(upload_date>%Y)s, %(title).150B …
 TEMPLATE_FIELD = re.compile(r"%\((?P<names>[\w,]+)(?:>(?P<format>[^|)]+))?(?:\|[^)]*)?\)[.\d]*[sB]")
 FAKE_CHANNEL = "Fake channel"
@@ -240,6 +247,88 @@ def emit_nfo(args: list[str], target: Path, title: str, video_id: str) -> None:
     emit(NFO + json.dumps(info))
 
 
+def emit_chat(args: list[str], target: Path, url: str) -> None:
+    if any(value.startswith(f"after_move:{CHAT}") for value in values_of(args, "--print")):
+        status = "not_live" if "plainvideo" in url else "was_live"
+        info = {"filepath": str(target), "webpage_url": url, "live_status": status}
+        emit(CHAT + json.dumps(info))
+
+
+def text_action(offset_ms: int, text: str) -> dict[str, object]:
+    renderer = {
+        "message": {"runs": [{"text": text}]},
+        "authorExternalChannelId": "UCfakeviewer",
+    }
+    item = {"liveChatTextMessageRenderer": renderer}
+    actions = [{"addChatItemAction": {"item": item}}]
+    return {"replayChatItemAction": {"actions": actions, "videoOffsetTimeMsec": str(offset_ms)}}
+
+
+def paid_action(offset_ms: int, amount: str, text: str) -> dict[str, object]:
+    renderer = {
+        "purchaseAmountText": {"simpleText": amount},
+        "message": {"runs": [{"text": text}]},
+        "bodyBackgroundColor": 4278239141,
+    }
+    item = {"liveChatPaidMessageRenderer": renderer}
+    actions = [{"addChatItemAction": {"item": item}}]
+    return {"replayChatItemAction": {"actions": actions, "videoOffsetTimeMsec": str(offset_ms)}}
+
+
+def live_line(index: int) -> dict[str, object]:
+    """As yt-dlp writes live chat: one action per line, with the time of the comment."""
+    usec = str(int(time.time() * 1_000_000))
+    renderer = {
+        "id": f"comment{index}",
+        "timestampUsec": usec,
+        "message": {"runs": [{"text": f"live comment {index}"}]},
+    }
+    item = {"liveChatTextMessageRenderer": renderer}
+    actions = [{"addChatItemAction": {"item": item}}]
+    return {"replayChatItemAction": {"actions": actions}, "videoOffsetTimeMsec": "0", "isLive": True}
+
+
+def capture_chat(url: str, home: Path, name: str) -> int:
+    if "livechatoff" in url:
+        emit("[info] There are no subtitles for the requested languages")
+        return 0
+    target = home / Path(name).with_suffix(".live_chat.json.part")
+    if "livechatdies" in url and name.startswith("chat-1"):
+        target.write_text(json.dumps(live_line(0)) + "\n", encoding="utf-8")
+        emit("ERROR: [fake] Unable to download video subtitles for live_chat")
+        return 1
+    with target.open("a", encoding="utf-8") as chat:
+        for index in range(600):
+            chat.write(json.dumps(live_line(index)) + "\n")
+            chat.flush()
+            time.sleep(0.1)
+    target.rename(target.with_suffix(""))
+    return 0
+
+
+def save_chat(url: str, home: Path, name: str) -> int:
+    if name.startswith("chat-"):
+        return capture_chat(url, home, name)
+    if "nochat" in url:
+        emit("[info] There are no subtitles for the requested languages")
+        return 0
+    if "badchat" in url:
+        emit("ERROR: [fake] Unable to download video subtitles for live_chat")
+        return 1
+    if "draggingchat" in url:
+        time.sleep(60)
+    lines = [
+        text_action(1000, "first comment"),
+        text_action(2000, "こんにちは"),
+        paid_action(3000, "¥500", "thanks"),
+    ]
+    target = home / Path(name).with_suffix(".live_chat.json")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("".join(json.dumps(line) + "\n" for line in lines), encoding="utf-8")
+    emit(f"[info] Writing video subtitles to: {target}")
+    return 0
+
+
 class Recording:
     """Stops a recording's loop on SIGINT, like yt-dlp finishing on Ctrl+C."""
 
@@ -308,6 +397,8 @@ def main() -> int:
     report_cookies(args)
     home = Path(next(v for v in values_of(args, "--paths") if v.startswith("home:"))[5:])
 
+    if "--skip-download" in args and "--write-subs" in args:
+        return save_chat(url, home, output_name(args, title, video_id).replace("%%", "%"))
     if "fail" in url:
         emit("ERROR: [fake] This video is unavailable")
         return 1
@@ -340,6 +431,7 @@ def main() -> int:
     emit(PROGRESS + json.dumps({"status": "finished", "downloaded_bytes": TOTAL_BYTES}))
     emit(FILE + json.dumps(str(target)))
     emit_nfo(args, target, title, video_id)
+    emit_chat(args, target, url)
     if live and "expiring" in url and "--live-from-start" in args:
         # YouTube's links expire after about 6 h; yt-dlp often can't renew them.
         for _ in range(3):

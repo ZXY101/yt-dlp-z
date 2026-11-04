@@ -22,6 +22,7 @@ features you use.
 ## Extras
 
 - [Folders and media servers](media-server.md): channel folders, file names, Jellyfin/Plex/Kodi `.nfo` files
+- [Live chat](live-chat.md): saving a stream's chat and showing it as a scrolling overlay
 - [Proxies](proxies.md): the proxy pool and VPN exits
 - [Notifications](notifications.md): ntfy
 - [API tokens and MCP](mcp.md): scripts and AI agents

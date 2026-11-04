@@ -278,3 +278,18 @@ def test_the_skill_mentions_every_tool(setup_client: TestClient) -> None:
     text = skill.read_text()
     tools = rpc(setup_client, token, "tools/list", {})["result"]["tools"]
     assert [tool["name"] for tool in tools if f"`{tool['name']}`" not in text] == []
+
+
+def test_rebuild_chat_overlay_replaces_the_overlay(setup_client: TestClient) -> None:
+    url = "https://www.youtube.com/watch?v=abc"
+    created = setup_client.post("/api/jobs", json={"url": url, "live_chat": {"mode": "save"}})
+    done = wait_for_job(setup_client, created.json()["id"], {"completed"})
+    token = new_token(setup_client)
+
+    style = {"max_on_screen": 5}
+    result = call(setup_client, token, "rebuild_chat_overlay", job_id=done["id"], style=style)
+
+    assert job_from(result)["chat_status"] == "overlay"
+    assert Path(done["filepath"]).with_suffix(".ass").is_file()
+    job = setup_client.get(f"/api/jobs/{done['id']}").json()
+    assert job["live_chat"]["max_on_screen"] == 5

@@ -1,4 +1,5 @@
 import type { components } from "@/api/generated/schema";
+import { CHAT_OFF, type LiveChatSettings } from "@/lib/live-chat";
 
 /** yt-dlp options keyed by long flag, the format the API stores for jobs and presets. */
 export type OptionValues = NonNullable<components["schemas"]["JobCreate"]["options"]>;
@@ -20,6 +21,7 @@ export interface DownloadSettings {
   fileName: FileNaming | null;
   mediaFiles: boolean;
   proxyMode: ProxyMode;
+  liveChat: LiveChatSettings;
 }
 
 export const DEFAULT_SETTINGS: DownloadSettings = {
@@ -31,6 +33,7 @@ export const DEFAULT_SETTINGS: DownloadSettings = {
   fileName: null,
   mediaFiles: false,
   proxyMode: "off",
+  liveChat: CHAT_OFF,
 };
 
 export type Quality = "best" | "1080p" | "720p" | "audio" | "audio-mp3" | "custom";
@@ -114,6 +117,7 @@ interface ApiDownloadSettings {
   file_name?: FileNaming | null;
   media_files?: boolean;
   proxy_mode?: ProxyMode;
+  live_chat?: LiveChatSettings | null;
 }
 
 export function settingsFromApi(source: ApiDownloadSettings): DownloadSettings {
@@ -126,6 +130,7 @@ export function settingsFromApi(source: ApiDownloadSettings): DownloadSettings {
     fileName: source.file_name ?? null,
     mediaFiles: source.media_files ?? false,
     proxyMode: source.proxy_mode ?? "off",
+    liveChat: source.live_chat ?? CHAT_OFF,
   };
 }
 
@@ -144,5 +149,6 @@ export function settingsForApi(settings: DownloadSettings) {
     file_name: settings.fileName,
     media_files: settings.mediaFiles,
     proxy_mode: settings.proxyMode,
+    live_chat: settings.liveChat.mode === "off" ? null : settings.liveChat,
   };
 }

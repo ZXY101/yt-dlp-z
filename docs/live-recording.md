@@ -65,9 +65,12 @@ stream again as a normal video. Why:
 
 The VOD gets " (VOD)" added to its title, so it never overwrites the recording.
 
-With **Delete the recording once the VOD is saved**, the recording is deleted
-after the VOD finishes. If the VOD fails (members-only, not archived, removed),
-the recording stays.
+With **Delete the recording once the VOD is saved**, the recording is deleted after the VOD
+finishes, but only if the VOD is as long as the stream. Creators sometimes cut parts out of a VOD,
+and YouTube keeps only the first 12 hours of very long ones, so a VOD shorter than the recording, or
+than the time the stream ran, keeps the recording and says why in the queue. The same goes when the
+lengths can't be compared, or the VOD fails (members-only, not archived, removed). Edits that don't
+change the length, such as muting or blurring, can't be detected.
 
 ## Restarts
 
@@ -104,3 +107,10 @@ See [Cookies](cookies.md).
 - Use [notifications](notifications.md) to hear when a recording starts or fails.
 - For channels that stream 24/7, set **Stop after** or a short **New file every**.
 - Turn on [PO tokens](ytdlp.md#po-tokens) if recordings fail with HTTP 403.
+
+## Live chat
+
+With the preset's [live chat](live-chat.md) setting on, a recording also saves the stream's chat
+while it runs, and each part gets its own chat file and overlay when the recording ends. It starts with
+the recording and follows YouTube's filtered Top chat, so a VOD, which fetches the whole unfiltered
+replay, has more.

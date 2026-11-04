@@ -13,6 +13,7 @@ up on the **Queue** page.
 | **Save to**              | Empty: the default folder. A relative path (`music/albums`) makes a sub-folder in it                                         |
 | **Cookies**              | Overrides the preset's cookies file, for members-only or age-restricted videos                                               |
 | **Proxy**                | Overrides the preset's [proxy mode](proxies.md) for this download                                                            |
+| **Live chat**            | Saves a finished stream's chat, and can make a scrolling overlay from it ([details](live-chat.md))                           |
 | **Media server**         | Saves the download as episodes for Jellyfin, Plex or Kodi ([details](media-server.md))                                       |
 | **Common options**       | Quality, file name template, subtitles, thumbnail and metadata, SponsorBlock                                                 |
 | **Advanced options**     | Every other yt-dlp option                                                                                                    |

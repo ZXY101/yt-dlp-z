@@ -15,11 +15,11 @@ function RecordingDetails({ job }: { job: Job }) {
   }
   if (job.status === "running") {
     // A live stream has no total size, so there is no progress bar.
-    const part = recordingPart(job);
-    const progress = describeProgress(job);
-    return (
-      <p className="text-xs text-muted-foreground">{part ? `${part} · ${progress}` : progress}</p>
-    );
+    const details = [recordingPart(job), describeProgress(job)];
+    if (job.chat_status === "capturing") {
+      details.push("saving live chat");
+    }
+    return <p className="text-xs text-muted-foreground">{details.filter(Boolean).join(" · ")}</p>;
   }
   if (job.status === "queued") {
     return <p className="text-sm text-muted-foreground">Waiting for a free recording slot…</p>;
@@ -33,6 +33,14 @@ function recordingPart(job: Job) {
   return numbered && job.part ? `Part ${job.part}` : null;
 }
 
+const CHAT_NOTES: Partial<Record<NonNullable<Job["chat_status"]>, string>> = {
+  saved: "Live chat saved.",
+  overlay: "Live chat saved, with an overlay.",
+  none: "This stream has no chat replay.",
+  failed: "The video is saved, but its live chat isn't complete. See the log.",
+  stopped: "The video is saved. Fetching its live chat was stopped.",
+};
+
 function JobOutcome({ job }: { job: Job }) {
   if (job.status === "failed" && job.error) {
     return <p className="text-sm break-words text-destructive">{job.error}</p>;
@@ -40,7 +48,13 @@ function JobOutcome({ job }: { job: Job }) {
   // A stopped recording keeps what it recorded.
   const saved = job.status === "completed" || job.status === "cancelled";
   if (saved && job.filepath) {
-    return <p className="text-xs break-all text-muted-foreground">Saved to {job.filepath}</p>;
+    const chatNote = job.chat_status ? CHAT_NOTES[job.chat_status] : undefined;
+    return (
+      <div className="space-y-1 text-xs text-muted-foreground">
+        <p className="break-all">Saved to {job.filepath}</p>
+        {chatNote && <p>{chatNote}</p>}
+      </div>
+    );
   }
   return null;
 }
@@ -55,6 +69,9 @@ function JobDetails({ job }: { job: Job }) {
         Downloads {formatStartTime(job.scheduled_at)}, once YouTube has processed the stream.
       </p>
     );
+  }
+  if (job.status === "running" && job.chat_status === "fetching") {
+    return <p className="text-sm text-muted-foreground">Video saved. Fetching its live chat…</p>;
   }
   if (job.status === "running") {
     return (
@@ -74,6 +91,9 @@ const SECONDS_PER_HOUR = 3600;
 
 /** A recording's VOD, or the VOD a recording will get. */
 function vodNote(job: Job) {
+  if (job.vod_note) {
+    return job.vod_note;
+  }
   if (job.source_job_id !== null) {
     return job.vod_replace ? "VOD of a recording · replaces it once saved" : "VOD of a recording";
   }

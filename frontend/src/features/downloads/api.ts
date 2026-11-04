@@ -3,6 +3,7 @@ import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/reac
 import { api, unwrap } from "@/api/client";
 import { JOBS_KEY, forgetJob, saveJob, subscriptionJobsKey } from "@/features/downloads/jobs";
 import type { Job, JobCreate, MediaProbeRequest } from "@/features/downloads/types";
+import type { OverlayStyle } from "@/lib/live-chat";
 
 const LOG_REFRESH_MS = 2000;
 // A link's answer rarely changes while the form is open; re-checking costs a yt-dlp run.
@@ -74,6 +75,16 @@ export function useCancelJob() {
 
 export function useRetryJob() {
   return useJobUpdate((jobId) => unwrap(api.POST("/api/jobs/{job_id}/retry", jobPath(jobId))));
+}
+
+/** Builds the overlay again from the saved chat, with this look. */
+export function useRebuildChatOverlay() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ jobId, style }: { jobId: number; style: OverlayStyle }) =>
+      unwrap(api.POST("/api/jobs/{job_id}/live-chat/overlay", { ...jobPath(jobId), body: style })),
+    onSuccess: (job) => saveJob(queryClient, job),
+  });
 }
 
 /** Removes a finished job from the list; with deleteFiles, its files from disk too. */

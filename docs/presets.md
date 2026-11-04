@@ -33,6 +33,8 @@ videos, "Audio only" for playlists, and "Live streams" for live streams.
 - **Cookies**: a [cookies file](cookies.md) to sign in with
 - **Proxy**: Off, next proxy in turn, random proxy, or same proxy per channel
   ([Proxies](proxies.md))
+- **Live chat**: save a finished stream's chat, and maybe a scrolling overlay made from it
+  ([Live chat](live-chat.md))
 - **Sub-folders, file name, media-server files**: a folder per channel (with
   or without season folders), names like `[20261103] Title` or
   `Channel - S2026E1103 - Title`, thumbnails and `.nfo` files

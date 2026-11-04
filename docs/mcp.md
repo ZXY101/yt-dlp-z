@@ -76,6 +76,7 @@ the only tool that can delete files.
 | `start_download`                                                | Download a link, or record a live or upcoming one             |
 | `list_downloads`, `get_download`                                | Status, settings and logs                                     |
 | `cancel_download`, `retry_download`                             | Stop or rerun a download                                      |
+| `rebuild_chat_overlay`                                          | Rebuild a download's live chat overlay from its saved chat    |
 | `remove_download`                                               | Remove from history, optionally deleting its files            |
 | `list_presets`, `save_preset`                                   | Read, change or create presets                                |
 | `list_subscriptions`, `add_subscription`, `update_subscription` | Read, add or change subscriptions, including what they take   |

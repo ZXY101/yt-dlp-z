@@ -4,7 +4,8 @@ A recording can have gaps (expired links, restarts); the VOD YouTube keeps after
 usually has none and is often better quality. The VOD is a normal download, scheduled
 like a recording, with " (VOD)" added to its title so it never has the recording's file
 name (yt-dlp would take the recording for the finished download). With vod_replace, the
-recording is deleted once the VOD is saved; a VOD that fails keeps the recording.
+recording is deleted once the VOD is saved, unless the VOD looks edited (vod_check.py); a VOD
+that fails keeps the recording.
 """
 
 import logging
@@ -15,8 +16,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from yt_dlp_z.db.models.job import Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.db.models.video import Video
+from yt_dlp_z.services.jobs import repository
 from yt_dlp_z.services.jobs.context import JobContext, job_log_path, publish_job
 from yt_dlp_z.services.jobs.removal import JobRemover
+from yt_dlp_z.services.live.vod_check import reason_to_keep
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +53,7 @@ async def _schedule_vod(context: JobContext, session: AsyncSession, recording: J
         folders=recording.folders,
         file_name=recording.file_name,
         media_files=recording.media_files,
+        live_chat=recording.live_chat,
         proxy_mode=recording.proxy_mode,
         source_job_id=recording.id,
         vod_replace=recording.vod_replace,
@@ -64,6 +68,14 @@ async def _schedule_vod(context: JobContext, session: AsyncSession, recording: J
 async def _replace_recording(context: JobContext, session: AsyncSession, vod: Job) -> None:
     recording = await session.get(Job, vod.source_job_id)
     if recording is None or recording.status not in SAVED:
+        return
+    reason = await reason_to_keep(recording, vod)
+    if reason is not None:
+        await repository.save(session, vod, vod_note=reason)
+        publish_job(context.hub, vod)
+        with job_log_path(context.settings, vod.id).open("a", encoding="utf-8") as log:
+            log.write(f"[yt-dlp-z] {reason}\n")
+        logger.info("Job %s: %s", recording.id, reason)
         return
     # The subscription's video now points at the VOD, so deleting the recording doesn't
     # mark the video as deleted.

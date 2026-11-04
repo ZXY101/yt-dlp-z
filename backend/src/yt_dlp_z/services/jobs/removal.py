@@ -14,6 +14,7 @@ from yt_dlp_z.schemas.jobs import JobDeletedEvent
 from yt_dlp_z.services.events import EventHub
 from yt_dlp_z.services.jobs.context import job_log_path
 from yt_dlp_z.services.jobs.files import delete_job_files
+from yt_dlp_z.services.live_chat.split import discard_capture
 
 logger = logging.getLogger(__name__)
 
@@ -47,5 +48,6 @@ class JobRemover:
         await session.delete(job)
         await session.commit()
         job_log_path(self.settings, job_id).unlink(missing_ok=True)
+        discard_capture(self.settings, job_id)
         self.hub.publish(JobDeletedEvent(id=job_id).model_dump(mode="json"))
         return deleted

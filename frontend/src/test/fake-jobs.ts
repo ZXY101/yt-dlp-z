@@ -19,6 +19,8 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     folders: null,
     file_name: null,
     media_files: false,
+    live_chat: null,
+    chat_status: null,
     cookie_id: null,
     proxy_mode: "off",
     proxy_id: null,
@@ -34,6 +36,7 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     vod_after_seconds: null,
     vod_replace: false,
     source_job_id: null,
+    vod_note: null,
     error: null,
     created_at: "2026-10-30T10:00:00+00:00",
     started_at: null,
@@ -82,6 +85,7 @@ function settingsFields(body: Record<string, unknown>): Partial<Job> {
     file_name: (body.file_name as Job["file_name"] | undefined) ?? null,
     media_files: (body.media_files as boolean | undefined) ?? false,
     proxy_mode: (body.proxy_mode as Job["proxy_mode"] | undefined) ?? "off",
+    live_chat: (body.live_chat as Job["live_chat"] | undefined) ?? null,
   };
 }
 
@@ -131,6 +135,17 @@ export const jobRoutes: Route[] = [
     method: "POST",
     path: /^\/api\/jobs\/(\d+)\/retry$/,
     handle: (server, { params }) => updateJob(server, params, { status: "queued", error: null }),
+  },
+  {
+    method: "POST",
+    path: /^\/api\/jobs\/(\d+)\/live-chat\/overlay$/,
+    handle: (server, { params, body }) => {
+      if (findJob(server, params)?.chat_status === "failed") {
+        return json({ detail: "This download has no saved live chat" }, 409);
+      }
+      const live_chat = { mode: "overlay", ...body } as Job["live_chat"];
+      return updateJob(server, params, { live_chat, chat_status: "overlay" });
+    },
   },
   {
     method: "PUT",

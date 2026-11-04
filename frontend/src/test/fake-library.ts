@@ -18,6 +18,7 @@ export function makePreset(overrides: Partial<Preset> = {}): Preset {
     folders: null,
     file_name: null,
     media_files: false,
+    live_chat: null,
     proxy_mode: "off",
     kind: "any",
     is_default: false,

@@ -126,6 +126,28 @@ describe("DownloadPage", () => {
     });
   });
 
+  it("asks for the live chat and its overlay with the chosen look", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/");
+
+    await enterCheckedLink(user, "https://example.com/v");
+    expect(screen.queryByRole("button", { name: "Overlay look" })).toBeNull();
+    await user.selectOptions(screen.getByLabelText("Live chat"), "overlay");
+    await user.click(screen.getByRole("button", { name: "Overlay look" }));
+    await user.clear(screen.getByLabelText("Most comments on screen"));
+    await user.type(screen.getByLabelText("Most comments on screen"), "15");
+    await user.click(screen.getByLabelText("Show Super Chats"));
+    await user.click(screen.getByRole("button", { name: "Download" }));
+    await screen.findByRole("heading", { name: "Queue" });
+    expect(server.jobs[0]?.live_chat).toMatchObject({
+      mode: "overlay",
+      max_on_screen: 15,
+      show_paid: false,
+      scroll_seconds: 7,
+    });
+  });
+
   it("downloads just the video from a playlist link unless asked for the whole playlist", async () => {
     const server = createFakeServer();
     installFakeApi(server);

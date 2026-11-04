@@ -62,7 +62,10 @@ class JobManager:
         if process is not None:
             await stop_process(process, graceful=graceful)
         if finished is not None:
-            await asyncio.wait_for(finished.wait(), FINISH_TIMEOUT_SECONDS)
+            # Longer than this (a long stream's chat is still being saved) isn't a failure:
+            # the job's final status arrives as an event when it's done.
+            with contextlib.suppress(TimeoutError):
+                await asyncio.wait_for(finished.wait(), FINISH_TIMEOUT_SECONDS)
 
     async def stop_all(self) -> None:
         """Cancels every running job and empties the queue (used by the test reset)."""

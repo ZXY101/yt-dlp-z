@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
@@ -8,8 +10,11 @@ from yt_dlp_z.api.routes.jobs import find_job
 from yt_dlp_z.api.state import AppState
 from yt_dlp_z.db.models.job import FINISHED_STATUSES, Job, JobStatus, utcnow
 from yt_dlp_z.schemas.jobs import JobOut
+from yt_dlp_z.schemas.live_chat import LiveChatSettings, OverlayStyle
 from yt_dlp_z.services.jobs import repository
 from yt_dlp_z.services.jobs.context import job_log_path, publish_job
+from yt_dlp_z.services.live_chat.job_step import chat_files
+from yt_dlp_z.services.live_chat.overlay import build_overlay
 
 router = APIRouter(prefix="/api/jobs", tags=["jobs"], dependencies=[Depends(require_auth)])
 
@@ -59,6 +64,32 @@ async def retry_job(job_id: int, state: State, db: Db) -> JobOut:
     await repository.save(db, job, **repository.retry_changes())
     publish_job(state.hub, job)
     state.jobs.submit(job)
+    return JobOut.model_validate(job)
+
+
+@router.post("/{job_id}/live-chat/overlay")
+async def rebuild_chat_overlay(
+    job_id: int, state: State, db: Db, style: OverlayStyle | None = None
+) -> JobOut:
+    """Builds the overlay again from the saved chat, replacing the old one. No style: the one
+    the job has. A style given is kept with the job."""
+    job = await find_job(db, job_id)
+    if job.status == JobStatus.RUNNING:
+        raise HTTPException(status.HTTP_409_CONFLICT, "This download is still running")
+    paths = await asyncio.to_thread(chat_files, job)
+    if not paths:
+        raise HTTPException(status.HTTP_409_CONFLICT, "This download has no saved live chat")
+    chosen = style or LiveChatSettings.model_validate(job.live_chat or {})
+    settings = LiveChatSettings(**{**chosen.model_dump(), "mode": "overlay"})
+    try:
+        for path in paths:
+            await asyncio.to_thread(build_overlay, path, settings)
+    except OSError as error:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, "Couldn't write the chat overlay"
+        ) from error
+    await repository.save(db, job, live_chat=settings.model_dump(), chat_status="overlay")
+    publish_job(state.hub, job)
     return JobOut.model_validate(job)
 
 

@@ -14,6 +14,7 @@ from yt_dlp_z.mcp_server.download_plan import (
     recording_request,
     with_playlist_choice,
 )
+from yt_dlp_z.schemas.live_chat import OverlayStyle
 
 READ_ONLY = ToolAnnotations(readOnlyHint=True)
 # Enough to judge a download by; the full job is mostly options the agent didn't ask about.
@@ -30,6 +31,7 @@ SUMMARY_FIELDS = (
     "part",
     "filepath",
     "error",
+    "chat_status",
     "subscription_id",
 )
 DownloadId = Annotated[int, Field(description="The id from list_downloads.")]
@@ -143,6 +145,21 @@ def register_download_tools(server: MCPServer, api: ApiClient) -> None:
     async def retry_download(job_id: DownloadId, ctx: Context) -> dict[str, Any]:
         """Run a failed or cancelled download again."""
         return _summary(await api.call(ctx, "POST", f"/api/jobs/{job_id}/retry"))
+
+    @server.tool(structured_output=False)
+    async def rebuild_chat_overlay(
+        job_id: DownloadId,
+        ctx: Context,
+        style: Annotated[
+            OverlayStyle | None,
+            Field(description="How the overlay looks. Empty: the look it already has."),
+        ] = None,
+    ) -> dict[str, Any]:
+        """Build a download's live chat overlay (.ass) again from its saved chat, replacing
+        the old one. Needs a download that saved its live chat."""
+        body = style.model_dump() if style else None
+        path = f"/api/jobs/{job_id}/live-chat/overlay"
+        return _summary(await api.call(ctx, "POST", path, body=body))
 
     @server.tool(annotations=ToolAnnotations(destructiveHint=True), structured_output=False)
     async def remove_download(

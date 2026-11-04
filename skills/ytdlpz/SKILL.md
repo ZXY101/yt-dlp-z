@@ -71,6 +71,9 @@ downloads could match, ask which.
 
 - `cancel_download` stops a queued, scheduled or running download or recording.
 - `retry_download` reruns a failed or cancelled one.
+- `rebuild_chat_overlay` remakes a download's live chat overlay from its saved chat, optionally
+  with a new `style`. It doesn't touch the video. `chat_status` on a download says how its live
+  chat went; a failed chat never fails the download.
 - `remove_download` clears a finished one from the history and keeps its files.
 
 Passing `delete_files` to `remove_download` permanently deletes the saved files, and the
