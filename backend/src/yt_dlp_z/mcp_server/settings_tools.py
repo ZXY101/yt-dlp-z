@@ -43,6 +43,11 @@ def register_settings_tools(server: MCPServer, api: ApiClient) -> None:
         await api.call(ctx, "PUT", write_path, {**current, **changes})
         return await api.call(ctx, "GET", read_path)  # type: ignore[no-any-return]
 
+    @server.tool(annotations=ToolAnnotations(readOnlyHint=True), structured_output=False)
+    async def get_system_status(ctx: Context) -> dict[str, Any]:
+        """The yt-dlp version and whether ffmpeg and Deno are available, for debugging."""
+        return await api.call(ctx, "GET", "/api/system")  # type: ignore[no-any-return]
+
     @server.tool(structured_output=False)
     async def update_ytdlp(ctx: Context) -> str:
         """Install the newest yt-dlp on the chosen channel. Runs in the background."""

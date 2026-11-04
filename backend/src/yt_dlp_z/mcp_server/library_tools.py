@@ -25,6 +25,11 @@ async def _preset_id(api: ApiClient, ctx: Context, name: str | None) -> int | No
 
 
 def register_library_tools(server: MCPServer, api: ApiClient) -> None:
+    _register_preset_tools(server, api)
+    _register_subscription_tools(server, api)
+
+
+def _register_preset_tools(server: MCPServer, api: ApiClient) -> None:
     @server.tool(annotations=READ_ONLY, structured_output=False)
     async def list_presets(ctx: Context) -> list[dict[str, Any]]:
         """Saved download settings, with the yt-dlp options each one sets."""
@@ -44,6 +49,13 @@ def register_library_tools(server: MCPServer, api: ApiClient) -> None:
         return await api.call(ctx, "PUT", path, {**existing, **changes})  # type: ignore[no-any-return]
 
     @server.tool(annotations=READ_ONLY, structured_output=False)
+    async def list_cookies(ctx: Context) -> list[dict[str, Any]]:
+        """Uploaded cookies files: names, ids and domains, never their contents."""
+        return await api.call(ctx, "GET", "/api/cookies")  # type: ignore[no-any-return]
+
+
+def _register_subscription_tools(server: MCPServer, api: ApiClient) -> None:
+    @server.tool(annotations=READ_ONLY, structured_output=False)
     async def list_subscriptions(ctx: Context) -> list[dict[str, Any]]:
         """Watched channels and playlists, with their settings and last check."""
         return await api.call(ctx, "GET", "/api/subscriptions")  # type: ignore[no-any-return]
@@ -58,8 +70,19 @@ def register_library_tools(server: MCPServer, api: ApiClient) -> None:
             int, Field(ge=0, description="How many of the newest uploads to download now.")
         ] = 0,
         poll_minutes: Annotated[int | None, Field(description="Minutes between checks.")] = None,
+        filters: Annotated[
+            dict[str, Any] | None,
+            Field(
+                description=(
+                    'Which uploads to take. Default: {"content_types": ["video"]}. Types: video, '
+                    "short, stream (live streams and premieres). Also title_include, "
+                    "title_exclude, min_duration, max_duration, published_after, "
+                    "include_members_only."
+                )
+            ),
+        ] = None,
     ) -> dict[str, Any]:
-        """Start watching a channel or playlist; new uploads download automatically."""
+        """Start watching a channel or playlist; matching uploads download automatically."""
         body: dict[str, Any] = {
             "channel": channel,
             "backfill": backfill,
@@ -68,6 +91,8 @@ def register_library_tools(server: MCPServer, api: ApiClient) -> None:
         }
         if poll_minutes is not None:
             body["poll_minutes"] = poll_minutes
+        if filters is not None:
+            body["filters"] = filters
         return await api.call(ctx, "POST", "/api/subscriptions", body)  # type: ignore[no-any-return]
 
     @server.tool(structured_output=False)
@@ -81,6 +106,14 @@ def register_library_tools(server: MCPServer, api: ApiClient) -> None:
         path = f"/api/subscriptions/{subscription_id}"
         current = await api.call(ctx, "GET", path)
         return await api.call(ctx, "PUT", path, {**current, **changes})  # type: ignore[no-any-return]
+
+    @server.tool(annotations=READ_ONLY, structured_output=False)
+    async def list_subscription_videos(subscription_id: int, ctx: Context) -> list[dict[str, Any]]:
+        """The 50 newest uploads a subscription has seen, what happened to each, and why.
+
+        Use it to find out why a video wasn't downloaded."""
+        path = f"/api/subscriptions/{subscription_id}/videos"
+        return await api.call(ctx, "GET", path)  # type: ignore[no-any-return]
 
     @server.tool(structured_output=False)
     async def check_subscription(subscription_id: int, ctx: Context) -> str:

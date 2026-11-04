@@ -45,7 +45,8 @@ additionally runs E2E, checks the generated API types and builds the image.
   (`/api/health`, login, first-run setup). API tokens are accepted everywhere a
   browser session is, except `/api/tokens`: a token can't manage tokens.
 - MCP tools (`mcp_server/`) call the REST API in-process with the caller's token,
-  never the services directly, so they can't bypass its validation.
+  never the services directly, so they can't bypass its validation. When tools
+  change, update `skills/ytdlpz/` and `docs/mcp.md`.
 - Cookies files and the DB are never logged, served or returned by the API in full.
 - New dependencies: prefer well-maintained packages; never run unreviewed
   install scripts (npm `allowScripts`).

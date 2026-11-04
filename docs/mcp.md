@@ -36,6 +36,22 @@ and the `Authorization` header.
 With `YTDLPZ_AUTH_MODE=none` no token is needed. A reverse proxy that handles sign-in
 must let `/mcp` through with the header intact.
 
+## Add the skill
+
+The optional `ytdlpz` skill teaches Claude Code when and how to use these tools: which
+filter "subscribe to their livestreams" means, what to confirm first, how to debug a
+failed download, and how to set up the connection. Install it once, for all your projects:
+
+```bash
+git clone --depth 1 https://github.com/ZXY101/yt-dlp-z.git /tmp/yt-dlp-z
+mkdir -p ~/.claude/skills
+cp -r /tmp/yt-dlp-z/skills/ytdlpz ~/.claude/skills/
+rm -rf /tmp/yt-dlp-z
+```
+
+If you keep a checkout, link the folder instead, so it updates when you pull:
+`ln -s "$PWD/skills/ytdlpz" ~/.claude/skills/ytdlpz`. Start a new session afterwards.
+
 ## Use it
 
 Ask for what you want in plain language. For example:
@@ -43,6 +59,8 @@ Ask for what you want in plain language. For example:
 - "Download this video with my Audio preset: <link>"
 - "Record this stream when it starts: <link>"
 - "Watch this channel and grab its 5 newest uploads."
+- "Subscribe to this channel's livestreams: <link>"
+- "Stop that download."
 - "What failed overnight? Show me the log and retry it."
 - "Only allow 2 downloads at the same time."
 - "Turn on nightly yt-dlp builds."
@@ -52,18 +70,19 @@ the only tool that can delete files.
 
 ## Tools
 
-| Tool                                                            | What it does                                       |
-| --------------------------------------------------------------- | -------------------------------------------------- |
-| `check_link`                                                    | What a link points at, without downloading         |
-| `start_download`                                                | Download a link, or record a live or upcoming one  |
-| `list_downloads`, `get_download`                                | Status, settings and logs                          |
-| `cancel_download`, `retry_download`                             | Stop or rerun a download                           |
-| `remove_download`                                               | Remove from history, optionally deleting its files |
-| `list_presets`, `save_preset`                                   | Read, change or create presets                     |
-| `list_subscriptions`, `add_subscription`, `update_subscription` | Read, add or change subscriptions                  |
-| `check_subscription`                                            | Look for new uploads now                           |
-| `get_settings`, `update_settings`                               | General, notifications, proxies, yt-dlp, PO tokens |
-| `update_ytdlp`                                                  | Install the newest yt-dlp                          |
+| Tool                                                            | What it does                                                  |
+| --------------------------------------------------------------- | ------------------------------------------------------------- |
+| `check_link`                                                    | What a link points at, without downloading                    |
+| `start_download`                                                | Download a link, or record a live or upcoming one             |
+| `list_downloads`, `get_download`                                | Status, settings and logs                                     |
+| `cancel_download`, `retry_download`                             | Stop or rerun a download                                      |
+| `remove_download`                                               | Remove from history, optionally deleting its files            |
+| `list_presets`, `save_preset`                                   | Read, change or create presets                                |
+| `list_subscriptions`, `add_subscription`, `update_subscription` | Read, add or change subscriptions, including what they take   |
+| `list_subscription_videos`, `check_subscription`                | Why an upload was or wasn't downloaded; look for new ones now |
+| `get_settings`, `update_settings`                               | General, notifications, proxies, yt-dlp, PO tokens            |
+| `list_cookies`, `get_system_status`                             | Cookies file names, yt-dlp version, ffmpeg and Deno           |
+| `update_ytdlp`                                                  | Install the newest yt-dlp                                     |
 
 `start_download` checks the link first and uses the same default presets as the web app.
 It refuses a playlist or channel link unless `whole_playlist` is set.

@@ -179,6 +179,15 @@ def job_from(result: dict[str, Any]) -> dict[str, Any]:
     return job
 
 
+def job_from_list(result: dict[str, Any]) -> list[dict[str, Any]]:
+    assert not result.get("isError"), result
+    items: list[dict[str, Any]] = []
+    for block in result["content"]:
+        parsed = json.loads(block["text"])
+        items.extend(parsed if isinstance(parsed, list) else [parsed])
+    return items
+
+
 def test_a_playlist_needs_whole_playlist(setup_client: TestClient) -> None:
     token = new_token(setup_client)
     url = "https://www.youtube.com/playlist?list=PLtest"
@@ -224,3 +233,37 @@ def test_an_unknown_preset_is_refused_with_the_known_ones(setup_client: TestClie
     assert result["isError"] is True
     assert "Presets: " in result["content"][0]["text"]
     assert "Videos" in result["content"][0]["text"]
+
+
+def test_a_subscription_can_start_with_only_live_streams(watch_client: TestClient) -> None:
+    token = new_token(watch_client)
+    result = call(
+        watch_client,
+        token,
+        "add_subscription",
+        channel="https://www.youtube.com/@fake",
+        filters={"content_types": ["stream"]},
+    )
+    created = job_from(result)
+    saved = watch_client.get(f"/api/subscriptions/{created['id']}").json()
+    assert saved["filters"]["content_types"] == ["stream"]
+    videos = job_from_list(
+        call(watch_client, token, "list_subscription_videos", subscription_id=created["id"])
+    )
+    assert isinstance(videos, list)
+
+
+def test_debugging_tools_answer(setup_client: TestClient) -> None:
+    token = new_token(setup_client)
+    status = job_from(call(setup_client, token, "get_system_status"))
+    assert "ytdlp_version" in status
+    assert job_from_list(call(setup_client, token, "list_cookies")) == []
+
+
+def test_the_skill_mentions_every_tool(setup_client: TestClient) -> None:
+    """The skill ships with the tools, so a new tool must not leave it out of date."""
+    token = new_token(setup_client)
+    skill = Path(__file__).parents[3] / "skills" / "ytdlpz" / "SKILL.md"
+    text = skill.read_text()
+    tools = rpc(setup_client, token, "tools/list", {})["result"]["tools"]
+    assert [tool["name"] for tool in tools if f"`{tool['name']}`" not in text] == []
