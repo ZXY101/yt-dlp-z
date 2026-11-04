@@ -17,10 +17,15 @@ channels and playlists, and record live streams from the very first second.
 [![Conventional Commits](https://img.shields.io/badge/conventional%20commits-1.0.0-fe5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org/)
 
 [Features](#features) ·
+[Screenshots](#screenshots) ·
 [Quick start](#quick-start) ·
 [Documentation](docs/README.md) ·
 [Similar projects](#similar-projects) ·
 [Contributing](CONTRIBUTING.md)
+
+<br />
+
+<img src="docs/assets/screenshots/demo.gif" alt="Pasting a YouTube link: yt-dlp-z previews the video, a preset is picked, and the download appears in the queue with live progress" width="900" />
 
 </div>
 
@@ -111,6 +116,22 @@ adds them.
   your reverse proxy.
 - **One container** with two volumes, or run it directly with Python and Node.
 - Phone-friendly UI with light and dark themes.
+
+## Screenshots
+
+| Download with a link preview                                                             | Every yt-dlp option, searchable                                                                |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| ![Download form with a video preview and a preset](docs/assets/screenshots/download.png) | ![The yt-dlp options editor filtered to subtitle options](docs/assets/screenshots/options.png) |
+| **Queue with live progress (dark theme)**                                                | **Subscriptions and their downloads**                                                          |
+| ![Queue with two downloads in progress](docs/assets/screenshots/queue-dark.png)          | ![A subscription expanded to list its downloads](docs/assets/screenshots/subscriptions.png)    |
+
+<p align="center">
+  <img src="docs/assets/screenshots/phone-download.png" alt="Download form on a phone" width="260" />
+  &nbsp;
+  <img src="docs/assets/screenshots/phone-queue.png" alt="Queue on a phone in the dark theme" width="260" />
+</p>
+
+<sub>Screenshots show public-domain NASA and Creative Commons Blender videos.</sub>
 
 ## Quick start
 
@@ -205,7 +226,6 @@ Browser ──HTTP / WebSocket──▶ FastAPI (one process)
 yt-dlp always runs as a separate process with an argument list (never a shell),
 so a stuck download can be cancelled cleanly and yt-dlp can be updated while
 the app runs. The options editor is generated from yt-dlp's own option parser.
-More in the [design notes](docs/PLAN.md).
 
 ## Similar projects
 
