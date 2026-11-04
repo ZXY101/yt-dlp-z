@@ -1,6 +1,7 @@
 import { screen, within } from "@testing-library/react";
 
 import { DEFAULT_RECORDING } from "@/features/presets";
+import { CHAT_OFF } from "@/lib/live-chat";
 import { createFakeServer, installFakeApi } from "@/test/fake-api";
 import { makeCookieFile, makePreset } from "@/test/fake-library";
 import { makeProxy } from "@/test/fake-proxies";
@@ -12,6 +13,28 @@ describe("Presets", () => {
     const { user, router } = renderApp("/presets");
     await user.click(await screen.findByRole("link", { name: /No presets yet/ }));
     expect(router.state.location.pathname).toBe("/presets/new");
+  });
+
+  it("keeps a preset's live chat setting and says so on its card", async () => {
+    const server = createFakeServer();
+    installFakeApi(server);
+    const { user } = renderApp("/presets/new");
+
+    await user.type(await screen.findByLabelText("Name"), "Streams");
+    await user.selectOptions(screen.getByLabelText("Live chat"), "overlay");
+    await user.click(screen.getByRole("button", { name: "Save preset" }));
+
+    const list = await screen.findByRole("list", { name: "Presets" });
+    expect(within(list).getByText(/makes a chat overlay/)).toBeVisible();
+    expect(server.presets[0]?.live_chat).toMatchObject({ mode: "overlay", max_on_screen: 30 });
+  });
+
+  it("describes a preset that only saves the chat", async () => {
+    const server = createFakeServer();
+    server.presets = [makePreset({ live_chat: { ...CHAT_OFF, mode: "save" } })];
+    installFakeApi(server);
+    renderApp("/presets");
+    expect(await screen.findByText(/saves live chat/)).toBeVisible();
   });
 
   it("creates a preset from the editor", async () => {

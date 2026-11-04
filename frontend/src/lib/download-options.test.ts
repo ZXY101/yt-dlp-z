@@ -9,6 +9,7 @@ import {
   settingsFromApi,
   withQuality,
 } from "@/lib/download-options";
+import { CHAT_OFF } from "@/lib/live-chat";
 
 describe("setOption", () => {
   it("adds and replaces values", () => {
@@ -62,6 +63,7 @@ describe("API conversion", () => {
       fileName: "episode" as const,
       mediaFiles: true,
       proxyMode: "sticky" as const,
+      liveChat: { ...CHAT_OFF, mode: "overlay" as const, max_on_screen: 20 },
     };
     const body = settingsForApi(settings);
     expect(body).toEqual({
@@ -73,6 +75,7 @@ describe("API conversion", () => {
       file_name: "episode",
       media_files: true,
       proxy_mode: "sticky",
+      live_chat: settings.liveChat,
     });
     expect(settingsFromApi(body)).toEqual({ ...settings, ...settingsFromApi(body) });
     expect(settingsFromApi({})).toEqual({
@@ -84,7 +87,12 @@ describe("API conversion", () => {
       fileName: null,
       mediaFiles: false,
       proxyMode: "off",
+      liveChat: CHAT_OFF,
     });
+  });
+
+  it("sends no live chat settings when it is off", () => {
+    expect(settingsForApi(DEFAULT_SETTINGS).live_chat).toBeNull();
   });
 
   it("sends no folder when it is blank", () => {

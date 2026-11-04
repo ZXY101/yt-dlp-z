@@ -320,6 +320,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/jobs/{job_id}/live-chat/overlay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rebuild Chat Overlay
+         * @description Builds the overlay again from the saved chat, replacing the old one. No style: the one
+         *     the job has. A style given is kept with the job.
+         */
+        post: operations["rebuild_chat_overlay_api_jobs__job_id__live_chat_overlay_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/jobs/{job_id}/log": {
         parameters: {
             query?: never;
@@ -959,6 +980,7 @@ export interface components {
              * @enum {string}
              */
             proxy_mode: "off" | "rotate" | "random" | "sticky";
+            live_chat?: components["schemas"]["LiveChatSettings"] | null;
         };
         /**
          * JobKind
@@ -997,6 +1019,9 @@ export interface components {
             file_name: ("title_id" | "dated" | "dated_id" | "episode") | null;
             /** Media Files */
             media_files: boolean;
+            live_chat: components["schemas"]["LiveChatSettings"] | null;
+            /** Chat Status */
+            chat_status: ("capturing" | "fetching" | "saved" | "overlay" | "none" | "failed" | "stopped") | null;
             /** Cookie Id */
             cookie_id: number | null;
             /**
@@ -1050,6 +1075,74 @@ export interface components {
         KeepIn: {
             /** Keep */
             keep: boolean;
+        };
+        /**
+         * LiveChatSettings
+         * @description Part of a preset or download. Every job keeps the values it started with.
+         */
+        LiveChatSettings: {
+            /**
+             * Scroll Seconds
+             * @default 7
+             */
+            scroll_seconds: number;
+            /**
+             * Font Size
+             * @default 48
+             */
+            font_size: number;
+            /**
+             * Opacity
+             * @default 0.85
+             */
+            opacity: number;
+            /**
+             * Screen Area
+             * @default 0.75
+             */
+            screen_area: number;
+            /**
+             * Max On Screen
+             * @default 30
+             */
+            max_on_screen: number;
+            /**
+             * Offset Seconds
+             * @default 0
+             */
+            offset_seconds: number;
+            /**
+             * Show Paid
+             * @default true
+             */
+            show_paid: boolean;
+            /**
+             * Colour Mode
+             * @default white
+             * @enum {string}
+             */
+            colour_mode: "white" | "random" | "author" | "staff" | "role";
+            /**
+             * Big Share
+             * @default 0
+             */
+            big_share: number;
+            /**
+             * Small Share
+             * @default 0
+             */
+            small_share: number;
+            /**
+             * Fixed Share
+             * @default 0
+             */
+            fixed_share: number;
+            /**
+             * Mode
+             * @default off
+             * @enum {string}
+             */
+            mode: "off" | "save" | "overlay";
         };
         /** LoginRequest */
         LoginRequest: {
@@ -1163,6 +1256,68 @@ export interface components {
             /** Blocked Reason */
             blocked_reason?: string | null;
         };
+        /**
+         * OverlayStyle
+         * @description How the scrolling chat overlay looks. Defaults were chosen on a real, busy stream.
+         */
+        OverlayStyle: {
+            /**
+             * Scroll Seconds
+             * @default 7
+             */
+            scroll_seconds: number;
+            /**
+             * Font Size
+             * @default 48
+             */
+            font_size: number;
+            /**
+             * Opacity
+             * @default 0.85
+             */
+            opacity: number;
+            /**
+             * Screen Area
+             * @default 0.75
+             */
+            screen_area: number;
+            /**
+             * Max On Screen
+             * @default 30
+             */
+            max_on_screen: number;
+            /**
+             * Offset Seconds
+             * @default 0
+             */
+            offset_seconds: number;
+            /**
+             * Show Paid
+             * @default true
+             */
+            show_paid: boolean;
+            /**
+             * Colour Mode
+             * @default white
+             * @enum {string}
+             */
+            colour_mode: "white" | "random" | "author" | "staff" | "role";
+            /**
+             * Big Share
+             * @default 0
+             */
+            big_share: number;
+            /**
+             * Small Share
+             * @default 0
+             */
+            small_share: number;
+            /**
+             * Fixed Share
+             * @default 0
+             */
+            fixed_share: number;
+        };
         /** PotProviderIn */
         PotProviderIn: {
             /** Url */
@@ -1226,6 +1381,7 @@ export interface components {
              * @enum {string}
              */
             proxy_mode: "off" | "rotate" | "random" | "sticky";
+            live_chat?: components["schemas"]["LiveChatSettings"] | null;
             /**
              * Kind
              * @default any
@@ -1274,6 +1430,7 @@ export interface components {
              * @enum {string}
              */
             proxy_mode: "off" | "rotate" | "random" | "sticky";
+            live_chat?: components["schemas"]["LiveChatSettings"] | null;
             /**
              * Kind
              * @default any
@@ -2316,6 +2473,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    rebuild_chat_overlay_api_jobs__job_id__live_chat_overlay_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["OverlayStyle"] | null;
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

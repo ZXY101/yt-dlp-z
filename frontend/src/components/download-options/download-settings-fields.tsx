@@ -2,6 +2,7 @@ import { Disclosure } from "@/components/disclosure";
 import { CommonOptions } from "@/components/download-options/common-options";
 import { FolderField } from "@/components/download-options/folder-field";
 import { LayoutFields } from "@/components/download-options/layout-fields";
+import { LiveChatFields } from "@/components/download-options/live-chat-fields";
 import { OptionsDialog } from "@/components/download-options/options-dialog";
 import { ProxyField } from "@/components/download-options/proxy-field";
 import { FormField, SelectField, TextareaField } from "@/components/form-field";
@@ -67,6 +68,10 @@ export function DownloadSettingsFields(props: DownloadSettingsFieldsProps) {
       <CookiesField {...props} />
       <CommonOptions options={options} onChange={setOptions} />
       <LayoutFields value={value} onChange={(layout) => onChange({ ...value, ...layout })} />
+      <LiveChatFields
+        value={value.liveChat}
+        onChange={(liveChat) => onChange({ ...value, liveChat })}
+      />
       <ProxyField
         value={value.proxyMode}
         proxyCount={props.proxyCount}
