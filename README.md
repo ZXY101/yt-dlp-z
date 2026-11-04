@@ -122,17 +122,44 @@ adds them.
 
 ## Screenshots
 
-| Download with a link preview                                                             | Every yt-dlp option, searchable                                                                |
-| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| ![Download form with a video preview and a preset](docs/assets/screenshots/download.png) | ![The yt-dlp options editor filtered to subtitle options](docs/assets/screenshots/options.png) |
-| **Queue with live progress (dark theme)**                                                | **Subscriptions and their downloads**                                                          |
-| ![Queue with two downloads in progress](docs/assets/screenshots/queue-dark.png)          | ![A subscription expanded to list its downloads](docs/assets/screenshots/subscriptions.png)    |
-
-<p align="center">
-  <img src="docs/assets/screenshots/phone-download.png" alt="Download form on a phone" width="260" />
-  &nbsp;
-  <img src="docs/assets/screenshots/phone-queue.png" alt="Queue on a phone in the dark theme" width="260" />
-</p>
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <b>Download with a link preview</b><br />
+      <img src="docs/assets/screenshots/download.png" alt="Download form with a video preview and a preset" width="100%" />
+    </td>
+    <td width="50%" valign="top">
+      <b>Every yt-dlp option, searchable</b><br />
+      <img src="docs/assets/screenshots/options.png" alt="The yt-dlp options editor filtered to subtitle options" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <b>Queue with live progress</b><br />
+      <img src="docs/assets/screenshots/queue.png" alt="Queue with two downloads in progress" width="100%" />
+    </td>
+    <td valign="top">
+      <b>Subscriptions and their downloads</b><br />
+      <img src="docs/assets/screenshots/subscriptions.png" alt="A subscription expanded to list its downloads" width="100%" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center" valign="top">
+      <b>Download on a phone</b><br />
+      <img src="docs/assets/screenshots/phone-download.png" alt="Download form on a phone" width="260" />
+    </td>
+    <td align="center" valign="top">
+      <b>Queue on a phone</b><br />
+      <img src="docs/assets/screenshots/phone-queue.png" alt="Queue on a phone" width="260" />
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <b>Light and dark themes</b><br />
+      <img src="docs/assets/screenshots/theme-toggle.gif" alt="The theme button in the header switching the app from dark to light and back" width="640" />
+    </td>
+  </tr>
+</table>
 
 <sub>Screenshots show public-domain NASA and Creative Commons Blender videos.</sub>
 
