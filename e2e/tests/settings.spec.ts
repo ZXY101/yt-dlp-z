@@ -119,4 +119,31 @@ test.describe("settings", () => {
     await expect(section.getByText("PO tokens off.", { exact: true })).toBeVisible();
     await expect(section.getByText("Off.", { exact: true })).toBeVisible();
   });
+
+  test("an API token works until it is revoked", async ({ page, request }) => {
+    const section = page.getByRole("region", { name: "API tokens" });
+    await section.getByLabel("Token name").fill("Claude Code");
+    await section.getByRole("button", { name: "Create token" }).click();
+    const token = await section.locator("code").first().innerText();
+    expect(token).toMatch(/^ytz_/);
+    await expect(section.getByText("Never used")).toBeVisible();
+    await expectNoHorizontalScroll(page);
+
+    const headers = { Authorization: `Bearer ${token}` };
+    const tools = await request.post("/mcp", {
+      headers: { ...headers, Accept: "application/json, text/event-stream" },
+      data: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} },
+    });
+    expect(tools.ok()).toBe(true);
+    expect(await tools.text()).toContain("start_download");
+
+    await section.getByRole("button", { name: "Revoke Claude Code" }).click();
+    await page.getByRole("dialog").getByRole("button", { name: "Revoke" }).click();
+    await expect(section.getByText("Claude Code", { exact: true })).toBeHidden();
+    const revoked = await request.post("/mcp", {
+      headers: { ...headers, Accept: "application/json, text/event-stream" },
+      data: { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
+    });
+    expect(revoked.status()).toBe(401);
+  });
 });

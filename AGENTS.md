@@ -42,7 +42,10 @@ additionally runs E2E, checks the generated API types and builds the image.
 - Every user-supplied path (download folder overrides, output templates) is
   resolved and checked against the allowed roots, to block path traversal.
 - Every API route and the WebSocket require auth unless explicitly public
-  (`/api/health`, login, first-run setup).
+  (`/api/health`, login, first-run setup). API tokens are accepted everywhere a
+  browser session is, except `/api/tokens`: a token can't manage tokens.
+- MCP tools (`mcp_server/`) call the REST API in-process with the caller's token,
+  never the services directly, so they can't bypass its validation.
 - Cookies files and the DB are never logged, served or returned by the API in full.
 - New dependencies: prefer well-maintained packages; never run unreviewed
   install scripts (npm `allowScripts`).
@@ -117,6 +120,7 @@ db/models/<entity>.py      SQLAlchemy models (register new ones in migrations/en
 migrations/versions/       Alembic migrations, applied automatically at startup
 services/<domain>          business logic (auth_service, paths, later runner, watcher…)
 core/                      config (env vars), security, rate limiting
+mcp_server/                the MCP endpoint at /mcp and its tools
 main.py, cli.py, web.py    app factory, `yt-dlp-z` command, SPA serving
 ```
 

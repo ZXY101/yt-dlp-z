@@ -27,5 +27,8 @@ exposed to untrusted users, which the docs warn against.
 
 - Set `YTDLPZ_ADMIN_PASSWORD` before the first start if others can reach the server.
 - Put it behind HTTPS; don't expose it to the internet without a reason.
+- Give each script or agent its own [API token](docs/mcp.md), and revoke tokens you no
+  longer use. A token can delete downloaded files. Changing the password doesn't revoke
+  tokens.
 - Keep the config folder private: `cookies/` holds sign-in sessions.
 - More in [configuration → security notes](docs/configuration.md#security-notes).

@@ -23,6 +23,7 @@ export interface FakeServer {
   // Jobs removed with "Delete files".
   deletedJobFiles: number[];
   notifications: components["schemas"]["NotificationSettingsOut"];
+  apiTokens: components["schemas"]["ApiTokenOut"][];
   /** The saved ntfy token, never sent back by the real server. */
   notificationToken: string;
   /** Test messages sent, and the error the next one gets (null = it works). */

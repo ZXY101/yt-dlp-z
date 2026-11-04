@@ -8,3 +8,4 @@ export type NotificationSettings = components["schemas"]["NotificationSettingsOu
 export type NotificationSettingsIn = components["schemas"]["NotificationSettingsIn"];
 export type NotifyEvent = NotificationSettings["events"][number];
 export type PotProviderInfo = components["schemas"]["PotProviderInfo"];
+export type ApiToken = components["schemas"]["ApiTokenOut"];

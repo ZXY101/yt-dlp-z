@@ -24,6 +24,7 @@ features you use.
 - [Folders and media servers](media-server.md): channel folders, file names, Jellyfin/Plex/Kodi `.nfo` files
 - [Proxies](proxies.md): the proxy pool and VPN exits
 - [Notifications](notifications.md): ntfy
+- [API tokens and MCP](mcp.md): scripts and AI agents
 - [yt-dlp and PO tokens](ytdlp.md): updating yt-dlp in the app, PO tokens,
   blocked options
 

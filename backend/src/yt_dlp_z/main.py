@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from yt_dlp_z.api.routes import (
+    api_tokens,
     app_settings,
     auth,
     cookies,
@@ -29,6 +30,7 @@ from yt_dlp_z.core.config import AuthMode, Settings, get_settings
 from yt_dlp_z.core.security import SessionSigner, load_or_create_secret_key
 from yt_dlp_z.db.engine import create_engine, create_session_factory
 from yt_dlp_z.db.migrate import upgrade_to_head
+from yt_dlp_z.mcp_server.endpoint import mount_mcp
 from yt_dlp_z.schemas.ytdlp import YtdlpPreferences
 from yt_dlp_z.services.app_settings import (
     get_max_concurrent_downloads,
@@ -138,13 +140,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 await sync_admin_password(session, settings.admin_password.get_secret_value())
         with ytdlp_python_path(settings.ytdlp_update_dir):
             await _start_services(app.state.app_state)
-            yield
+            async with mcp_server.session_manager.run():
+                yield
             await _stop_services(app.state.app_state)
         await engine.dispose()
 
     app = FastAPI(title="yt-dlp-z", lifespan=lifespan)
     app.include_router(health.router)
     for module in (
+        api_tokens,
         app_settings,
         auth,
         cookies,
@@ -165,5 +169,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.include_router(module.router)
     if settings.test_mode:
         app.include_router(testing.router)
+    # Before the web app, whose catch-all route would answer /mcp otherwise.
+    mcp_server = mount_mcp(app)
     mount_spa(app, settings.frontend_dist)
     return app

@@ -14,6 +14,7 @@ import { useAppSettings, useSaveAppSettings } from "@/features/settings/api";
 import { type LimitField, useLimitField } from "@/hooks/use-limit-field";
 import { NotificationsSection } from "@/features/settings/components/notifications-section";
 import { PotSection } from "@/features/settings/components/pot-section";
+import { TokensSection } from "@/features/settings/components/tokens-section";
 import { YtdlpSection } from "@/features/settings/components/ytdlp-section";
 import type { AppSettings } from "@/features/settings/types";
 
@@ -153,6 +154,7 @@ export function SettingsPage() {
       <NotificationsSection />
       <YtdlpSection />
       <PotSection />
+      <TokensSection />
     </>
   );
 }

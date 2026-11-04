@@ -40,6 +40,8 @@ puts a web app in front of it that you run on your own server, NAS or PC:
 - Point it at a YouTube channel and new uploads show up in your library on their own.
 - When that channel goes live, the stream is recorded from the start, split into
   parts if it runs for days, and optionally replaced by the clean VOD later.
+- Ask an AI agent to do any of it: the built-in [MCP server](docs/mcp.md) lets agents
+  such as Claude Code start downloads and change settings.
 
 Nothing is hidden behind a simplified UI: every yt-dlp option is available,
 read straight from the installed yt-dlp, so new options appear as soon as yt-dlp
@@ -206,6 +208,7 @@ reverse proxies, updating, backups and running it as a service.
 | [Media servers](docs/media-server.md)            | Jellyfin / Plex / Kodi layout, `.nfo` files, artwork               |
 | [Proxies](docs/proxies.md)                       | The proxy pool, rotation modes, cooldowns, a gluetun recipe        |
 | [Notifications](docs/notifications.md)           | ntfy setup and events                                              |
+| [API tokens and MCP](docs/mcp.md)                | Let scripts and AI agents use yt-dlp-z                             |
 | [yt-dlp and PO tokens](docs/ytdlp.md)            | In-app updates, nightly builds, PO tokens, blocked options         |
 | [Configuration reference](docs/configuration.md) | Environment variables, command line, volumes, security notes       |
 | [Troubleshooting](docs/troubleshooting.md)       | Bot checks, 403 errors, members-only videos, recordings, FAQ       |

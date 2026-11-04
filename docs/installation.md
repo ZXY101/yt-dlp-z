@@ -159,13 +159,16 @@ docker exec -it yt-dlp-z yt-dlp-z reset-password   # Docker
 cd backend && uv run yt-dlp-z reset-password       # without Docker
 ```
 
-It asks for a new password and signs out every session.
+It asks for a new password and signs out every session. [API tokens](mcp.md) keep
+working: revoke them in Settings if you think one has leaked.
 
 ## Behind a reverse proxy
 
-yt-dlp-z works behind any reverse proxy. Two things matter:
+yt-dlp-z works behind any reverse proxy. These things matter:
 
 - **WebSockets** on `/api/ws` must be proxied (live progress and updates).
+- **`/mcp`**, if you use [API tokens and MCP](mcp.md), must reach the app with its
+  `Authorization` header intact, and past any sign-in page the proxy adds.
 - **`X-Forwarded-For` and `X-Forwarded-Proto`** must be forwarded, so sign-in
   rate limiting sees the real client address and cookies are marked secure
   over HTTPS.
@@ -241,14 +244,14 @@ yt-dlp itself can be updated from the app without updating yt-dlp-z; see
 
 Back up the config folder (`/config` in Docker). It holds:
 
-| File / folder | Contents                                                             |
-| ------------- | -------------------------------------------------------------------- |
-| `yt-dlp-z.db` | Settings, presets, subscriptions, download history, password hash    |
-| `secret.key`  | Signs sign-in cookies. Losing it only signs everyone out             |
-| `cookies/`    | Uploaded cookies files. **These are sign-in sessions: keep private** |
-| `logs/`       | One log per download                                                 |
-| `ytdlp/`      | yt-dlp installed by an in-app update (can be re-created)             |
-| `plugins/`    | The PO-token plugin (can be re-created)                              |
+| File / folder | Contents                                                                          |
+| ------------- | --------------------------------------------------------------------------------- |
+| `yt-dlp-z.db` | Settings, presets, subscriptions, download history, password and API token hashes |
+| `secret.key`  | Signs sign-in cookies. Losing it only signs everyone out                          |
+| `cookies/`    | Uploaded cookies files. **These are sign-in sessions: keep private**              |
+| `logs/`       | One log per download                                                              |
+| `ytdlp/`      | yt-dlp installed by an in-app update (can be re-created)                          |
+| `plugins/`    | The PO-token plugin (can be re-created)                                           |
 
 For a consistent copy of the database, stop the container first, or use
 `sqlite3 yt-dlp-z.db ".backup backup.db"` while it runs.
