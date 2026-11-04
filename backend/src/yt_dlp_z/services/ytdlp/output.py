@@ -21,6 +21,7 @@ PARALLEL_PREFIX = re.compile(r"^\d+: ")
 # Recordings joined mid-stream are written by ffmpeg, which reports its own progress:
 # "frame=  449 fps=112 q=-1.0 size=     512KiB time=00:00:14.96 bitrate= 280.2kbits/s".
 FFMPEG_PROGRESS = re.compile(r"size=\s*(?P<size>[\d.]+)(?P<unit>[KMG]i?B|kB|B)\s+time=")
+FFMPEG_TIME = re.compile(r"time=\s*(?P<hours>\d+):(?P<minutes>\d+):(?P<seconds>[\d.]+)")
 FFMPEG_BITRATE = re.compile(r"bitrate=\s*(?P<kbits>[\d.]+)kbits/s")
 UNIT_BYTES = {
     "B": 1,
@@ -44,6 +45,8 @@ class ProgressUpdate:
     part: int = 0
     # (fragments saved, newest fragment's number) when downloading a stream in fragments.
     fragments: tuple[int, int] | None = None
+    # How far into its video ffmpeg is, when ffmpeg writes the file.
+    media_seconds: float | None = None
 
 
 @dataclass(frozen=True)
@@ -140,7 +143,12 @@ def _ffmpeg_progress(line: str) -> ProgressUpdate | None:
     bitrate = FFMPEG_BITRATE.search(line)
     speed = float(bitrate["kbits"]) * 1000 / 8 if bitrate else None
     downloaded = int(float(size["size"]) * UNIT_BYTES[size["unit"]])
-    return ProgressUpdate(downloaded, None, speed, None, None)
+    position = FFMPEG_TIME.search(line)
+    media_seconds = None
+    if position:
+        minutes = int(position["hours"]) * 60 + int(position["minutes"])
+        media_seconds = minutes * 60 + float(position["seconds"])
+    return ProgressUpdate(downloaded, None, speed, None, None, media_seconds=media_seconds)
 
 
 def parse_line(line: str) -> Update | None:

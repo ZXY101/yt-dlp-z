@@ -72,7 +72,9 @@ class ChatCapture(NoCapture):
         self._folder = capture_dir(context.settings, job.id)
         self._task: asyncio.Task[None] | None = None
         self._proxy_args: list[str] = []
-        self._located = False
+        self._from_stream_start = False
+        # The earliest time the video's 0:00 could have been, among the part's progress updates.
+        self._earliest: float | None = None
 
     def start(self, proxy_args: list[str]) -> None:
         self._proxy_args = proxy_args
@@ -135,24 +137,37 @@ class ChatCapture(NoCapture):
         self._job.chat_capture = {"parts": parts}
 
     def begin_part(self, part: int) -> None:
-        self._located = False
+        self._from_stream_start = False
+        self._earliest = None
         entry = {"part": part, "started": time.time(), "file": None}
         parts = [*(self._job.chat_capture or {})["parts"], entry]
         self._job.chat_capture = {"parts": parts}
 
     def on_update(self, part: int, update: Update) -> None:
         """A part recorded from the stream's start begins at the stream's start. One recorded
-        from now begins when its first data arrives: what viewers were seeing then, so a
-        comment lands on the moment the viewer was watching."""
+        from now begins somewhat before its first data arrives, because ffmpeg joins a little
+        behind the live edge, by a different amount per stream. So it's worked out from how far
+        into the video ffmpeg is: closest to the edge, that's the time of the video's 0:00."""
         if isinstance(update, InfoUpdate) and update.release_timestamp:
             if part == 1 and self._job.record_from_start:
                 self._set_part(part, started=update.release_timestamp)
-                self._located = True
-        elif isinstance(update, ProgressUpdate) and not self._located:
-            self._set_part(part, started=time.time())
-            self._located = True
+                self._from_stream_start = True
+        elif isinstance(update, ProgressUpdate):
+            self._place_part(part, update)
         elif isinstance(update, FileUpdate):
             self._set_part(part, file=update.filepath)
+
+    def _place_part(self, part: int, update: ProgressUpdate) -> None:
+        if self._from_stream_start:
+            return
+        if update.media_seconds is not None:
+            started = time.time() - update.media_seconds
+            if self._earliest is None or started < self._earliest:
+                self._earliest = started
+                self._set_part(part, started=started)
+        elif self._earliest is None:
+            self._earliest = time.time()
+            self._set_part(part, started=self._earliest)
 
     def renamed(self, old: str, new: str) -> None:
         parts = (self._job.chat_capture or {})["parts"]

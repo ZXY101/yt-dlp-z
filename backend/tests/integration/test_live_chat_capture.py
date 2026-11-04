@@ -2,7 +2,8 @@
 
 import time
 from pathlib import Path
-from typing import Any
+from types import SimpleNamespace
+from typing import Any, cast
 
 import pytest
 from fastapi.testclient import TestClient
@@ -15,8 +16,13 @@ from tests.integration.test_live_recording import (
     wait_for_recorded_bytes,
     watch_url,
 )
+from yt_dlp_z.core.config import Settings
+from yt_dlp_z.db.models.job import Job
+from yt_dlp_z.schemas.live_chat import LiveChatSettings
 from yt_dlp_z.services.jobs import manager
+from yt_dlp_z.services.jobs.context import JobContext
 from yt_dlp_z.services.live_chat import capture, overlay
+from yt_dlp_z.services.ytdlp.output import InfoUpdate, ProgressUpdate
 
 OVERLAY = {"mode": "overlay"}
 SAVE = {"mode": "save"}
@@ -160,3 +166,32 @@ def test_a_vod_keeps_the_chat_setting(watch_client: TestClient) -> None:
     jobs = watch_client.get("/api/jobs").json()
     vod = next(job for job in jobs if job["source_job_id"] == job_id)
     assert vod["live_chat"]["mode"] == "save"
+
+
+def test_a_part_from_now_starts_where_ffmpeg_says_its_video_starts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """ffmpeg joins behind the live edge, so early updates are ahead of real time; the time of
+    0:00 settles at its earliest value once it's caught up."""
+    job = Job(id=1, chat_capture={"parts": []}, record_from_start=False)
+    settings = Settings(config_dir=tmp_path)
+    context = cast(JobContext, SimpleNamespace(settings=settings))
+    chat = capture.ChatCapture(context, job, LiveChatSettings(mode="save"))
+    clock = [1000.0]
+    monkeypatch.setattr(time, "time", lambda: clock[0])
+    chat.begin_part(1)
+    for now, position in [(1000.0, 8.0), (1001.0, 15.0), (1010.0, 24.0), (1020.0, 30.0)]:
+        clock[0] = now
+        update = ProgressUpdate(None, None, None, None, None, media_seconds=position)
+        chat.on_update(1, update)
+    assert job.chat_capture == {"parts": [{"part": 1, "started": 986.0, "file": None}]}
+
+
+def test_a_part_from_the_stream_start_keeps_the_streams_start(tmp_path: Path) -> None:
+    job = Job(id=1, chat_capture={"parts": []}, record_from_start=True)
+    context = cast(JobContext, SimpleNamespace(settings=Settings(config_dir=tmp_path)))
+    chat = capture.ChatCapture(context, job, LiveChatSettings(mode="save"))
+    chat.begin_part(1)
+    chat.on_update(1, InfoUpdate("Title", release_timestamp=500.0))
+    chat.on_update(1, ProgressUpdate(None, None, None, None, None, media_seconds=3.0))
+    assert job.chat_capture == {"parts": [{"part": 1, "started": 500.0, "file": None}]}
