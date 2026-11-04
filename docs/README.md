@@ -36,6 +36,4 @@ features you use.
 
 ## Project notes
 
-- [Plan](PLAN.md): design and milestones
-- [Progress](PROGRESS.md): current status and decisions
 - [Changelog](../CHANGELOG.md)

@@ -21,8 +21,8 @@ a public issue.
 ## Suggesting features
 
 Open a feature request and describe the problem you want solved, not only the
-solution. Check the [plan](docs/PLAN.md) and [progress notes](docs/PROGRESS.md)
-first; it may already be planned or decided against.
+solution. Search the existing issues first; it may already be planned or
+decided against.
 
 ## Pull requests
 
