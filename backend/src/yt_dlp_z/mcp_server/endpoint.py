@@ -32,6 +32,15 @@ class _McpEndpoint:
         self._server = server
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        # Clients open a GET stream for server messages if offered. This server sends none,
+        # and an open stream would stop uvicorn shutting down, so recordings wouldn't be
+        # saved cleanly before Docker kills the app. MCP allows answering 405 here.
+        if scope["method"] != "POST":
+            response = JSONResponse(
+                {"detail": "Use POST"}, status_code=405, headers={"Allow": "POST"}
+            )
+            await response(scope, receive, send)
+            return
         state: AppState = self._app.state.app_state
         async with state.session_factory() as db:
             allowed = await has_api_token(Request(scope), state, db)

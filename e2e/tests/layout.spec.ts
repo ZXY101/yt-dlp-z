@@ -37,6 +37,25 @@ test.describe("app layout", () => {
     expect(await headingBox("Queue")).toEqual(download);
   });
 
+  test("the theme button switches the theme and remembers it", async ({ page }) => {
+    await page.emulateMedia({ colorScheme: "light" });
+    const html = page.locator("html");
+    await expect(html).not.toHaveClass(/dark/);
+
+    await page.getByRole("button", { name: "Switch to dark theme" }).click();
+    await expect(html).toHaveClass(/dark/);
+
+    await page.reload();
+    await expect(html).toHaveClass(/dark/);
+
+    await page.getByRole("button", { name: "Switch to light theme" }).click();
+    await expect(html).not.toHaveClass(/dark/);
+
+    // Back on the system's look, so the page follows the system again.
+    await page.emulateMedia({ colorScheme: "dark" });
+    await expect(html).toHaveClass(/dark/);
+  });
+
   test("buttons show a pointer cursor", async ({ page }) => {
     // Regression: Tailwind v4 resets buttons to the default arrow cursor.
     const cursor = await page

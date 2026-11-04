@@ -52,6 +52,17 @@ def test_a_bad_token_is_refused(setup_client: TestClient) -> None:
     assert response.status_code == 401
 
 
+@pytest.mark.parametrize("method", ["GET", "DELETE"])
+def test_only_post_is_served_so_no_stream_blocks_shutdown(
+    setup_client: TestClient, method: str
+) -> None:
+    token = new_token(setup_client)
+    headers = {**MCP_HEADERS, "Authorization": f"Bearer {token}"}
+    response = setup_client.request(method, "/mcp", headers=headers)
+    assert response.status_code == 405
+    assert response.headers["allow"] == "POST"
+
+
 def test_a_token_reaches_the_rest_api(setup_client: TestClient) -> None:
     token = signed_out(setup_client)
     assert setup_client.get("/api/jobs").status_code == 401

@@ -14,6 +14,8 @@ from yt_dlp_z.main import create_app
 from yt_dlp_z.schemas.auth import MIN_PASSWORD_LENGTH
 from yt_dlp_z.services.auth_service import change_password
 
+SHUTDOWN_CONNECTION_SECONDS = 30
+
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="yt-dlp-z")
@@ -77,4 +79,6 @@ def main() -> None:
         port=settings.port,
         reload=args.reload,
         proxy_headers=True,
+        # Any connection left open must not delay saving running recordings on shutdown.
+        timeout_graceful_shutdown=SHUTDOWN_CONNECTION_SECONDS,
     )

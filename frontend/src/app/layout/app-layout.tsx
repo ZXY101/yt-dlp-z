@@ -3,6 +3,7 @@ import { Link, Outlet } from "react-router";
 
 import { MobileNav } from "@/app/layout/mobile-nav";
 import { NavLinks } from "@/app/layout/nav-links";
+import { ThemeToggle } from "@/app/layout/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useAuthStatus, useLogout } from "@/features/auth/api";
 import { useJobEvents } from "@/features/downloads";
@@ -36,7 +37,10 @@ export function AppLayout() {
           <Download className="size-5" aria-hidden />
           yt-dlp-z
         </Link>
-        <div className="ml-auto">{showLogout && <LogoutButton />}</div>
+        <div className="ml-auto flex items-center gap-1">
+          <ThemeToggle />
+          {showLogout && <LogoutButton />}
+        </div>
       </header>
       <div className="flex flex-1">
         <aside className="hidden w-56 shrink-0 border-r p-3 md:block">

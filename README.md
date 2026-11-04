@@ -117,7 +117,8 @@ adds them.
 - **Single admin password** (argon2, rate-limited sign-in), or hand login to
   your reverse proxy.
 - **One container** with two volumes, or run it directly with Python and Node.
-- Phone-friendly UI with light and dark themes.
+- Phone-friendly UI with light and dark themes. It follows your system until you pick one with
+  the button in the header.
 
 ## Screenshots
 
