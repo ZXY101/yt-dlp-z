@@ -10,6 +10,9 @@ SECONDS_PER_MINUTE = 60
 DATE_LENGTH = 8
 
 
+SHOW_NFO = "tvshow.nfo"
+
+
 def _text(info: dict[str, Any], *keys: str) -> str | None:
     for key in keys:
         value = info.get(key)
@@ -80,7 +83,7 @@ def write_nfo_files(
         return None
     _write(video.with_suffix(".nfo"), episode_nfo(info))
     show_dir = video.parent.parent if folders == "season" else video.parent
-    show_file = show_dir / "tvshow.nfo"
+    show_file = show_dir / SHOW_NFO
     inside = show_dir != download_dir.resolve() and show_dir.is_relative_to(download_dir.resolve())
     if not inside:
         return None

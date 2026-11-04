@@ -120,6 +120,10 @@ same name (`.nfo`, thumbnail, subtitles, other recording parts), only inside the
 download's own folder. If the download came from a subscription, that video
 won't be downloaded again.
 
+If that was the channel's last video, its `tvshow.nfo` and artwork (`poster.jpg`,
+`fanart.jpg`, `banner.jpg`) and the empty folder go too. Anything else in the
+folder keeps them all in place.
+
 ### After a restart
 
 Downloads that were running when the app stopped are marked as interrupted and

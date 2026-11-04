@@ -80,5 +80,46 @@ def test_deleting_removes_files_and_empty_season_folders(tmp_path: Path) -> None
     assert disk_usage([job]).files == 2
     assert disk_usage([job]).bytes == 10
     assert delete_job_files(job) == 2
-    assert not season.exists()
-    assert (tmp_path / "Channel" / "tvshow.nfo").exists()
+    assert not (tmp_path / "Channel").exists()
+
+
+def test_the_last_video_takes_the_channel_files_with_it(tmp_path: Path) -> None:
+    channel = tmp_path / "Channel"
+    video, _ = touch(channel, "Ep [a1].mp4", "Ep [a1].nfo")
+    touch(channel, "tvshow.nfo", "poster.jpg", "fanart.jpg", "banner.jpg")
+    assert delete_job_files(make_job(tmp_path, [video])) == 2
+    assert not channel.exists()
+    assert tmp_path.exists()
+
+
+def test_channel_files_stay_while_anything_else_is_in_the_folder(tmp_path: Path) -> None:
+    channel = tmp_path / "Channel"
+    video, _ = touch(channel, "Ep [a1].mp4", "Ep [a1].nfo")
+    show = touch(channel, "tvshow.nfo", "poster.jpg")
+    other = touch(channel, "Ep [b2].mp4")
+    delete_job_files(make_job(tmp_path, [video]))
+    assert all(path.exists() for path in [*show, *other])
+
+
+def test_another_season_keeps_the_channel_files(tmp_path: Path) -> None:
+    channel = tmp_path / "Channel"
+    (video,) = touch(channel / "Season 2026", "Ep [a1].mp4")
+    touch(channel / "Season 2025", "Ep [b2].mp4")
+    show = touch(channel, "tvshow.nfo")
+    delete_job_files(make_job(tmp_path, [video]))
+    assert not (channel / "Season 2026").exists()
+    assert show[0].exists()
+
+
+def test_artwork_without_a_tvshow_nfo_is_not_a_channel_folder(tmp_path: Path) -> None:
+    folder = tmp_path / "Mine"
+    video, picture = touch(folder, "Ep [a1].mp4", "poster.jpg")
+    delete_job_files(make_job(tmp_path, [video]))
+    assert picture.exists()
+
+
+def test_the_download_folder_itself_is_left_alone(tmp_path: Path) -> None:
+    video, show = touch(tmp_path, "Ep [a1].mp4", "tvshow.nfo")
+    delete_job_files(make_job(tmp_path, [video]))
+    assert not video.exists()
+    assert show.exists()

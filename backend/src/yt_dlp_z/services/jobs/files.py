@@ -4,6 +4,9 @@ yt-dlp reports the media files it saved (job.files). Files saved beside each one
 same name are the job's too: its .nfo, thumbnail, subtitles, and other recording parts
 ("Title [id] (part 2).mp4"). Only files inside the job's own download folder are ever
 returned, so a moved or renamed folder can't make this touch anything else.
+
+Deleting a channel's last video also removes its tvshow.nfo and artwork, so media servers
+don't keep showing an empty show.
 """
 
 import re
@@ -11,8 +14,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from yt_dlp_z.db.models.job import Job
+from yt_dlp_z.services.media_server.artwork import ARTWORK
+from yt_dlp_z.services.media_server.nfo import SHOW_NFO
 
 PART_SUFFIX = re.compile(r" \(part \d+\)$")
+CHANNEL_FILES = {SHOW_NFO, *ARTWORK}
 
 
 @dataclass(frozen=True)
@@ -68,7 +74,8 @@ def disk_usage(jobs: list[Job]) -> DiskUsage:
 
 def delete_job_files(job: Job) -> int:
     """Deletes the job's files and any folders that became empty below its download
-    folder (an empty "Season 2026"). Returns how many files were deleted."""
+    folder (an empty "Season 2026", a channel folder with only its tvshow.nfo and artwork
+    left). Returns how many of the job's files were deleted."""
     folder = Path(job.output_dir).resolve()
     deleted = 0
     parents: set[Path] = set()
@@ -84,9 +91,21 @@ def delete_job_files(job: Job) -> int:
     return deleted
 
 
+def _remove_leftover_channel_files(folder: Path) -> None:
+    """Only in a channel folder (it has a tvshow.nfo) that holds nothing else."""
+    try:
+        names = {entry.name for entry in folder.iterdir()}
+        if SHOW_NFO in names and names <= CHANNEL_FILES:
+            for name in names:
+                (folder / name).unlink(missing_ok=True)
+    except OSError:
+        return
+
+
 def _remove_empty_folders(start: Path, stop: Path) -> None:
     current = start
     while current != stop and current.is_relative_to(stop):
+        _remove_leftover_channel_files(current)
         try:
             current.rmdir()  # only succeeds when empty
         except OSError:

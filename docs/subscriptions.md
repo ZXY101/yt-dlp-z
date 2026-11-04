@@ -80,6 +80,10 @@ removes the video and the files beside it with the same name (`.nfo`,
 thumbnail, subtitles, other recording parts), only inside the download's own
 folder, and the subscription won't download that video again.
 
+If that was the channel's last video, its `tvshow.nfo` and artwork (`poster.jpg`,
+`fanart.jpg`, `banner.jpg`) and the empty folder go too. Anything else in the
+folder keeps them all in place.
+
 ## Delete after N days
 
 Optional, per subscription, off by default. An hourly sweep deletes the
