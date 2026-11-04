@@ -14,6 +14,7 @@ from yt_dlp_z.services.jobs.context import JobContext, publish_job
 from yt_dlp_z.services.media_server.artwork import start_artwork_fetch
 from yt_dlp_z.services.media_server.nfo import write_nfo_files
 from yt_dlp_z.services.ytdlp.output import (
+    ChatUpdate,
     FileUpdate,
     InfoUpdate,
     NfoUpdate,
@@ -36,7 +37,7 @@ def _changes_for(update: Update) -> dict[str, Any]:
         return changes
     if isinstance(update, InfoUpdate):
         return {"title": update.title} if update.title else {}
-    if isinstance(update, NfoUpdate):
+    if isinstance(update, NfoUpdate | ChatUpdate):
         return {}
     return {"filepath": update.filepath}
 
@@ -51,10 +52,15 @@ class ProgressTracker:
         self._last_flush = 0.0
         # Latest progress of each parallel stream (video and audio in recordings).
         self._parts: dict[int, ProgressUpdate] = {}
+        # Videos saved so far whose live chat is fetched once the download is done.
+        self.chat_videos: list[ChatUpdate] = []
 
     async def apply(self, update: Update) -> None:
         if isinstance(update, NfoUpdate):
             await self._write_nfo(update)
+            return
+        if isinstance(update, ChatUpdate):
+            self.chat_videos.append(update)
             return
         if isinstance(update, ProgressUpdate):
             self._parts[update.part] = update

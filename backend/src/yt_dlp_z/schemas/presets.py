@@ -12,6 +12,7 @@ from pydantic import (
 
 from yt_dlp_z.schemas.common import FileNaming, FolderLayout, Name, ProxyMode, as_utc_iso
 from yt_dlp_z.schemas.jobs import OptionValue
+from yt_dlp_z.schemas.live_chat import LiveChatSettings
 from yt_dlp_z.schemas.recording import DEFAULT_RECORDING, RecordingSettings
 
 # Which links a preset is made for. "playlist" covers playlists and channels, "live"
@@ -30,6 +31,7 @@ class PresetIn(BaseModel):
     file_name: FileNaming | None = None
     media_files: bool = False
     proxy_mode: ProxyMode = "off"
+    live_chat: LiveChatSettings | None = None
     kind: PresetKind = "any"
     # The default for its kind of link. Making one preset the default clears the flag on
     # the others of the same kind.

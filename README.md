@@ -112,6 +112,8 @@ adds them.
 - **Folder and file-name layout**: a folder per channel (optionally `Season 2026/`),
   names like `[20261103] Title` or `Channel - S2026E1103 - Title`, dated by the day a
   stream aired.
+- **Live chat** from recordings and finished streams, saved as JSON and shown as a scrolling Niconico-style
+  overlay that players pick up as a subtitle and can switch off.
 - **Media-server files** for Jellyfin, Plex and Kodi: episode and show `.nfo` files,
   thumbnails, channel poster, fanart and banner.
 - **Single admin password** (argon2, rate-limited sign-in), or hand login to
@@ -233,6 +235,7 @@ reverse proxies, updating, backups and running it as a service.
 | [Subscriptions](docs/subscriptions.md)           | Watching channels and playlists, filters, history, retention       |
 | [Live recording](docs/live-recording.md)         | Scheduled streams, parts, 24/7 streams, restarts, VODs             |
 | [Cookies](docs/cookies.md)                       | Members-only and age-restricted videos, exporting cookies safely   |
+| [Live chat](docs/live-chat.md)                   | Saving a stream's chat, the scrolling overlay and its look         |
 | [Media servers](docs/media-server.md)            | Jellyfin / Plex / Kodi layout, `.nfo` files, artwork               |
 | [Proxies](docs/proxies.md)                       | The proxy pool, rotation modes, cooldowns, a gluetun recipe        |
 | [Notifications](docs/notifications.md)           | ntfy setup and events                                              |

@@ -18,6 +18,7 @@ command-line flags. Flags win over environment variables.
 | `YTDLPZ_MAX_CONCURRENT_RECORDINGS` | `2`                         | `2`                    | How many live recordings run at once, counted apart from downloads. Changing it on the Settings page overrides this |
 | `YTDLPZ_EXTRA_DOWNLOAD_ROOTS`      | `[]`                        | `[]`                   | Extra absolute folders downloads may use, as a JSON list, e.g. `["/media/music"]`                                   |
 | `YTDLPZ_ALLOW_UNSAFE_OPTIONS`      | `false`                     | `false`                | Allows the unsafe yt-dlp options listed below. Only for trusted setups.                                             |
+| `YTDLPZ_CHAT_FONT`                 | unset                       | unset                  | Font file embedded in live chat overlays ([details](live-chat.md#fonts)).                                           |
 | `YTDLPZ_YTDLP_COMMAND`             | the bundled yt-dlp          | the bundled yt-dlp     | Command that runs yt-dlp, as a JSON list (mainly for tests)                                                         |
 | `YTDLPZ_YTDLP_PIP_COMMAND`         | the app's own pip           | the app's own pip      | pip used for yt-dlp updates, as a JSON list (only for tests)                                                        |
 | `YTDLPZ_PROXY_CHECK_COMMAND`       | the app's own check         | the app's own check    | Runs a proxy's Test, reading the address on stdin, as a JSON list (only for tests)                                  |

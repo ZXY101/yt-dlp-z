@@ -23,6 +23,7 @@ PRESET_JOB_FIELDS = (
     "folders",
     "file_name",
     "media_files",
+    "live_chat",
     "proxy_mode",
 )
 

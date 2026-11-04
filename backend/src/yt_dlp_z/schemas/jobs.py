@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from yt_dlp_z.db.models.job import JobKind, JobStatus
 from yt_dlp_z.schemas.common import FileNaming, FolderLayout, ProxyMode, WebUrl, as_utc_iso
+from yt_dlp_z.schemas.live_chat import ChatStatus, LiveChatSettings
 from yt_dlp_z.schemas.recording import Hours
 
 OptionValue = bool | int | float | str | list[str]
@@ -44,6 +45,8 @@ class JobCreate(BaseModel):
     media_files: bool = False
     # Whether and how to pick a proxy from the pool when the download starts.
     proxy_mode: ProxyMode = "off"
+    # Save the chat of a finished stream, and maybe build an overlay from it.
+    live_chat: LiveChatSettings | None = None
 
 
 class JobOut(BaseModel):
@@ -66,6 +69,8 @@ class JobOut(BaseModel):
     folders: FolderLayout | None
     file_name: FileNaming | None
     media_files: bool
+    live_chat: LiveChatSettings | None
+    chat_status: ChatStatus | None
     cookie_id: int | None
     proxy_mode: ProxyMode
     # The proxy it ran through (no foreign key: the proxy may be deleted since).

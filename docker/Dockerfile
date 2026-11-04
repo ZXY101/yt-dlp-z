@@ -20,6 +20,11 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY backend/src/ src/
 RUN uv sync --frozen --no-dev --no-editable
 
+# The font embedded in live chat overlays, so Japanese shows on players without CJK fonts. Only
+# this one file is kept: the whole package is about 90 MB.
+FROM python:3.12-slim AS chat-font
+RUN apt-get update && apt-get install -y --no-install-recommends fonts-noto-cjk
+
 FROM python:3.12-slim
 # yt-dlp needs ffmpeg to merge and convert, and Deno to solve YouTube's JS challenges.
 COPY --from=denoland/deno:bin-2.9.8 /deno /usr/local/bin/deno
@@ -30,6 +35,8 @@ RUN apt-get update \
     && mkdir -p /config /downloads
 COPY --from=backend /app/.venv /app/.venv
 COPY --from=frontend /src/frontend/dist /app/frontend
+COPY --from=chat-font /usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc /app/fonts/
+COPY --from=chat-font /usr/share/doc/fonts-noto-cjk/copyright /app/fonts/NotoSansCJK-LICENSE
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 ENV PATH="/app/.venv/bin:$PATH" \

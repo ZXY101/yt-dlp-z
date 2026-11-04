@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from yt_dlp_z.services.ytdlp.command import (
+    CHAT_MARKER,
     FILE_MARKER,
     INFO_MARKER,
     NFO_MARKER,
@@ -48,6 +49,8 @@ class ProgressUpdate:
 @dataclass(frozen=True)
 class InfoUpdate:
     title: str | None
+    # When a live stream really started (epoch seconds).
+    release_timestamp: float | None = None
 
 
 @dataclass(frozen=True)
@@ -62,7 +65,16 @@ class NfoUpdate:
     info: dict[str, Any]
 
 
-Update = ProgressUpdate | InfoUpdate | FileUpdate | NfoUpdate
+@dataclass(frozen=True)
+class ChatUpdate:
+    """A finished video whose live chat the job should fetch afterwards."""
+
+    filepath: str
+    url: str
+    live_status: str | None
+
+
+Update = ProgressUpdate | InfoUpdate | FileUpdate | NfoUpdate | ChatUpdate
 
 
 def _number(data: dict[str, Any], key: str) -> float | None:
@@ -144,7 +156,11 @@ def _parse_info(data: object) -> Update | None:
     if not isinstance(data, dict):
         return None
     title = data.get("title")
-    return InfoUpdate(title=title if isinstance(title, str) else None)
+    started = data.get("release_timestamp")
+    return InfoUpdate(
+        title=title if isinstance(title, str) else None,
+        release_timestamp=float(started) if isinstance(started, int | float) else None,
+    )
 
 
 def _parse_file(data: object) -> Update | None:
@@ -155,11 +171,22 @@ def _parse_nfo(data: object) -> Update | None:
     return NfoUpdate(info=data) if isinstance(data, dict) else None
 
 
+def _parse_chat(data: object) -> Update | None:
+    if not isinstance(data, dict):
+        return None
+    filepath, url = data.get("filepath"), data.get("webpage_url")
+    if not isinstance(filepath, str) or not isinstance(url, str):
+        return None
+    status = data.get("live_status")
+    return ChatUpdate(filepath, url, status if isinstance(status, str) else None)
+
+
 MARKER_PARSERS: dict[str, Callable[[object], Update | None]] = {
     PROGRESS_MARKER: _parse_progress,
     INFO_MARKER: _parse_info,
     FILE_MARKER: _parse_file,
     NFO_MARKER: _parse_nfo,
+    CHAT_MARKER: _parse_chat,
 }
 
 

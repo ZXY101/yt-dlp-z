@@ -4,7 +4,7 @@ import asyncio
 import contextlib
 import logging
 from collections.abc import Callable, Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,7 @@ from yt_dlp_z.core.config import Settings
 from yt_dlp_z.db.models.job import Job, JobKind, JobStatus, utcnow
 from yt_dlp_z.services.cookies.store import cookie_path, working_copy
 from yt_dlp_z.services.jobs import repository
-from yt_dlp_z.services.jobs.context import JobContext, job_log_path, publish_job
+from yt_dlp_z.services.jobs.context import JobContext, RunControl, job_log_path, publish_job
 from yt_dlp_z.services.jobs.job_proxy import cool_down_if_blocked, hide_proxy_password, use_proxy
 from yt_dlp_z.services.jobs.process import ProcessHooks, ProcessResult, run_ytdlp
 from yt_dlp_z.services.jobs.progress import PROGRESS_RESET, ProgressTracker
@@ -26,13 +26,16 @@ from yt_dlp_z.services.live.recorder import (
     record,
 )
 from yt_dlp_z.services.live.vod import after_finish, vod_args
+from yt_dlp_z.services.live_chat.capture import NoCapture, capture_for
+from yt_dlp_z.services.live_chat.job_step import ChatRun, chat_print_args, run_chat_step
 from yt_dlp_z.services.media_server.layout import job_media_args
 from yt_dlp_z.services.proxies.pool import NoProxyError
+from yt_dlp_z.services.proxies.store import get_proxy
 from yt_dlp_z.services.ytdlp.args import build_user_args
 from yt_dlp_z.services.ytdlp.command import build_command
 from yt_dlp_z.services.ytdlp.errors import ArgumentError, SchemaUnavailableError
 from yt_dlp_z.services.ytdlp.json_run import YtdlpJsonError, run_ytdlp_json
-from yt_dlp_z.services.ytdlp.output import FileUpdate, ProgressUpdate, Update
+from yt_dlp_z.services.ytdlp.output import ChatUpdate, FileUpdate, ProgressUpdate, Update
 
 # Proxies a download tries before giving up. Each one YouTube blocks goes on cooldown.
 logger = logging.getLogger(__name__)
@@ -91,12 +94,6 @@ async def _command_for(
 
 
 @dataclass(frozen=True)
-class RunControl:
-    on_start: Callable[[asyncio.subprocess.Process], None]
-    is_cancelled: Callable[[], bool]
-
-
-@dataclass(frozen=True)
 class Running:
     """The job being run, with what running it needs."""
 
@@ -106,12 +103,26 @@ class Running:
     control: RunControl
     # --cookies for the job's cookies file, if it has one.
     cookie_args: list[str]
+    # The videos saved, for fetching their live chat afterwards.
+    chat_videos: list[ChatUpdate] = field(default_factory=list)
 
 
 def _first_app_args(job: Job) -> list[str]:
     if job.kind == JobKind.LIVE:
         return [*job_media_args(job), *part_args(job, (job.part or 0) + 1)]
-    return [*job_media_args(job), *vod_args(job)]
+    return [*job_media_args(job), *vod_args(job), *chat_print_args(job)]
+
+
+async def _record_with_chat(
+    running: Running, capture: NoCapture, hooks: RecordingHooks, proxy_args: list[str]
+) -> Outcome:
+    capture.start(proxy_args)
+    try:
+        outcome = await record(running.job, hooks)
+    finally:
+        await capture.stop()
+    await capture.finish(running.session)
+    return outcome
 
 
 async def _record(running: Running, proxy_args: list[str]) -> Outcome:
@@ -119,6 +130,7 @@ async def _record(running: Running, proxy_args: list[str]) -> Outcome:
     context, session, job = running.context, running.session, running.job
     log_path = job_log_path(context.settings, job.id)
     access_args = [*running.cookie_args, *proxy_args]
+    capture = capture_for(context, job)
 
     async def run_part(app_args: list[str], watch: PartWatch) -> ProcessResult:
         command = await _command_for(context, job, access_args, [*job_media_args(job), *app_args])
@@ -129,6 +141,7 @@ async def _record(running: Running, proxy_args: list[str]) -> Outcome:
                 watch.on_progress(update)
             if isinstance(update, FileUpdate):
                 watch.on_file()
+            capture.on_update(job.part or 1, update)
             await tracker.apply(update)
 
         hooks = ProcessHooks(on_update, watch.on_start, graceful=True)
@@ -141,6 +154,8 @@ async def _record(running: Running, proxy_args: list[str]) -> Outcome:
             renamed = number_first_part(job.filepath)
             fields["filepath"] = renamed
             fields["files"] = [renamed if file == job.filepath else file for file in job.files]
+            capture.renamed(job.filepath, renamed)
+        capture.begin_part(part)
         await repository.save(session, job, part=part, **PROGRESS_RESET, **fields)
         publish_job(context.hub, job)
 
@@ -161,7 +176,7 @@ async def _record(running: Running, proxy_args: list[str]) -> Outcome:
 
     control = running.control
     hooks = RecordingHooks(run_part, control.on_start, control.is_cancelled, on_part, still_live)
-    outcome = await record(job, hooks)
+    outcome = await _record_with_chat(running, capture, hooks, proxy_args)
     await cool_down_if_blocked(session, job, outcome)
     return outcome
 
@@ -175,6 +190,7 @@ async def _download_once(running: Running, proxy_args: list[str]) -> Outcome:
     result = await run_ytdlp(
         command, log_path, ProcessHooks(tracker.apply, running.control.on_start)
     )
+    running.chat_videos.extend(tracker.chat_videos)
     return _outcome(result, running.control.is_cancelled())
 
 
@@ -198,6 +214,23 @@ async def _download(running: Running, proxy_args: list[str]) -> Outcome:
             log.write("[yt-dlp-z] The proxy was blocked or didn't connect; trying the next one.\n")
         await repository.save(session, job, **PROGRESS_RESET)
         publish_job(running.context.hub, job)
+
+
+async def _fetch_chat(running: Running) -> None:
+    """After the video, on its own: a chat that fails must never fail the download."""
+    job = running.job
+    proxy = await get_proxy(running.session, job.proxy_id) if job.proxy_id is not None else None
+    access_args = [*running.cookie_args, *(["--proxy", proxy.url] if proxy else [])]
+    await run_chat_step(
+        ChatRun(
+            running.context,
+            running.session,
+            job,
+            running.chat_videos,
+            access_args,
+            running.control,
+        )
+    )
 
 
 async def execute_job(
@@ -233,4 +266,6 @@ async def execute_job(
                 outcome = await _record(running, proxy_args)
             else:
                 outcome = await _download(running, proxy_args)
+                if outcome[0] != JobStatus.CANCELLED:
+                    await _fetch_chat(running)
             await _finish(context, session, job, await hide_proxy_password(session, job, outcome))

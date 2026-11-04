@@ -104,3 +104,10 @@ See [Cookies](cookies.md).
 - Use [notifications](notifications.md) to hear when a recording starts or fails.
 - For channels that stream 24/7, set **Stop after** or a short **New file every**.
 - Turn on [PO tokens](ytdlp.md#po-tokens) if recordings fail with HTTP 403.
+
+## Live chat
+
+With the preset's [live chat](live-chat.md) setting on, a recording also saves the stream's chat
+while it runs, and each part gets its own chat file and overlay when the recording ends. It starts with
+the recording and follows YouTube's filtered Top chat, so a VOD, which fetches the whole unfiltered
+replay, has more.

@@ -64,6 +64,12 @@ class Job(Base):
     # it: switching mid-download breaks recordings (services/proxies).
     proxy_mode: Mapped[ProxyMode] = mapped_column(String(20), default="off", server_default="off")
     proxy_id: Mapped[int | None] = mapped_column(Integer, default=None)
+    # Copied from the preset: schemas/live_chat.py LiveChatSettings, None for off.
+    live_chat: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
+    # schemas/live_chat.py ChatStatus. None: it hasn't been looked for.
+    chat_status: Mapped[str | None] = mapped_column(String(20), default=None)
+    # Recordings: each part's start and file, for placing the captured chat (services/live_chat).
+    chat_capture: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
     title: Mapped[str | None] = mapped_column(Text, default=None)
     progress: Mapped[float | None] = mapped_column(Float, default=None)
     downloaded_bytes: Mapped[int | None] = mapped_column(Integer, default=None)

@@ -1,3 +1,5 @@
+import asyncio
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -18,6 +20,14 @@ class JobContext:
     settings: Settings
     schemas: OptionSchemaProvider
     proxies: ProxyPool
+
+
+@dataclass(frozen=True)
+class RunControl:
+    """How a job's queue follows and stops the yt-dlp process running for it."""
+
+    on_start: Callable[[asyncio.subprocess.Process], None]
+    is_cancelled: Callable[[], bool]
 
 
 def publish_job(hub: EventHub, job: Job) -> None:

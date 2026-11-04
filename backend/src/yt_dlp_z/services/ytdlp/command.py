@@ -9,8 +9,10 @@ INFO_MARKER = "[ytdlpz:info]"
 FILE_MARKER = "[ytdlpz:file]"
 # Only printed for media-server output (services/media_server).
 NFO_MARKER = "[ytdlpz:nfo]"
+# Only printed when the job saves live chat (services/live_chat).
+CHAT_MARKER = "[ytdlpz:chat]"
 
-INFO_FIELDS = "id,title,uploader,duration,webpage_url"
+INFO_FIELDS = "id,title,uploader,duration,webpage_url,release_timestamp"
 
 
 def build_command(

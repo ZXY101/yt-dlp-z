@@ -28,6 +28,8 @@ class Preset(Base):
     is_default: Mapped[bool] = mapped_column(Boolean, default=False)
     # Live-stream presets: schemas/recording.py RecordingSettings.
     recording: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
+    # schemas/live_chat.py LiveChatSettings, None for off.
+    live_chat: Mapped[dict[str, Any] | None] = mapped_column(JSON, default=None)
     # Layout: schemas/common.py FolderLayout and FileNaming, None for the plain default.
     folders: Mapped[FolderLayout | None] = mapped_column(String(20), default=None)
     file_name: Mapped[FileNaming | None] = mapped_column(String(20), default=None)

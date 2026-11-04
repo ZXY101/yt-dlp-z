@@ -44,6 +44,7 @@ async def recover_after_restart(session: AsyncSession) -> list[tuple[int, JobKin
         .values(
             status=JobStatus.FAILED,
             error=INTERRUPTED_MESSAGE,
+            chat_status=None,
             finished_at=utcnow(),
             revision=Job.revision + 1,
         )
@@ -80,6 +81,7 @@ def retry_changes() -> dict[str, Any]:
         "speed": None,
         "eta": None,
         "filepath": None,
+        "chat_status": None,
         "error": None,
         "started_at": None,
         "finished_at": None,

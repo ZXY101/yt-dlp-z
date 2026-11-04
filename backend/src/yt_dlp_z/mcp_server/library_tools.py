@@ -40,7 +40,8 @@ def _register_preset_tools(server: MCPServer, api: ApiClient) -> None:
         """Change a preset, or create it if the name is new.
 
         Fields: options (yt-dlp long flags, e.g. {"--format": "bv*+ba"}), extra_args, output_dir,
-        cookie_id, folders, file_name, media_files, proxy_mode, kind, is_default, recording."""
+        cookie_id, folders, file_name, media_files, live_chat, proxy_mode, kind, is_default,
+        recording."""
         existing = find_preset(await api.call(ctx, "GET", "/api/presets"), name)
         if existing is None:
             body = {"name": name, **changes}

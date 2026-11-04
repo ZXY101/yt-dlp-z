@@ -53,6 +53,7 @@ async def create_job(body: JobCreate, state: State, db: Db) -> JobOut:
         folders=body.folders,
         file_name=body.file_name,
         media_files=body.media_files,
+        live_chat=body.live_chat.model_dump() if body.live_chat else None,
         proxy_mode=body.proxy_mode,
         cookie_id=body.cookie_id,
     )
