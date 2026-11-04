@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.2](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.1...yt-dlp-z-v0.1.2) (2026-11-04)
+
+
+### Features
+
+* **frontend:** add a header button to switch between light and dark themes ([d4b9391](https://github.com/ZXY101/yt-dlp-z/commit/d4b9391b0f233f1822848e74c8bc2646025f28fc))
+* **mcp:** add API tokens and a built-in MCP server ([6a2bc21](https://github.com/ZXY101/yt-dlp-z/commit/6a2bc2152a4bcc93343b7ab16f8e651aaa70b5a5))
+* **mcp:** add the ytdlpz skill and the tools it needs ([55dedbb](https://github.com/ZXY101/yt-dlp-z/commit/55dedbb84eac8dabf1b468434f846e606ddc00b5))
+
+
+### Bug Fixes
+
+* **jobs:** remove a channel's leftover files with its last video ([9e8c656](https://github.com/ZXY101/yt-dlp-z/commit/9e8c65661d43a89e6ea0aeca14c2a3081c5df291))
+* **mcp:** don't let an open MCP stream block shutdown ([5580a04](https://github.com/ZXY101/yt-dlp-z/commit/5580a042f790970f0f7c2c8de329442b31de5716))
+
 ## [0.1.1](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.0...yt-dlp-z-v0.1.1) (2026-11-03)
 
 
