@@ -1055,6 +1055,8 @@ export interface components {
             vod_replace: boolean;
             /** Source Job Id */
             source_job_id: number | null;
+            /** Vod Note */
+            vod_note: string | null;
             /** Error */
             error: string | null;
             /** Created At */

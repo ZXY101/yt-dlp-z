@@ -30,13 +30,19 @@ PUBLISH_INTERVAL_SECONDS = 0.5
 PROGRESS_RESET = {"progress": None, "downloaded_bytes": None, "total_bytes": None, "speed": None}
 
 
+def _stream_start(update: InfoUpdate) -> dict[str, Any]:
+    started = update.release_timestamp
+    return {"stream_started": started} if started else {}
+
+
 def _changes_for(update: Update) -> dict[str, Any]:
     if isinstance(update, ProgressUpdate):
         changes = dataclasses.asdict(update)
         del changes["part"], changes["fragments"]
         return changes
     if isinstance(update, InfoUpdate):
-        return {"title": update.title} if update.title else {}
+        changes = {"title": update.title} if update.title else {}
+        return changes | _stream_start(update)
     if isinstance(update, NfoUpdate | ChatUpdate):
         return {}
     return {"filepath": update.filepath}

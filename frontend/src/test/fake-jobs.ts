@@ -36,6 +36,7 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     vod_after_seconds: null,
     vod_replace: false,
     source_job_id: null,
+    vod_note: null,
     error: null,
     created_at: "2026-10-30T10:00:00+00:00",
     started_at: null,

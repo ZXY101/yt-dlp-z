@@ -91,6 +91,8 @@ class JobOut(BaseModel):
     vod_after_seconds: int | None
     vod_replace: bool
     source_job_id: int | None
+    # Why this VOD didn't replace its recording, although it was set to.
+    vod_note: str | None
     error: str | None
     created_at: datetime
     started_at: datetime | None

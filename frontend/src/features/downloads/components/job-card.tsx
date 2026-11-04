@@ -91,6 +91,9 @@ const SECONDS_PER_HOUR = 3600;
 
 /** A recording's VOD, or the VOD a recording will get. */
 function vodNote(job: Job) {
+  if (job.vod_note) {
+    return job.vod_note;
+  }
   if (job.source_job_id !== null) {
     return job.vod_replace ? "VOD of a recording · replaces it once saved" : "VOD of a recording";
   }

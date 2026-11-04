@@ -21,6 +21,14 @@ function setUp(...jobs: ReturnType<typeof makeJob>[]) {
   return { server, ...renderApp("/queue") };
 }
 
+describe("a VOD that didn't replace its recording", () => {
+  it("says why", async () => {
+    const note = "Recording kept: the VOD is 12 min shorter, so it may have been edited.";
+    setUp(makeJob({ status: "completed", source_job_id: 3, vod_replace: true, vod_note: note }));
+    expect(await screen.findByText(note)).toBeVisible();
+  });
+});
+
 describe("live chat in the queue", () => {
   it("says the chat is being fetched while the video is already saved", async () => {
     setUp(makeJob({ status: "running", title: "A stream", chat_status: "fetching" }));

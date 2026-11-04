@@ -110,7 +110,7 @@ function VodFields({ recording }: { recording: RecordingFieldsState }) {
       {typedHours(vodAfter) !== null && (
         <CheckboxField
           label="Delete the recording once the VOD is saved"
-          description="If the VOD can't be downloaded (members-only, not archived), the recording stays."
+          description="Only if the VOD is as long as the stream. If it's shorter, it may have been edited, so the recording stays. It also stays if the VOD can't be downloaded (members-only, not archived)."
           checked={recording.vodReplace}
           onCheckedChange={recording.setVodReplace}
         />

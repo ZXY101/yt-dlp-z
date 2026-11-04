@@ -5,9 +5,11 @@ import time
 from pathlib import Path
 from typing import Any
 
+import pytest
 from fastapi.testclient import TestClient
 
 from tests.conftest import wait_for_job
+from yt_dlp_z.services.live import vod_check
 
 LIVE_URL = "https://www.youtube.com/watch?v=live1"
 FINISHED = {"completed", "failed", "cancelled"}
@@ -57,7 +59,19 @@ def test_the_vod_is_scheduled_and_kept_beside_the_recording(
     assert setup_client.get(f"/api/jobs/{recording['id']}").status_code == 200
 
 
-def test_the_vod_can_replace_the_recording(setup_client: TestClient, tmp_path: Path) -> None:
+def lengths_by_name(monkeypatch: pytest.MonkeyPatch, recording: float, vod: float) -> None:
+    """The stub's files aren't real media, so ffprobe can't measure them."""
+
+    async def fake_seconds(path: Path) -> float:
+        return vod if "(VOD)" in path.name else recording
+
+    monkeypatch.setattr(vod_check, "media_seconds", fake_seconds)
+
+
+def test_the_vod_can_replace_the_recording(
+    setup_client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lengths_by_name(monkeypatch, recording=3600, vod=3590)
     recording = record(setup_client, vod_after_hours=1, vod_replace=True)
     vod = vod_of(setup_client, recording)
     assert vod is not None
@@ -70,3 +84,37 @@ def test_the_vod_can_replace_the_recording(setup_client: TestClient, tmp_path: P
         assert time.monotonic() < deadline, "the recording wasn't deleted"
         time.sleep(0.05)
     assert not Path(recording["filepath"]).exists()
+
+
+def kept_after_vod(client: TestClient, tmp_path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Runs a replacing VOD; returns the recording and the VOD once its note has been saved."""
+    recording = record(client, vod_after_hours=1, vod_replace=True)
+    vod = vod_of(client, recording)
+    assert vod is not None
+    make_due(client, tmp_path)
+    wait_for_job(client, vod["id"], FINISHED)
+    deadline = time.monotonic() + 5
+    while (saved := client.get(f"/api/jobs/{vod['id']}").json())["vod_note"] is None:
+        assert time.monotonic() < deadline, "the VOD has no note"
+        time.sleep(0.05)
+    return recording, saved
+
+
+def test_a_vod_shorter_than_the_recording_keeps_the_recording(
+    setup_client: TestClient, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    lengths_by_name(monkeypatch, recording=3600, vod=2880)
+    recording, vod = kept_after_vod(setup_client, tmp_path)
+    assert "12 min shorter" in vod["vod_note"]
+    assert Path(recording["filepath"]).exists()
+    assert setup_client.get(f"/api/jobs/{recording['id']}").status_code == 200
+    assert "12 min shorter" in setup_client.get(f"/api/jobs/{vod['id']}/log").text
+
+
+def test_lengths_that_cannot_be_compared_keep_the_recording(
+    setup_client: TestClient, tmp_path: Path
+) -> None:
+    # The stub's files aren't media, so the real ffprobe, or none at all, can't measure them.
+    recording, vod = kept_after_vod(setup_client, tmp_path)
+    assert "couldn't compare" in vod["vod_note"]
+    assert Path(recording["filepath"]).exists()
