@@ -33,6 +33,22 @@ describe("Cookies", () => {
     expect(screen.getByLabelText("Name")).toHaveValue("");
   });
 
+  it("explains how to export YouTube cookies", async () => {
+    installFakeApi(createFakeServer());
+    const { user } = renderApp("/cookies");
+
+    await user.click(await screen.findByText("How to export YouTube cookies"));
+    expect(screen.getByText("https://www.youtube.com/robots.txt")).toBeVisible();
+    expect(screen.getByRole("link", { name: "Get cookies.txt LOCALLY" })).toHaveAttribute(
+      "href",
+      expect.stringContaining("chromewebstore.google.com"),
+    );
+    expect(screen.getByRole("link", { name: "cookies.txt" })).toHaveAttribute(
+      "href",
+      expect.stringContaining("addons.mozilla.org"),
+    );
+  });
+
   it("checks the form and shows invalid files", async () => {
     installFakeApi(createFakeServer());
     const { user } = renderApp("/cookies");
