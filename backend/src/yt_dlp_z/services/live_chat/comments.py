@@ -10,6 +10,8 @@ from typing import Any
 MAX_CHARS = 60
 FIRST_EMOJI = 0x1F000
 VARIATION_SELECTOR = "\ufe0f"
+# What YouTube's chat replay leaves for a channel's membership emoji once memberships close.
+LOST_EMOJI = "\u25a1"
 DEFAULT_PAID_ARGB = 0xFFFFD54F
 ROLES = {"owner", "moderator"}
 # Chat is untrusted: braces and backslashes would be ASS commands.
@@ -28,7 +30,7 @@ class Comment:
 
 def _can_render(char: str) -> bool:
     """libass draws no colour emoji, so they'd show as boxes. Symbols like ★ and ♪ are fine."""
-    is_emoji = ord(char) >= FIRST_EMOJI or char == VARIATION_SELECTOR
+    is_emoji = ord(char) >= FIRST_EMOJI or char in {VARIATION_SELECTOR, LOST_EMOJI}
     return not is_emoji and unicodedata.category(char) not in {"Cc", "Cf"}
 
 

@@ -49,6 +49,11 @@ def test_clean_text_keeps_symbols_and_drops_what_libass_cannot_draw() -> None:
     assert clean_text("★ ♪ 草😀\u200b") == "★ ♪ 草"
 
 
+def test_clean_text_drops_the_squares_left_by_lost_membership_emoji() -> None:
+    assert clean_text("草\u25a1\u25a1") == "草"
+    assert clean_text("\u25a1\u25a1\u25a1") == ""
+
+
 def test_clean_text_shortens_long_comments() -> None:
     cleaned = clean_text("x" * 200)
     assert len(cleaned) == MAX_CHARS
