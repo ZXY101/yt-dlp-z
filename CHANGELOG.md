@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.3...yt-dlp-z-v0.1.4) (2026-11-05)
+
+
+### Bug Fixes
+
+* **backend:** drop squares left by lost membership emoji ([2661557](https://github.com/ZXY101/yt-dlp-z/commit/2661557b1baf260d1cab9761bd1f1c6ae0cc9238))
+* **backend:** drop squares left by lost membership emoji ([cf2de6c](https://github.com/ZXY101/yt-dlp-z/commit/cf2de6c6e3e72b14e780b7bc1e989806c5e428f0))
+
 ## [0.1.3](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.2...yt-dlp-z-v0.1.3) (2026-11-04)
 
 
