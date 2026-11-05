@@ -33,7 +33,7 @@ channels and playlists, and record live streams from the very first second.
 
 ## What is this?
 
-yt-dlp is the best downloader there is, but it lives on the command line. yt-dlp-z
+[yt-dlp](https://github.com/yt-dlp/yt-dlp) is the best downloader there is, but it lives on the command line. yt-dlp-z
 puts a web app in front of it that you run on your own server, NAS or PC:
 
 - Paste a link from your phone, pick a preset, and it downloads on the server.
@@ -126,6 +126,12 @@ adds them.
 
 <table>
   <tr>
+    <td colspan="2" align="center">
+      <b><a href="docs/live-chat.md">Live chat</a> scrolling across the video, Niconico-style</b><br />
+      <img src="docs/assets/screenshots/live-chat.webp" alt="Chat comments in Japanese and English scrolling across a video from right to left, with moderator, member and Super Chat comments in their own colours" width="100%" />
+    </td>
+  </tr>
+  <tr>
     <td width="50%" valign="top">
       <b>Download with a link preview</b><br />
       <img src="docs/assets/screenshots/download.png" alt="Download form with a video preview and a preset" width="100%" />
@@ -163,7 +169,9 @@ adds them.
   </tr>
 </table>
 
-<sub>Screenshots show public-domain NASA and Creative Commons Blender videos.</sub>
+<sub>Screenshots show public-domain NASA and Creative Commons Blender videos. The live chat clip is
+<a href="https://peach.blender.org/">Big Buck Bunny</a> (© Blender Foundation, CC BY 3.0) with a sample chat written for this demo,
+turned into an overlay by yt-dlp-z.</sub>
 
 ## Quick start
 

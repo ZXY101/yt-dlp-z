@@ -4,6 +4,10 @@ yt-dlp-z can save a stream's chat, while recording it or from a finished stream'
 it into Niconico-style comments that scroll across the video. The overlay is an ordinary subtitle file, so you can turn
 it off in your player like any other subtitle.
 
+<img src="assets/screenshots/live-chat.webp" alt="Chat comments in Japanese and English scrolling across a video from right to left" width="100%" />
+
+<sub><a href="https://peach.blender.org/">Big Buck Bunny</a> (© Blender Foundation, CC BY 3.0) with a sample chat written for this demo.</sub>
+
 Choose **Live chat** on the download form or in a [preset](presets.md):
 
 | Choice                                | What you get next to the video                   |
