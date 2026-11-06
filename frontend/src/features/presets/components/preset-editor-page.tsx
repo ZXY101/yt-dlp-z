@@ -12,7 +12,7 @@ import { useProxies } from "@/features/proxies";
 import { usePresets } from "@/features/presets/api";
 import { RecordingFields } from "@/features/presets/components/recording-fields";
 import { usePresetForm } from "@/features/presets/hooks/use-preset-form";
-import { PRESET_KIND_LABELS } from "@/features/presets/kinds";
+import { kindRecords, PRESET_KIND_LABELS } from "@/features/presets/kinds";
 import type { Preset, PresetKind } from "@/features/presets/types";
 
 type PresetForm = ReturnType<typeof usePresetForm>;
@@ -75,7 +75,7 @@ function PresetForm({ preset }: { preset: Preset | null }) {
         onChange={(event) => form.setters.setName(event.target.value)}
       />
       <KindFields form={form} />
-      {form.fields.kind === "live" && <RecordingFields recording={form.recording} />}
+      {kindRecords(form.fields.kind) && <RecordingFields recording={form.recording} />}
       <DownloadSettingsFields
         value={form.fields.settings}
         onChange={form.setters.setSettings}

@@ -75,7 +75,9 @@ def test_a_live_stream_preset_comes_with_the_old_recording_defaults(
     }
 
 
-def test_only_live_stream_presets_have_recording_settings(setup_client: TestClient) -> None:
+def test_only_presets_that_can_see_a_stream_have_recording_settings(
+    setup_client: TestClient,
+) -> None:
     recording = {
         "part_hours": None,
         "max_hours": 12,
@@ -88,6 +90,9 @@ def test_only_live_stream_presets_have_recording_settings(setup_client: TestClie
     assert live["recording"] == recording
     assert create(setup_client, name="Bare", kind="live")["recording"]["part_hours"] == 6
     assert create(setup_client, kind="video", recording=recording)["recording"] is None
+    every_link = create(setup_client, name="Everything", kind="any", recording=recording)
+    assert every_link["recording"] == recording
+    assert create(setup_client, name="Plain", kind="any")["recording"] is None
     too_long = {**recording, "max_hours": 24 * 7 + 1}
     response = setup_client.post(
         "/api/presets", json={"name": "Long", "kind": "live", "recording": too_long}
@@ -132,3 +137,18 @@ def test_presets_need_setup_and_auth(client: TestClient, make_client: Any) -> No
     assert client.get("/api/presets").status_code == 401
     no_auth = make_client(auth_mode="none")
     assert no_auth.post("/api/presets", json={"name": "x"}).status_code == 409
+
+
+def test_any_link_presets_keep_recording_settings_on_update(setup_client: TestClient) -> None:
+    recording = {
+        "part_hours": 3,
+        "max_hours": None,
+        "from_start_max_hours": 6,
+        "long_streams": "from_now",
+        "vod_after_hours": None,
+        "vod_replace": False,
+    }
+    preset = create(setup_client, kind="live", recording=recording)
+    body = {"name": "Music", "kind": "any", "recording": recording}
+    updated = setup_client.put(f"/api/presets/{preset['id']}", json=body)
+    assert updated.json()["recording"] == recording

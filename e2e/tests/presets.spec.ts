@@ -131,4 +131,22 @@ test.describe("presets", () => {
     await expect(page.getByText("Recording", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "Cancel Fake video live-preset" }).click();
   });
+
+  test("a preset for any link keeps its live-stream settings", async ({ page }) => {
+    await page.goto("/presets/new");
+    await page.getByLabel("Name", { exact: true }).fill("Everything");
+    await page.getByLabel("Use for").selectOption("live");
+    await page.getByLabel("Stop after (hours)").fill("12");
+    await page.getByLabel("Use for").selectOption("any");
+    await expect(page.getByLabel("Stop after (hours)")).toHaveValue("12");
+    await page.getByLabel("Use by default").check();
+    await page.getByRole("button", { name: "Save preset" }).click();
+    const preset = page.getByRole("listitem").filter({ hasText: "Everything" });
+    await expect(preset.getByText(/stops after 12 hours/)).toBeVisible();
+
+    await page.goto("/");
+    await page.getByLabel("Link").fill("https://www.youtube.com/watch?v=live-any");
+    await expect(page.getByLabel("Media details")).toContainText("Live now");
+    await expect(page.getByLabel("Stop after (hours)")).toHaveValue("12");
+  });
 });

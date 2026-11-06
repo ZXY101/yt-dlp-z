@@ -60,6 +60,6 @@ def preset_recording(preset: Preset | None) -> RecordingSettings | None:
 
 
 async def default_recording(session: AsyncSession) -> RecordingSettings:
-    """The default live-stream preset's recording settings."""
-    preset = await default_preset(session, "live")
-    return preset_recording(preset) or DEFAULT_RECORDING
+    """The default live-stream preset's recording settings, else the any-link default's."""
+    live = preset_recording(await default_preset(session, "live"))
+    return live or preset_recording(await default_preset(session, "any")) or DEFAULT_RECORDING

@@ -28,7 +28,7 @@ the same time; every recording uses bandwidth and disk the whole time.
 
 ## Recording settings
 
-These live on [live-stream presets](presets.md#live-stream-presets), and the
+These live on [live-stream and any-link presets](presets.md#live-stream-presets), and the
 Download page lets you change the first two for one recording.
 
 ### New file every N hours

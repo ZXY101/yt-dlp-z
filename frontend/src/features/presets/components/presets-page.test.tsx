@@ -165,6 +165,7 @@ describe("Presets", () => {
     const { user } = renderApp("/presets/new");
 
     await user.type(await screen.findByLabelText("Name"), "Concerts");
+    await user.selectOptions(screen.getByLabelText("Use for"), "video");
     expect(screen.queryByLabelText("New file every (hours)")).not.toBeInTheDocument();
     await user.selectOptions(screen.getByLabelText("Use for"), "live");
     await user.click(screen.getByLabelText("Use by default for live streams"));
@@ -230,6 +231,35 @@ describe("Presets", () => {
       from_start_max_hours: 1,
       long_streams: "first_hours",
     });
+  });
+
+  it("keeps the recording settings when a live preset becomes one for any link", async () => {
+    const server = createFakeServer();
+    const recording = { ...DEFAULT_RECORDING, part_hours: 3, max_hours: 12 };
+    server.presets = [makePreset({ kind: "live", recording })];
+    installFakeApi(server);
+    const { user } = renderApp("/presets/1");
+
+    await user.selectOptions(await screen.findByLabelText("Use for"), "any");
+    expect(screen.getByLabelText("New file every (hours)")).toHaveValue("3");
+    await user.click(screen.getByRole("button", { name: "Save preset" }));
+    await screen.findByRole("list", { name: "Presets" });
+    expect(server.presets[0]).toMatchObject({ kind: "any", recording });
+  });
+
+  it("starts an any-link preset from the settings it records with now", async () => {
+    const server = createFakeServer();
+    const recording = { ...DEFAULT_RECORDING, part_hours: 2 };
+    server.presets = [
+      makePreset({ kind: "any", recording: null }),
+      makePreset({ id: 2, name: "Streams", kind: "live", is_default: true, recording }),
+    ];
+    installFakeApi(server);
+    const { user } = renderApp("/presets");
+
+    const list = await screen.findByRole("list", { name: "Presets" });
+    await user.click(within(list).getAllByRole("link", { name: /edit/i })[0] as HTMLElement);
+    expect(await screen.findByLabelText("New file every (hours)")).toHaveValue("2");
   });
 
   it("drops the recording settings when a preset stops being for live streams", async () => {

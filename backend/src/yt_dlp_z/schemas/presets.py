@@ -36,7 +36,8 @@ class PresetIn(BaseModel):
     # The default for its kind of link. Making one preset the default clears the flag on
     # the others of the same kind.
     is_default: bool = False
-    # Live-stream presets only; they always have them.
+    # Live-stream presets always have them. Any-link presets may: without them, streams
+    # record with the default preset's settings. Other kinds never see a stream.
     recording: RecordingSettings | None = None
 
     @field_validator("output_dir")
@@ -45,10 +46,10 @@ class PresetIn(BaseModel):
         return (output_dir or "").strip() or None
 
     @model_validator(mode="after")
-    def recording_for_live_only(self) -> Self:
-        if self.kind != "live":
+    def recording_for_kinds_that_record(self) -> Self:
+        if self.kind in {"video", "playlist"}:
             self.recording = None
-        elif self.recording is None:
+        elif self.kind == "live" and self.recording is None:
             self.recording = DEFAULT_RECORDING
         return self
 

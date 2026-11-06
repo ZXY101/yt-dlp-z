@@ -119,13 +119,13 @@ function VodFields({ recording }: { recording: RecordingFieldsState }) {
   );
 }
 
-/** How a live-stream preset records. Each recording keeps the values it started with. */
+/** How a preset records live streams. Each recording keeps the values it started with. */
 export function RecordingFields({ recording }: { recording: RecordingFieldsState }) {
   const { part, max, fromStart } = recording.fields;
   const fromStartHours = typedHours(fromStart);
   return (
     <fieldset className="space-y-6">
-      <legend className="mb-4 text-lg font-medium">Recording</legend>
+      <legend className="mb-4 text-lg font-medium">Live stream recording</legend>
       <HoursField
         label="New file every (hours)"
         hint="Splits long streams into parts, so endless streams stay manageable. Empty: one file per stream."
