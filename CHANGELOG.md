@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.5](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.4...yt-dlp-z-v0.1.5) (2026-11-06)
+
+
+### Bug Fixes
+
+* **backend:** keep recording settings on any-link presets ([1b9ffe6](https://github.com/ZXY101/yt-dlp-z/commit/1b9ffe61bc4dcf2d32bddffe24dee4146e9ae359))
+* **backend:** keep recording settings on any-link presets ([73a51f0](https://github.com/ZXY101/yt-dlp-z/commit/73a51f046686647fc830c3818f9edee38da3d0e6))
+
 ## [0.1.4](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.3...yt-dlp-z-v0.1.4) (2026-11-05)
 
 
