@@ -28,7 +28,7 @@ function StreamPresetField({ values, onChange }: LinkFieldsProps) {
   return (
     <SelectField
       label="Preset for live streams"
-      hint="Streams and premieres record with this preset's options and recording settings. Default: the preset above, recorded like the default live-stream preset says."
+      hint="Streams and premieres record with this preset's options and recording settings. Default: the preset above, with its recording settings or else the default preset's."
       value={values.streamPresetId === null ? "" : String(values.streamPresetId)}
       choices={choicesFor(sorted, "Default")}
       onValueChange={(id) => onChange({ streamPresetId: idOrNull(id) })}

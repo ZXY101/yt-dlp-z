@@ -75,7 +75,7 @@ async def _start(
     job = with_playlist_choice(job_from_preset(preset_used), url, whole_playlist)
     job.update(url=url, title=info["title"])
     if info["kind"] in {"live", "upcoming"}:
-        job["recording"] = recording_request(preset_used, info)
+        job["recording"] = recording_request(preset_used, presets, info)
     if output_dir:
         job["output_dir"] = output_dir
     created = await api.call(ctx, "POST", "/api/jobs", job)

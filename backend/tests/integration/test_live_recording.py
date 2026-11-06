@@ -366,6 +366,25 @@ def test_long_streams_can_be_recorded_for_their_first_hours(
     assert job["max_seconds"] == 6 * 3600
 
 
+def test_streams_record_with_the_any_link_presets_own_settings(
+    watch_client: TestClient, feeds: Path
+) -> None:
+    recording = {**DEFAULT_RECORDING.model_dump(), "part_hours": 2}
+    preset = watch_client.post(
+        "/api/presets", json={"name": "Everything", "kind": "any", "recording": recording}
+    )
+    write_feed(feeds, CHANNEL_ID, [])
+    created = subscribe(
+        watch_client,
+        filters={"content_types": ["video", "stream"]},
+        preset_id=preset.json()["id"],
+    )
+    wait_for_check(watch_client, created["id"])
+    write_feed(feeds, CHANNEL_ID, ["live1"])
+    check(watch_client, created["id"])
+    assert jobs_by_url(watch_client)[watch_url("live1")]["part_seconds"] == 2 * 3600
+
+
 def test_a_subscription_can_record_streams_with_its_own_preset(
     watch_client: TestClient, feeds: Path
 ) -> None:

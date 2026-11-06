@@ -20,6 +20,11 @@ export const DEFAULT_RECORDING: RecordingSettings = {
   vod_replace: false,
 };
 
+/** Presets that can be used for a stream hold recording settings. */
+export function kindRecords(kind: PresetKind) {
+  return kind === "live" || kind === "any";
+}
+
 type MediaKind = "video" | "playlist" | "channel" | "live" | "upcoming";
 
 const KIND_OF_MEDIA: Record<MediaKind, PresetKind> = {

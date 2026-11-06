@@ -226,6 +226,20 @@ def test_an_upcoming_stream_is_scheduled_as_a_recording(setup_client: TestClient
     assert job["scheduled_at"].startswith("2100-01-01T00:00:00")
 
 
+def test_a_preset_without_recording_settings_uses_the_default_live_presets(
+    setup_client: TestClient,
+) -> None:
+    token = new_token(setup_client)
+    presets = setup_client.get("/api/presets").json()
+    live = next(preset for preset in presets if preset["kind"] == "live")
+    changes = {"recording": {**live["recording"], "part_hours": 2}}
+    call(setup_client, token, "save_preset", name=live["name"], changes=changes)
+    call(setup_client, token, "save_preset", name="Plain", changes={"kind": "any"})
+    url = "https://www.youtube.com/watch?v=upcoming1"
+    job = job_from(call(setup_client, token, "start_download", url=url, preset="Plain"))
+    assert setup_client.get(f"/api/jobs/{job['id']}").json()["part_seconds"] == 2 * 3600
+
+
 def test_the_default_preset_for_the_link_kind_is_used(setup_client: TestClient) -> None:
     token = new_token(setup_client)
     changes = {"kind": "video", "is_default": True, "options": {"--embed-subs": True}}

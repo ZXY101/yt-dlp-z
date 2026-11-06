@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 
 import { useRecordingFields } from "@/features/presets/components/recording-fields";
-import { useSavePreset } from "@/features/presets/api";
-import { DEFAULT_RECORDING } from "@/features/presets/kinds";
+import { usePresets, useSavePreset } from "@/features/presets/api";
+import { DEFAULT_RECORDING, kindRecords, recordingFor } from "@/features/presets/kinds";
 import type { Preset, PresetKind } from "@/features/presets/types";
 import { DEFAULT_SETTINGS, settingsForApi, settingsFromApi } from "@/lib/download-options";
 
@@ -12,7 +12,9 @@ export function usePresetForm(preset: Preset | null) {
   const [kind, setKind] = useState<PresetKind>(preset?.kind ?? "any");
   const [isDefault, setIsDefault] = useState(preset?.is_default ?? false);
   const [settings, setSettings] = useState(preset ? settingsFromApi(preset) : DEFAULT_SETTINGS);
-  const recording = useRecordingFields(preset?.recording ?? DEFAULT_RECORDING);
+  const presets = usePresets().data ?? [];
+  // An any-link preset saved without its own settings starts from those it records with now.
+  const recording = useRecordingFields(preset ? recordingFor(preset, presets) : DEFAULT_RECORDING);
   const [nameError, setNameError] = useState<string>();
   const save = useSavePreset();
   const navigate = useNavigate();
@@ -20,8 +22,8 @@ export function usePresetForm(preset: Preset | null) {
   function check() {
     const error = name.trim() ? undefined : "Give the preset a name.";
     setNameError(error);
-    // Recording fields only count for live-stream presets, where they are shown.
-    const recordingValid = kind !== "live" || recording.check();
+    // Recording fields only count for the kinds that show them.
+    const recordingValid = !kindRecords(kind) || recording.check();
     return error === undefined && recordingValid;
   }
 
@@ -33,7 +35,7 @@ export function usePresetForm(preset: Preset | null) {
       name: name.trim(),
       kind,
       is_default: isDefault,
-      recording: kind === "live" ? recording.values() : null,
+      recording: kindRecords(kind) ? recording.values() : null,
       ...settingsForApi(settings),
     };
     save.mutate({ id: preset?.id ?? null, body }, { onSuccess: () => void navigate("/presets") });

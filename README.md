@@ -73,7 +73,7 @@ adds them.
 
 - Named, reusable option sets for **any link, videos, playlists or live streams**,
   with a default per kind.
-- Live-stream presets carry the **recording settings** (see below).
+- Live-stream and any-link presets carry the **recording settings** (see below).
 - Per-preset **cookies**, **proxy mode**, **folder and file-name layout**.
 
 ### Channel and playlist watching (YouTube)

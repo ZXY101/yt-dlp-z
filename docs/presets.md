@@ -40,9 +40,12 @@ videos, "Audio only" for playlists, and "Live streams" for live streams.
   `Channel - S2026E1103 - Title`, thumbnails and `.nfo` files
   ([Folders and media servers](media-server.md))
 
-## Live-stream presets
+<a id="live-stream-presets"></a>
 
-Presets for live streams also hold the recording settings:
+## Recording settings
+
+Presets for live streams and for any link also hold the recording settings, used
+whenever the link turns out to be a stream:
 
 | Setting                                                    | Default  | Meaning                                                       |
 | ---------------------------------------------------------- | -------- | ------------------------------------------------------------- |
@@ -55,9 +58,9 @@ Presets for live streams also hold the recording settings:
 
 [Live recording](live-recording.md) explains each one.
 
-A subscription can use a separate **Preset for live streams**; by default its
-streams use the default live-stream preset's recording settings with the
-subscription's own preset's options.
+A subscription can use a separate **Preset for live streams**. By default its streams
+use the subscription's own preset, with that preset's recording settings if it has
+them, else those of the default live-stream preset, else the default any-link preset.
 
 ## Deleting a preset
 

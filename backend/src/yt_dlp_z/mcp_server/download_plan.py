@@ -62,10 +62,21 @@ def _hours(seconds: int | None) -> int | None:
     return seconds // SECONDS_PER_HOUR if seconds else None
 
 
-def recording_request(preset: dict[str, Any] | None, info: dict[str, Any]) -> dict[str, Any]:
-    """Applies a live preset's settings to this stream, as the download form does."""
-    saved = preset.get("recording") if preset else None
-    settings = RecordingSettings.model_validate(saved) if saved else DEFAULT_RECORDING
+def _recording_settings(
+    preset: dict[str, Any] | None, presets: list[dict[str, Any]]
+) -> RecordingSettings:
+    """The preset's own settings, else the default live-stream preset's."""
+    for candidate in (preset, default_preset(presets, "live")):
+        if candidate and candidate["recording"]:
+            return RecordingSettings.model_validate(candidate["recording"])
+    return DEFAULT_RECORDING
+
+
+def recording_request(
+    preset: dict[str, Any] | None, presets: list[dict[str, Any]], info: dict[str, Any]
+) -> dict[str, Any]:
+    """Applies the recording settings to this stream, as the download form does."""
+    settings = _recording_settings(preset, presets)
     live_since = info["live_since"] if info["kind"] == "live" else None
     since = datetime.fromisoformat(live_since) if live_since else None
     plan = plan_recording(settings, since, datetime.now(UTC))
