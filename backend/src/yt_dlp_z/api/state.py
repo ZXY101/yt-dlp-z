@@ -12,6 +12,7 @@ from yt_dlp_z.services.notify.notifier import Notifier
 from yt_dlp_z.services.watch.retention import RetentionSweeper
 from yt_dlp_z.services.watch.watcher import SubscriptionWatcher
 from yt_dlp_z.services.ytdlp.pot.provider import PotProvider
+from yt_dlp_z.services.ytdlp.probe_cache import ProbeCache
 from yt_dlp_z.services.ytdlp.schema import OptionSchemaProvider
 from yt_dlp_z.services.ytdlp.update_check import UpdateChecker
 from yt_dlp_z.services.ytdlp.updater import YtdlpUpdater
@@ -34,3 +35,4 @@ class AppState:
     pot: PotProvider
     retention: RetentionSweeper
     login_limiter: FailureRateLimiter = field(default_factory=FailureRateLimiter)
+    probes: ProbeCache = field(default_factory=ProbeCache)

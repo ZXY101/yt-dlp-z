@@ -38,11 +38,7 @@ def _probe_failed(error: YtdlpJsonError, *, with_cookies: bool) -> HTTPException
     return HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, message)
 
 
-@router.post("/probe")
-async def probe(body: MediaProbeRequest, state: State, db: Db) -> MediaInfo:
-    """Asks yt-dlp what the link is, so the form can catch bad links and offer the right
-    choices (playlist, recording) before anything is queued."""
-    await check_cookie_id(db, body.cookie_id)
+async def _run_probe(state: State, body: MediaProbeRequest) -> MediaInfo:
     settings = state.settings
     try:
         with _cookies(settings, body.cookie_id) as cookies:
@@ -52,3 +48,12 @@ async def probe(body: MediaProbeRequest, state: State, db: Db) -> MediaInfo:
     except YtdlpJsonError as error:
         raise _probe_failed(error, with_cookies=body.cookie_id is not None) from error
     return media_info(data)
+
+
+@router.post("/probe")
+async def probe(body: MediaProbeRequest, state: State, db: Db) -> MediaInfo:
+    """Asks yt-dlp what the link is, so the form can catch bad links and offer the right
+    choices (playlist, recording) before anything is queued. Recent answers are reused."""
+    await check_cookie_id(db, body.cookie_id)
+    key = (body.url, body.cookie_id, body.no_playlist)
+    return await state.probes.get_or_check(key, lambda: _run_probe(state, body))

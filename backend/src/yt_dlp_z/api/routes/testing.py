@@ -82,6 +82,7 @@ async def reset(state: State, db: Db) -> None:
     for folder in ("logs", "cookies"):
         shutil.rmtree(state.settings.config_dir / folder, ignore_errors=True)
     state.login_limiter.reset()
+    state.probes.clear()
     state.notifier.config = NtfyConfig()
     await state.pot.configure(None)
     state.jobs.downloads.set_limit(state.settings.max_concurrent_downloads)

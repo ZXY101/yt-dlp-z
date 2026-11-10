@@ -20,7 +20,7 @@ async def list_tokens(db: Db) -> list[ApiTokenOut]:
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_token(body: ApiTokenCreate, db: Db) -> ApiTokenCreated:
     try:
-        row, token = await api_tokens.create_token(db, body.name)
+        row, token = await api_tokens.create_token(db, body.name, body.scope)
     except api_tokens.DuplicateTokenNameError as error:
         raise HTTPException(status.HTTP_409_CONFLICT, str(error)) from error
     return ApiTokenCreated.model_validate(
