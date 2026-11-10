@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.7](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.6...yt-dlp-z-v0.1.7) (2026-11-10)
+
+
+### Features
+
+* **backend:** find a link's jobs, and don't queue the same link twice ([9484cf8](https://github.com/ZXY101/yt-dlp-z/commit/9484cf8a85560d53dff39a6a4648278d94e95801))
+* browser extension, link progress, folder per video, password in Settings ([3bec2c4](https://github.com/ZXY101/yt-dlp-z/commit/3bec2c4c320ae91349fffbe971b6fae8240a1b8c))
+* change the admin password in Settings ([db68dd5](https://github.com/ZXY101/yt-dlp-z/commit/db68dd5b11f337948ef66070028f432f512fdc81))
+* **extension:** add a browser extension that sends links to yt-dlp-z ([cd46367](https://github.com/ZXY101/yt-dlp-z/commit/cd463674f0b6740c3f1408223a8e90ca55d5f71f))
+* **extension:** explain errors with a tip, and skip the user's own server ([bba21cf](https://github.com/ZXY101/yt-dlp-z/commit/bba21cf8fff04a71a20f2360a862a924373d9b84))
+* **extension:** show download progress, a queue link, and skip pages with nothing to download ([aa3fd76](https://github.com/ZXY101/yt-dlp-z/commit/aa3fd766363681cf840cd6455ebe38a06d659509))
+* optionally put each video in a folder of its own ([0a8fdab](https://github.com/ZXY101/yt-dlp-z/commit/0a8fdab41f4ad8c79a7f1c68a53d54c214eed347))
+
+
+### Bug Fixes
+
+* **extension:** wait while a link downloads, and only re-download with another preset ([94f6726](https://github.com/ZXY101/yt-dlp-z/commit/94f672622b21e2770e637cf46138c5ca73b8f142))
+* **frontend:** keep generated API types unformatted, avoid a secret-scanner false positive ([d780a10](https://github.com/ZXY101/yt-dlp-z/commit/d780a107c868922d5fa0c933503a31a3234e37b5))
+
 ## [0.1.6](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.5...yt-dlp-z-v0.1.6) (2026-11-10)
 
 
