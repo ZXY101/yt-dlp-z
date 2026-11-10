@@ -113,13 +113,22 @@ function showSetup(): void {
   });
 }
 
+// Firefox for Android may show the popup as a tab of its own: then look past it.
+async function activePageTab(): Promise<chrome.tabs.Tab | undefined> {
+  const own = ext.runtime.getURL("");
+  const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
+  if (!tab?.url?.startsWith(own)) return tab;
+  const candidates = await ext.tabs.query({ active: true });
+  return candidates.find((candidate) => !candidate.url?.startsWith(own));
+}
+
 async function start(): Promise<void> {
   const connection = await loadConnection();
   if (!connection) {
     showSetup();
     return;
   }
-  const [tab] = await ext.tabs.query({ active: true, currentWindow: true });
+  const tab = await activePageTab();
   const url = tab?.url ?? "";
   const [presets, presetId] = await Promise.all([loadPresets(), loadLastPresetId()]);
   const known = presets.some((preset) => preset.id === presetId);

@@ -48,3 +48,9 @@ export function guessLink(address: string): LinkGuess {
 export function isWholeList(guess: LinkGuess): boolean {
   return guess === "playlist" || guess === "channel";
 }
+
+// Pages "check links ahead" looks at: single videos, also opened from a playlist.
+export function isVideoPage(address: string): boolean {
+  const guess = guessLink(address);
+  return guess === "video" || guess === "video-in-playlist";
+}

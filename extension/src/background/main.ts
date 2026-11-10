@@ -1,8 +1,9 @@
 import { ext } from "../lib/browser.ts";
 import { failure, type Message, type Reply } from "../lib/messages.ts";
 import { loadPresets } from "../lib/settings.ts";
+import { startCheckingAhead } from "./check-ahead.ts";
 import { showBadge } from "./feedback.ts";
-import { buildMenus, handleMenuClick } from "./menus.ts";
+import { buildMenus, handleMenuClick, hasMenus } from "./menus.ts";
 import { probe, refreshPresets, send } from "./requests.ts";
 
 async function sendFromPopup(message: Extract<Message, { type: "send" }>) {
@@ -53,6 +54,10 @@ ext.runtime.onStartup.addListener(() => {
   loadPresets().then(buildMenus, console.error);
 });
 
-ext.contextMenus.onClicked.addListener((info, tab) => {
-  handleMenuClick(info, tab).catch(console.error);
-});
+if (hasMenus()) {
+  ext.contextMenus.onClicked.addListener((info, tab) => {
+    handleMenuClick(info, tab).catch(console.error);
+  });
+}
+
+startCheckingAhead();

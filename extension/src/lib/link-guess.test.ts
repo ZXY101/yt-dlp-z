@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { guessLink, isWholeList } from "./link-guess.ts";
+import { guessLink, isVideoPage, isWholeList } from "./link-guess.ts";
 
 describe("guessLink", () => {
   it.each([
@@ -32,5 +32,19 @@ describe("isWholeList", () => {
     expect(isWholeList("channel")).toBe(true);
     expect(isWholeList("video-in-playlist")).toBe(false);
     expect(isWholeList("unknown")).toBe(false);
+  });
+});
+
+describe("isVideoPage", () => {
+  it("is true for single videos, also opened from a playlist", () => {
+    expect(isVideoPage("https://www.youtube.com/watch?v=abc")).toBe(true);
+    expect(isVideoPage("https://www.youtube.com/watch?v=abc&list=PL1")).toBe(true);
+  });
+
+  it("leaves lists, unknown sites and browser pages alone", () => {
+    expect(isVideoPage("https://www.youtube.com/playlist?list=PL1")).toBe(false);
+    expect(isVideoPage("https://www.youtube.com/@someone")).toBe(false);
+    expect(isVideoPage("https://example.org/")).toBe(false);
+    expect(isVideoPage("chrome://newtab")).toBe(false);
   });
 });

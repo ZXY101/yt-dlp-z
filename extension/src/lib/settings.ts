@@ -20,6 +20,7 @@ interface Stored {
   connection?: Connection;
   presets?: Preset[];
   lastPresetId?: number | null;
+  checkAhead?: boolean;
 }
 
 async function read<K extends keyof Stored>(key: K): Promise<Stored[K]> {
@@ -50,4 +51,16 @@ export async function loadLastPresetId(): Promise<number | null> {
 
 export async function saveLastPresetId(lastPresetId: number | null): Promise<void> {
   await ext.storage.local.set({ lastPresetId });
+}
+
+// The optional permission "check links ahead" needs, to see tab addresses.
+export const TABS_PERMISSION: chrome.permissions.Permissions = { permissions: ["tabs"] };
+
+// Off unless the user switches it on: it sends every video page they open to their server.
+export async function loadCheckAhead(): Promise<boolean> {
+  return (await read("checkAhead")) ?? false;
+}
+
+export async function saveCheckAhead(checkAhead: boolean): Promise<void> {
+  await ext.storage.local.set({ checkAhead });
 }

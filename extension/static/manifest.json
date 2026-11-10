@@ -29,6 +29,7 @@
     "open_in_tab": true
   },
   "permissions": ["activeTab", "contextMenus", "notifications", "storage"],
+  "optional_permissions": ["tabs"],
   "optional_host_permissions": ["http://*/*", "https://*/*"],
   "browser_specific_settings": {
     "gecko": {

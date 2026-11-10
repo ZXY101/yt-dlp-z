@@ -39,7 +39,13 @@ function createWholePlaylistItems(): void {
   });
 }
 
+// Firefox for Android has no context menus at all; the popup still works there.
+export function hasMenus(): boolean {
+  return (ext as Partial<typeof chrome>).contextMenus !== undefined;
+}
+
 export async function buildMenus(presets: Preset[]): Promise<void> {
+  if (!hasMenus()) return;
   await ext.contextMenus.removeAll();
   create({ id: SEND, title: "Send to yt-dlp-z", contexts: EVERYWHERE });
   createWholePlaylistItems();

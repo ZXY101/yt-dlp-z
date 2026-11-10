@@ -4,6 +4,7 @@ import { byId, element } from "../lib/dom.ts";
 import { askRefreshPresets } from "../lib/messages.ts";
 import { asServerProblem } from "../lib/problems.ts";
 import { loadConnection, saveConnection, savePresets, type Connection } from "../lib/settings.ts";
+import { setUpCheckAhead } from "./check-ahead.ts";
 import { formatHeaders, parseHeaders } from "./headers.ts";
 import { testConnection } from "./test-connection.ts";
 
@@ -95,3 +96,4 @@ form.addEventListener("submit", (event) => {
 });
 addressInput.addEventListener("input", updateTokensLink);
 fillForm().catch(console.error);
+setUpCheckAhead().catch(console.error);
