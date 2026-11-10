@@ -40,6 +40,8 @@ puts a web app in front of it that you run on your own server, NAS or PC:
 - Point it at a YouTube channel and new uploads show up in your library on their own.
 - When that channel goes live, the stream is recorded from the start, split into
   parts if it runs for days, and optionally replaced by the clean VOD later.
+- Send the page you're on from Chrome or Firefox with the
+  [browser extension](docs/browser-extension.md), and watch its progress from the toolbar.
 - Ask an AI agent to do any of it: the built-in [MCP server](docs/mcp.md) lets agents
   such as Claude Code start downloads and change settings.
 

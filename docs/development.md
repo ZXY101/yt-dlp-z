@@ -39,6 +39,7 @@ Pass `--config-dir ./tmp-config` to keep a throwaway instance separate.
 ```
 backend/   FastAPI app (src/yt_dlp_z), pytest tests, Alembic migrations
 frontend/  React app (npm workspace)
+extension/ browser extension, plain TypeScript (npm workspace, see extension/README.md)
 e2e/       Playwright tests (npm workspace)
 docker/    Dockerfile and entrypoint
 docs/      plan, progress, configuration, this guide
@@ -50,7 +51,8 @@ docs/      plan, progress, configuration, this guide
 npm run check                                   # Prettier, oxlint, knip
 cd backend && uv run ruff check . && uv run mypy && uv run pytest
 npm run typecheck -w frontend && npm run test:coverage -w frontend
-npm test -w e2e                                 # builds the UI, starts its own server
+npm run typecheck -w extension && npm test -w extension
+npm test -w e2e                                 # builds the UI and extension, starts its own server
 ```
 
 Git hooks (lefthook) run format, lint, type and secret checks on commit and the
@@ -72,4 +74,6 @@ Both backend and frontend fail below 80% test coverage.
 
 [Conventional Commits](https://www.conventionalcommits.org/), for example
 `feat(frontend): add download queue page`. release-please builds the changelog
-and releases from them.
+and releases from them. The browser extension is released on its own: commits that only
+touch `extension/` go into `extension/CHANGELOG.md` and `extension-v*` tags, and its
+release gets a zip of the build.

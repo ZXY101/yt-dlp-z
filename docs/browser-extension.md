@@ -5,7 +5,8 @@ yt-dlp-z server. The server downloads or records it; nothing is downloaded in th
 It works in Chrome and other Chromium browsers (Edge, Brave, Vivaldi) and in Firefox,
 including Firefox for Android.
 
-It needs yt-dlp-z **0.1.6 or newer**. Older servers get a message saying so.
+It needs yt-dlp-z **0.1.6 or newer**; showing a download's progress and not queueing a
+link twice need **0.1.7**. Older servers get a message saying what to update.
 
 ## Install
 
@@ -62,8 +63,12 @@ that a stream is live or upcoming. You don't have to wait for the check to click
 - A video opened from a playlist offers **This video** or **Whole playlist**.
 - The button says what will happen: **Download**, **Download 24 videos**, **Record** or
   **Schedule recording**.
-- After sending, **Open queue** opens yt-dlp-z. The popup closes after two seconds, unless
-  your pointer is on it. Closing it early doesn't cancel anything.
+- After sending, the popup shows the download's progress (or the recording's part and size)
+  until it's done. **Queue ↗** at the top opens yt-dlp-z's queue. Closing the popup doesn't
+  cancel anything.
+- Opening it again on a page you already sent shows that download instead: the button waits,
+  disabled, while it runs, and once it's done offers **Download again with another preset**.
+  Sending the same link with the same preset twice doesn't queue it twice (server 0.1.7+).
 
 **Right-click menu** (desktop only):
 
@@ -118,6 +123,7 @@ See the [privacy policy](browser-extension-privacy.md).
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Can't reach …                                    | Check the address and port, and that the server is up and reachable from this device (VPN, Tailscale).                                                                                                                   |
 | Can't reach … in Firefox, by name over `http://` | HTTPS-Only Mode turns `http://` into `https://` for names (not for private IP addresses). Use the IP address, e.g. `http://192.168.1.5:9742`, or add an exception under Settings → Privacy & Security → HTTPS-Only Mode. |
+| Your server couldn't open this page              | The server fetches the page itself, so the address must work from the server. `localhost` or the server's own name point at the server.                                                                                  |
 | The server didn't accept the token               | The token was revoked or mistyped: make a new one in Settings → API tokens.                                                                                                                                              |
 | This server needs an API token                   | Make a send-only token and paste it.                                                                                                                                                                                     |
 | A login page answered instead of yt-dlp-z        | See [Behind a login proxy](#behind-a-login-proxy).                                                                                                                                                                       |
