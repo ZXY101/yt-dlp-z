@@ -4,5 +4,11 @@
   "ignoreIssues": {
     "frontend/src/components/ui/**": ["exports", "types"],
     "frontend/src/api/generated/**": ["exports", "types"]
+  },
+  "workspaces": {
+    "extension": {
+      "entry": ["src/{background,options,popup}/main.ts", "scripts/*.mjs", "src/**/*.test.ts"],
+      "project": ["src/**/*.ts", "scripts/*.mjs"]
+    }
   }
 }

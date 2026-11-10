@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>yt-dlp-z</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="popup/main.js"></script>
+  </head>
+  <body class="popup">
+    <section id="setup" class="stack" hidden>
+      <p>Connect the extension to your yt-dlp-z server first.</p>
+      <button id="open-setup" type="button" class="primary">Set up</button>
+    </section>
+    <section id="link" class="stack" hidden>
+      <div class="tab">
+        <img id="favicon" alt="" width="16" height="16" hidden />
+        <div class="tab-text">
+          <div id="title" class="title"></div>
+          <div id="kind" class="muted"></div>
+        </div>
+      </div>
+      <img id="thumbnail" class="thumbnail" alt="" hidden />
+      <div id="scope" class="segmented" role="group" aria-label="What to download" hidden>
+        <button type="button" data-whole="false" aria-pressed="true">This video</button>
+        <button type="button" data-whole="true" aria-pressed="false">Whole playlist</button>
+      </div>
+      <label class="field">
+        <span>Preset</span>
+        <select id="preset"></select>
+      </label>
+      <button id="go" type="button" class="primary">Download</button>
+      <div id="message" class="message" role="status" aria-live="polite"></div>
+    </section>
+  </body>
+</html>

@@ -70,6 +70,20 @@ jobs:
           npm run gen:api -w frontend
           git diff --exit-code frontend/src/api/generated
 
+  extension:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck -w extension
+      - run: npm run test:coverage -w extension
+      - run: npm run build -w extension
+
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 20

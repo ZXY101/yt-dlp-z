@@ -23,6 +23,7 @@
   },
   "workspaces": [
     "frontend",
-    "e2e"
+    "e2e",
+    "extension"
   ]
 }
