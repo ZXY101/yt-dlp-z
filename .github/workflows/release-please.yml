@@ -64,3 +64,12 @@ jobs:
         run: |
           (cd extension/dist && zip -r "../yt-dlp-z-extension-$VERSION.zip" .)
           gh release upload "$TAG" "extension/yt-dlp-z-extension-$VERSION.zip"
+      # GitHub marks the newest release "Latest", which the README's release badge and
+      # people looking for the server read; keep that on the server's newest release.
+      - name: Keep the server release as Latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SERVER_TAG=$(gh release list --limit 50 --json tagName \
+            --jq '[.[] | select(.tagName | startswith("yt-dlp-z-v"))][0].tagName')
+          gh release edit "$SERVER_TAG" --latest
