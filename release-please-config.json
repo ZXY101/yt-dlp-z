@@ -19,6 +19,23 @@
           "path": "backend/uv.lock",
           "jsonpath": "$.package[?(@.name.value=='yt-dlp-z')].version"
         }
+      ],
+      "exclude-paths": ["extension"]
+    },
+    "extension": {
+      "release-type": "simple",
+      "component": "extension",
+      "package-name": "yt-dlp-z-extension",
+      "changelog-path": "CHANGELOG.md",
+      "initial-version": "0.1.0",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "static/manifest.json",
+          "jsonpath": "$.version"
+        }
       ]
     }
   }

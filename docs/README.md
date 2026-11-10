@@ -25,6 +25,8 @@ features you use.
 - [Live chat](live-chat.md): saving a stream's chat and showing it as a scrolling overlay
 - [Proxies](proxies.md): the proxy pool and VPN exits
 - [Notifications](notifications.md): ntfy
+- [Browser extension](browser-extension.md): send the page or a link from Chrome or
+  Firefox ([privacy policy](browser-extension-privacy.md))
 - [API tokens and MCP](mcp.md): scripts and AI agents
 - [yt-dlp and PO tokens](ytdlp.md): updating yt-dlp in the app, PO tokens,
   blocked options

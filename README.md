@@ -116,6 +116,8 @@ adds them.
   overlay that players pick up as a subtitle and can switch off.
 - **Media-server files** for Jellyfin, Plex and Kodi: episode and show `.nfo` files,
   thumbnails, channel poster, fanart and banner.
+- **Browser extension** for Chrome and Firefox (also Firefox for Android): send the page or
+  a right-clicked link with a preset, using a token that can only send links.
 - **Single admin password** (argon2, rate-limited sign-in), or hand login to
   your reverse proxy.
 - **One container** with two volumes, or run it directly with Python and Node.
@@ -247,6 +249,7 @@ reverse proxies, updating, backups and running it as a service.
 | [Media servers](docs/media-server.md)            | Jellyfin / Plex / Kodi layout, `.nfo` files, artwork               |
 | [Proxies](docs/proxies.md)                       | The proxy pool, rotation modes, cooldowns, a gluetun recipe        |
 | [Notifications](docs/notifications.md)           | ntfy setup and events                                              |
+| [Browser extension](docs/browser-extension.md)   | Send the page or a link from Chrome or Firefox                     |
 | [API tokens and MCP](docs/mcp.md)                | Let scripts and AI agents use yt-dlp-z                             |
 | [yt-dlp and PO tokens](docs/ytdlp.md)            | In-app updates, nightly builds, PO tokens, blocked options         |
 | [Configuration reference](docs/configuration.md) | Environment variables, command line, volumes, security notes       |
