@@ -5,7 +5,14 @@ import { needsSetup } from "../lib/problems.ts";
 import { isSendable } from "../lib/link-guess.ts";
 import type { LinkJob, MediaInfo, Preset } from "../lib/types.ts";
 import { describeJob, friendlyError } from "./job-status.ts";
-import { buttonLabel, describeInfo, guessLabel, presetLabel, type PopupState } from "./state.ts";
+import {
+  actionMode,
+  buttonLabel,
+  describeInfo,
+  guessLabel,
+  presetLabel,
+  type PopupState,
+} from "./state.ts";
 
 export const view = {
   setup: byId("setup"),
@@ -17,6 +24,8 @@ export const view = {
   jobBar: byId<HTMLProgressElement>("job-bar"),
   jobDetail: byId("job-detail"),
   choices: byId("choices"),
+  presetField: byId("preset-field"),
+  another: byId<HTMLButtonElement>("another"),
   favicon: byId<HTMLImageElement>("favicon"),
   title: byId("title"),
   kind: byId("kind"),
@@ -85,7 +94,23 @@ export function showState(state: PopupState, checking: boolean): void {
       String(button.dataset.whole === String(state.wholePlaylist)),
     );
   }
+  showAction(state);
+}
+
+function showAction(state: PopupState): void {
+  const mode = actionMode(state);
+  view.presetField.hidden = mode !== "send";
+  view.go.hidden = mode === "done";
+  view.another.hidden = mode !== "done";
+  view.go.classList.toggle("busy", mode === "busy");
+  view.go.disabled = mode === "busy";
   view.go.textContent = buttonLabel(state);
+}
+
+export function showSending(): void {
+  view.go.classList.add("busy");
+  view.go.disabled = true;
+  view.go.textContent = "Sending…";
 }
 
 export function showProblem(problem: Problem, text: string, onFix: (setup: boolean) => void) {

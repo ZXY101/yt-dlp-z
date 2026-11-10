@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MediaInfo, Preset } from "../lib/types.ts";
 import {
+  actionMode,
   buttonLabel,
   describeInfo,
   formatDuration,
@@ -20,6 +21,7 @@ function popup(overrides: Partial<PopupState> = {}): PopupState {
     presetId: null,
     presets: [members],
     jobs: [],
+    anotherCopy: false,
     ...overrides,
   };
 }
@@ -82,11 +84,29 @@ describe("buttonLabel", () => {
   });
 });
 
-describe("buttonLabel with a job", () => {
-  it("offers to download again once a job exists", () => {
-    const done = { id: 1, status: "completed", kind: "download" } as PopupState["jobs"][number];
-    expect(buttonLabel(popup({ jobs: [done] }))).toBe("Download again");
-    expect(buttonLabel(popup({ jobs: [{ ...done, status: "failed" }] }))).toBe("Download");
+describe("actionMode and buttonLabel with a job", () => {
+  const done = { id: 1, status: "completed", kind: "download" } as PopupState["jobs"][number];
+
+  it("waits, disabled, while the link's job runs", () => {
+    const running = popup({ jobs: [{ ...done, status: "running" }] });
+    expect(actionMode(running)).toBe("busy");
+    expect(buttonLabel(running)).toBe("Downloading…");
+    const live = popup({ jobs: [{ ...done, status: "running", kind: "live" }] });
+    expect(buttonLabel(live)).toBe("Recording…");
+    expect(buttonLabel(popup({ jobs: [{ ...done, status: "queued" }] }))).toBe(
+      "Waiting in the queue…",
+    );
+  });
+
+  it("offers nothing for a finished download until another copy is asked for", () => {
+    expect(actionMode(popup({ jobs: [done] }))).toBe("done");
+    const another = popup({ jobs: [done], anotherCopy: true });
+    expect(actionMode(another)).toBe("send");
+    expect(buttonLabel(another)).toBe("Download");
+  });
+
+  it("sends again after a failure", () => {
+    expect(actionMode(popup({ jobs: [{ ...done, status: "failed" }] }))).toBe("send");
   });
 });
 

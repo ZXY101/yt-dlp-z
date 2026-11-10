@@ -38,11 +38,14 @@
           <button type="button" data-whole="false" aria-pressed="true">This video</button>
           <button type="button" data-whole="true" aria-pressed="false">Whole playlist</button>
         </div>
-        <label class="field">
+        <label id="preset-field" class="field">
           <span>Preset</span>
           <select id="preset"></select>
         </label>
         <button id="go" type="button" class="primary">Download</button>
+        <button id="another" type="button" class="link-button" hidden>
+          Download again with another preset
+        </button>
       </div>
       <div id="message" class="message" role="status" aria-live="polite"></div>
     </section>

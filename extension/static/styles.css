@@ -302,3 +302,38 @@ h2 {
   height: 0.4rem;
   accent-color: var(--primary);
 }
+
+/* The main button while its link's job runs: disabled, with a spinner. */
+.primary.busy:disabled {
+  opacity: 0.8;
+}
+
+.primary.busy::before {
+  content: "";
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin-right: 0.5em;
+  vertical-align: -0.1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primary.busy::before {
+    animation-duration: 2.4s;
+  }
+}
+
+#another {
+  align-self: center;
+  color: var(--muted);
+}

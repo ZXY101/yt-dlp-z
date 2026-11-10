@@ -17,6 +17,7 @@ import {
   showPresets,
   showProblem,
   showQueueLink,
+  showSending,
   showState,
   showTab,
   view,
@@ -32,7 +33,7 @@ let latestCheck = 0;
 function render(): void {
   showState(state, checking);
   showJob(currentJob(state));
-  view.go.disabled = sending;
+  if (sending) showSending();
 }
 
 function handleJobs(jobs: LinkJob[]): void {
@@ -66,14 +67,15 @@ async function runCheck(): Promise<void> {
 
 function sentNote(sent: SentLink): string {
   if (!sent.existing) return `✓ Sent: ${sent.job.title ?? state.url}`;
-  if (sent.job.status === "completed") return "Already downloaded with these settings.";
+  if (sent.job.status === "completed") {
+    return "Already downloaded with this preset. Pick another one for a different copy.";
+  }
   return "Already in the queue with these settings.";
 }
 
 async function handleGo(): Promise<void> {
   clearMessage();
   sending = true;
-  view.go.textContent = "Sending…";
   render();
   const reply = await askSend(sendRequestFor(state), tabId);
   sending = false;
@@ -83,6 +85,7 @@ async function handleGo(): Promise<void> {
     return;
   }
   state.jobs = [reply.value.job, ...state.jobs.filter((job) => job.id !== reply.value.job.id)];
+  state.anotherCopy = false;
   render();
   showNote(sentNote(reply.value));
   refreshJobs(state, handleJobs).catch(console.error);
@@ -96,11 +99,19 @@ function handlePresetChange(): void {
   if (probeRequestFor(state).cookieId !== cookieBefore) runCheck().catch(console.error);
 }
 
+function handleAnotherCopy(): void {
+  state.anotherCopy = true;
+  clearMessage();
+  render();
+  view.preset.focus();
+}
+
 function handleScopeClick(event: MouseEvent): void {
   const button = (event.target as HTMLElement).closest("button");
   if (!button) return;
   state.wholePlaylist = button.dataset.whole === "true";
   state.jobs = [];
+  state.anotherCopy = false;
   runCheck().catch(console.error);
 }
 
@@ -133,7 +144,7 @@ async function initialState(url: string): Promise<PopupState> {
   const [presets, presetId] = await Promise.all([loadPresets(), loadLastPresetId()]);
   const known = presets.some((preset) => preset.id === presetId);
   const guess = guessLink(url);
-  const base = { url, guess, info: null, wholePlaylist: false, jobs: [] };
+  const base = { url, guess, info: null, wholePlaylist: false, jobs: [], anotherCopy: false };
   return { ...base, presets, presetId: known ? presetId : null };
 }
 
@@ -141,6 +152,7 @@ function listen(): void {
   view.go.addEventListener("click", () => handleGo().catch(console.error));
   view.preset.addEventListener("change", handlePresetChange);
   view.scope.addEventListener("click", handleScopeClick);
+  view.another.addEventListener("click", handleAnotherCopy);
   followPresetChanges();
 }
 

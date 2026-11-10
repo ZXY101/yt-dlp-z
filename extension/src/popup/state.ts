@@ -3,6 +3,7 @@
 import { isWholeList, type LinkGuess } from "../lib/link-guess.ts";
 import type { LinkJobsRequest, ProbeRequest, SendRequest } from "../lib/server.ts";
 import type { LinkJob, MediaInfo, Preset } from "../lib/types.ts";
+import { isActive } from "./job-status.ts";
 
 export interface PopupState {
   url: string;
@@ -15,6 +16,8 @@ export interface PopupState {
   presets: Preset[];
   // The link's jobs on the server, newest first (empty on servers before 0.1.7).
   jobs: LinkJob[];
+  // Downloaded already, but the user asked to download it again with another preset.
+  anotherCopy: boolean;
 }
 
 // The job the popup shows: the newest one for this link, if any.
@@ -22,9 +25,21 @@ export function currentJob(state: PopupState): LinkJob | null {
   return state.jobs[0] ?? null;
 }
 
-function hasUsableJob(state: PopupState): boolean {
+// What the main button can do: send the link, wait for the job that's running (disabled), or
+// nothing until the user asks for another copy of a finished download.
+export type ActionMode = "send" | "busy" | "done";
+
+export function actionMode(state: PopupState): ActionMode {
   const job = currentJob(state);
-  return job !== null && job.status !== "failed" && job.status !== "cancelled";
+  if (isActive(job)) return "busy";
+  if (job?.status === "completed" && !state.anotherCopy) return "done";
+  return "send";
+}
+
+function busyLabel(job: LinkJob): string {
+  if (job.status === "scheduled") return "Recording scheduled";
+  if (job.status === "queued") return "Waiting in the queue…";
+  return job.kind === "live" ? "Recording…" : "Downloading…";
 }
 
 function chosenPreset(state: PopupState): Preset | undefined {
@@ -54,12 +69,10 @@ export function sendRequestFor(state: PopupState): SendRequest {
   return { url: state.url, presetId: state.presetId, wholePlaylist: isList(state) };
 }
 
-function againLabel(state: PopupState): string {
-  return currentJob(state)?.kind === "live" ? "Record again" : "Download again";
-}
-
 export function buttonLabel(state: PopupState): string {
-  return hasUsableJob(state) ? againLabel(state) : firstTimeLabel(state);
+  const job = currentJob(state);
+  if (job && actionMode(state) === "busy") return busyLabel(job);
+  return firstTimeLabel(state);
 }
 
 function firstTimeLabel(state: PopupState): string {

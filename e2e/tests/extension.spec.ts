@@ -82,9 +82,25 @@ test.describe("browser extension", () => {
     // The same video, written another way.
     const again = await openPopup(extension, "https://youtu.be/extvideo?si=share");
     await expect(again.getByText("Downloaded ✓")).toBeVisible();
-    await again.getByRole("button", { name: "Download again" }).click();
-    await expect(again.getByText("Already downloaded with these settings.")).toBeVisible();
+    await expect(again.getByRole("button", { name: "Download", exact: true })).toBeHidden();
+    await again.getByRole("button", { name: "Download again with another preset" }).click();
+    await again.getByRole("button", { name: "Download", exact: true }).click();
+    await expect(again.getByText(/Already downloaded with this preset/)).toBeVisible();
     expect(await (await request.get("/api/jobs")).json()).toHaveLength(1);
+  });
+
+  test("the button waits, disabled, while the link downloads", async ({
+    extension,
+    request,
+    baseURL,
+  }) => {
+    await connect(extension, baseURL!, await makeSendToken(request));
+    // A slow fake download: about a minute.
+    const popup = await openPopup(extension, "https://www.youtube.com/watch?v=slowext");
+    await popup.getByRole("button", { name: "Download" }).click();
+    const waiting = popup.getByRole("button", { name: /Downloading…|Waiting in the queue…/ });
+    await expect(waiting).toBeDisabled();
+    await expect(popup.getByText(/Downloading [0-9]+%/)).toBeVisible();
   });
 
   test("the popup says at once when a page has nothing to download", async ({
