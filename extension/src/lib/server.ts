@@ -1,3 +1,4 @@
+import { mayBeUpgradedToHttps } from "./address.ts";
 import { ServerProblem } from "./problems.ts";
 import type { Connection } from "./settings.ts";
 import type { Health, MediaInfo, Preset, SentLink } from "./types.ts";
@@ -57,6 +58,15 @@ async function problemFor(response: Response, connection: Connection): Promise<S
   return new ServerProblem("server-error", `The server answered: ${detail}`);
 }
 
+function unreachableMessage(address: string, reason: string): string {
+  const message = `Can't reach ${address}${reason}.`;
+  if (!mayBeUpgradedToHttps(address)) return message;
+  return (
+    `${message} In Firefox with HTTPS-Only Mode on, use the server's IP address ` +
+    "(e.g. http://192.168.1.5:9742) or add an exception for it."
+  );
+}
+
 async function send(connection: Connection, path: string, options: CallOptions): Promise<Response> {
   const hasBody = options.body !== undefined;
   try {
@@ -72,7 +82,10 @@ async function send(connection: Connection, path: string, options: CallOptions):
     if (error instanceof DOMException && error.name === "TimeoutError") {
       throw new ServerProblem("timeout", "The server took too long to answer.");
     }
-    throw new ServerProblem("unreachable", `Can't reach ${connection.address}.`);
+    // The browser's reason (e.g. "NetworkError…", "Failed to fetch") helps tell a down server
+    // from a request the browser blocked itself.
+    const reason = error instanceof Error ? ` (${error.message})` : "";
+    throw new ServerProblem("unreachable", unreachableMessage(connection.address, reason));
   }
 }
 

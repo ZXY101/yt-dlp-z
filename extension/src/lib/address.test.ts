@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { isPrivateHost, normalizeAddress, originPattern, sendsTokenInTheClear } from "./address.ts";
+import {
+  isPrivateHost,
+  mayBeUpgradedToHttps,
+  normalizeAddress,
+  originPattern,
+  sendsTokenInTheClear,
+} from "./address.ts";
 
 describe("normalizeAddress", () => {
   it("adds http:// and drops a trailing slash", () => {
@@ -46,5 +52,17 @@ describe("sendsTokenInTheClear", () => {
   it("is false for HTTPS or a private host", () => {
     expect(sendsTokenInTheClear("https://example.org")).toBe(false);
     expect(sendsTokenInTheClear("http://192.168.1.5:9742")).toBe(false);
+  });
+});
+
+describe("mayBeUpgradedToHttps", () => {
+  it("is true for plain HTTP to a name", () => {
+    expect(mayBeUpgradedToHttps("http://zxy-server:9742")).toBe(true);
+  });
+
+  it("is false for IP addresses and HTTPS", () => {
+    expect(mayBeUpgradedToHttps("http://192.168.1.5:9742")).toBe(false);
+    expect(mayBeUpgradedToHttps("http://[fd12::1]:9742")).toBe(false);
+    expect(mayBeUpgradedToHttps("https://yt.example.org")).toBe(false);
   });
 });

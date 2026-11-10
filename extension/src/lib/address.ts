@@ -52,3 +52,10 @@ export function sendsTokenInTheClear(address: string): boolean {
   const url = new URL(address);
   return url.protocol === "http:" && !isPrivateHost(url.hostname);
 }
+
+// Firefox's HTTPS-Only Mode turns http:// into https://, except for IP addresses on a private
+// network, so a server reached by name over plain HTTP fails there.
+export function mayBeUpgradedToHttps(address: string): boolean {
+  const url = new URL(address);
+  return url.protocol === "http:" && !/^[\d.]+$|^\[/.test(url.hostname);
+}
