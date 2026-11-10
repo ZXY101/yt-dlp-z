@@ -6,7 +6,8 @@ from mcp.types import ToolAnnotations
 from pydantic import Field
 
 from yt_dlp_z.mcp_server.api_client import ApiClient
-from yt_dlp_z.mcp_server.download_plan import (
+from yt_dlp_z.schemas.live_chat import OverlayStyle
+from yt_dlp_z.services.jobs.preset_plan import (
     default_preset,
     find_preset,
     is_video_in_playlist,
@@ -14,7 +15,6 @@ from yt_dlp_z.mcp_server.download_plan import (
     recording_request,
     with_playlist_choice,
 )
-from yt_dlp_z.schemas.live_chat import OverlayStyle
 
 READ_ONLY = ToolAnnotations(readOnlyHint=True)
 # Enough to judge a download by; the full job is mostly options the agent didn't ask about.

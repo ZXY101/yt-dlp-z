@@ -146,4 +146,35 @@ test.describe("settings", () => {
     });
     expect(revoked.status()).toBe(401);
   });
+
+  test("a send-only token can send links and nothing else", async ({
+    page,
+    playwright,
+    baseURL,
+  }) => {
+    const section = page.getByRole("region", { name: "API tokens" });
+    await section.getByLabel("Token name").fill("Browser extension");
+    await section.getByLabel(/Send links only/).check();
+    await section.getByRole("button", { name: "Create token" }).click();
+    const token = await section.locator("code").first().innerText();
+    await expect(section.getByText(/claude mcp add/)).toBeHidden();
+    await expect(section.getByText("Send links only · Never used")).toBeVisible();
+    await expectNoHorizontalScroll(page);
+
+    // A fresh context, so the browser session from setup can't stand in for the token.
+    const client = await playwright.request.newContext({
+      baseURL,
+      extraHTTPHeaders: { Authorization: `Bearer ${token}` },
+    });
+    const sent = await client.post("/api/jobs/send", {
+      data: { url: "https://example.com/watch/sent" },
+    });
+    expect(sent.status()).toBe(201);
+    const { job } = await sent.json();
+    expect((await client.get("/api/jobs")).status()).toBe(403);
+    await client.dispose();
+
+    await page.goto("/queue");
+    await expect(page.getByText(job.title).first()).toBeVisible();
+  });
 });

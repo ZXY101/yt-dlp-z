@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, unwrap } from "@/api/client";
+import type { ApiTokenCreate } from "@/features/settings/types";
 
 const TOKENS_KEY = ["api-tokens"];
 
@@ -11,7 +12,7 @@ export function useApiTokens() {
 export function useCreateApiToken() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (name: string) => unwrap(api.POST("/api/tokens", { body: { name } })),
+    mutationFn: (body: ApiTokenCreate) => unwrap(api.POST("/api/tokens", { body })),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: TOKENS_KEY }),
   });
 }

@@ -6,12 +6,17 @@ such as Claude Code can use it directly.
 
 ## Create a token
 
-Go to **Settings → API tokens**, name the token and select **Create token**. It's shown
-once, so copy it then. yt-dlp-z stores only a hash of it.
+Go to **Settings → API tokens**, name the token, choose its access and select **Create
+token**. It's shown once, so copy it then. yt-dlp-z stores only a hash of it.
 
-A token can do everything the web app can, including deleting downloaded files, except
-create, list or revoke tokens. Revoking one takes effect immediately. Changing the admin
-password does not revoke tokens.
+- **Full access:** everything the web app can do, including deleting downloaded files,
+  except create, list or revoke tokens. Agents and the MCP server need this.
+- **Send links only:** list presets, check a link and download it with a preset. Nothing
+  else: no queue, settings, files, MCP or live updates. Use it for tokens kept in less
+  trusted places, such as a browser extension or a phone shortcut.
+
+Revoking a token takes effect immediately. Changing the admin password does not revoke
+tokens.
 
 Tokens are sent with every request, so use HTTPS when they travel over a network you
 don't trust.
@@ -99,11 +104,33 @@ Tokens also work on the REST API. Its schema is at `/docs`:
 curl -H "Authorization: Bearer $YTDLPZ_TOKEN" https://your-server/api/jobs
 ```
 
+### Send a link
+
+`POST /api/jobs/send` downloads a link with a preset, or records it if it's a live or
+upcoming stream. The server checks the link and applies the preset as the download form
+does, so a client only sends the link. It's the only way a send-only token can start a
+download.
+
+```bash
+curl -H "Authorization: Bearer $YTDLPZ_TOKEN" -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/watch/123"}' https://your-server/api/jobs/send
+```
+
+| Field            | Meaning                                                                                                                    |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `url`            | The link.                                                                                                                  |
+| `preset_id`      | A preset's id from `GET /api/presets`. Empty: the default for that kind.                                                   |
+| `whole_playlist` | Required for a playlist or channel. For a video opened from a playlist, downloads the playlist instead of the video alone. |
+
+The response holds the new download (`job`) and the name of the preset used (`preset`).
+
 ## Troubleshooting
 
 - **401 from `/mcp`:** the token is wrong or revoked, or a proxy dropped the header. A
   browser sign-in isn't enough here: `/mcp` only accepts tokens.
 - **401 from `/api/tokens` with a token:** expected. Manage tokens in the web app.
+- **401 from `/mcp` or 403 "This token can only send links":** the token is send-only.
+  Create a full-access token for agents and scripts that need more.
 - **Tools don't appear:** start a new session after adding the server.
 - **"Set whole_playlist":** the link is a playlist or channel. Ask for all of it, or use
   a link to one video.

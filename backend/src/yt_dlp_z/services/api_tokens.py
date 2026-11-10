@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from yt_dlp_z.db.models.api_token import ApiToken
+from yt_dlp_z.db.models.api_token import ApiToken, TokenScope
 from yt_dlp_z.db.models.job import utcnow
 
 # Makes a leaked token recognisable to secret scanners and to people.
@@ -30,10 +30,12 @@ async def list_tokens(session: AsyncSession) -> Sequence[ApiToken]:
     return result.scalars().all()
 
 
-async def create_token(session: AsyncSession, name: str) -> tuple[ApiToken, str]:
+async def create_token(
+    session: AsyncSession, name: str, scope: TokenScope = TokenScope.FULL
+) -> tuple[ApiToken, str]:
     """Returns the saved row and the token itself, which can't be read back later."""
     token = TOKEN_PREFIX + secrets.token_urlsafe(32)
-    row = ApiToken(name=name, token_hash=_hash_token(token))
+    row = ApiToken(name=name, token_hash=_hash_token(token), scope=scope)
     session.add(row)
     try:
         await session.commit()
@@ -43,15 +45,16 @@ async def create_token(session: AsyncSession, name: str) -> tuple[ApiToken, str]
     return row, token
 
 
-async def is_valid_token(session: AsyncSession, token: str) -> bool:
+async def token_scope(session: AsyncSession, token: str) -> TokenScope | None:
+    """The token's scope, or None when it isn't a valid token."""
     result = await session.execute(
         select(ApiToken).where(ApiToken.token_hash == _hash_token(token))
     )
     row = result.scalar_one_or_none()
     if row is None:
-        return False
+        return None
     await _note_use(session, row, utcnow())
-    return True
+    return TokenScope(row.scope)
 
 
 async def _note_use(session: AsyncSession, row: ApiToken, now: datetime) -> None:

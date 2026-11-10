@@ -2,11 +2,15 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, field_serializer
 
+from yt_dlp_z.db.models.api_token import TokenScope
 from yt_dlp_z.schemas.common import Name, as_utc_iso
 
 
 class ApiTokenCreate(BaseModel):
     name: Name
+    # "send": only list presets, check a link and send it (POST /api/jobs/send). For tokens
+    # kept in less trusted places, such as a browser extension.
+    scope: TokenScope = TokenScope.FULL
 
 
 class ApiTokenOut(BaseModel):
@@ -14,6 +18,7 @@ class ApiTokenOut(BaseModel):
 
     id: int
     name: str
+    scope: TokenScope
     created_at: datetime
     last_used_at: datetime | None
 

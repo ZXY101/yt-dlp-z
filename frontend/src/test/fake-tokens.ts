@@ -15,6 +15,7 @@ export const tokenRoutes: Route[] = [
       const token = {
         id: server.apiTokens.length + 1,
         name: String(body.name),
+        scope: body.scope === "send" ? ("send" as const) : ("full" as const),
         created_at: "2026-11-04T10:00:00Z",
         last_used_at: null,
       };

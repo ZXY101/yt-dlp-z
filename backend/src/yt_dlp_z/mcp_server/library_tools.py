@@ -6,7 +6,7 @@ from mcp.types import ToolAnnotations
 from pydantic import Field
 
 from yt_dlp_z.mcp_server.api_client import ApiClient
-from yt_dlp_z.mcp_server.download_plan import find_preset
+from yt_dlp_z.services.jobs.preset_plan import find_preset
 
 READ_ONLY = ToolAnnotations(readOnlyHint=True)
 Changes = Annotated[

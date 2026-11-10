@@ -370,7 +370,7 @@ export interface paths {
         /**
          * Probe
          * @description Asks yt-dlp what the link is, so the form can catch bad links and offer the right
-         *     choices (playlist, recording) before anything is queued.
+         *     choices (playlist, recording) before anything is queued. Recent answers are reused.
          */
         post: operations["probe_api_media_probe_post"];
         delete?: never;
@@ -581,6 +581,29 @@ export interface paths {
          * @description Opens a page through the proxy: does it work, and which IP do sites see.
          */
         post: operations["check_api_proxies__proxy_id__check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Link
+         * @description Downloads a link with a preset, or records it if it's a live or upcoming stream.
+         *
+         *     Applies the preset on the server as the download form does, so a client only sends the
+         *     link. The only way a send-only token can start a download.
+         */
+        post: operations["send_link_api_jobs_send_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -811,6 +834,8 @@ export interface components {
         ApiTokenCreate: {
             /** Name */
             name: string;
+            /** @default full */
+            scope: components["schemas"]["TokenScope"];
         };
         /**
          * ApiTokenCreated
@@ -821,6 +846,7 @@ export interface components {
             id: number;
             /** Name */
             name: string;
+            scope: components["schemas"]["TokenScope"];
             /** Created At */
             created_at: string;
             /** Last Used At */
@@ -834,6 +860,7 @@ export interface components {
             id: number;
             /** Name */
             name: string;
+            scope: components["schemas"]["TokenScope"];
             /** Created At */
             created_at: string;
             /** Last Used At */
@@ -1553,6 +1580,27 @@ export interface components {
              */
             vod_replace: boolean;
         };
+        /**
+         * SendRequest
+         * @description A link to download with a preset; the server works out the rest.
+         */
+        SendRequest: {
+            /** Url */
+            url: string;
+            /** Preset Id */
+            preset_id?: number | null;
+            /**
+             * Whole Playlist
+             * @default false
+             */
+            whole_playlist: boolean;
+        };
+        /** SentLink */
+        SentLink: {
+            job: components["schemas"]["JobOut"];
+            /** Preset */
+            preset: string | null;
+        };
         /** SetupRequest */
         SetupRequest: {
             /** Password */
@@ -1734,6 +1782,11 @@ export interface components {
             /** Deno Available */
             deno_available: boolean;
         };
+        /**
+         * TokenScope
+         * @enum {string}
+         */
+        TokenScope: "full" | "send";
         /**
          * UpdateStatus
          * @description How the last update since the app started went.
@@ -3121,6 +3174,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProxyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_link_api_jobs_send_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SentLink"];
                 };
             };
             /** @description Validation Error */
