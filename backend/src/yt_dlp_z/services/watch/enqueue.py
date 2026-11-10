@@ -106,6 +106,7 @@ async def enqueue_video(
         folders=preset.folders if preset else None,
         file_name=preset.file_name if preset else None,
         media_files=preset.media_files if preset else False,
+        video_folder=preset.video_folder if preset else False,
         live_chat=preset.live_chat if preset else None,
         proxy_mode=preset.proxy_mode if preset else "off",
         subscription_id=subscription.id,

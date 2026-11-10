@@ -53,6 +53,7 @@ async def _schedule_vod(context: JobContext, session: AsyncSession, recording: J
         folders=recording.folders,
         file_name=recording.file_name,
         media_files=recording.media_files,
+        video_folder=recording.video_folder,
         live_chat=recording.live_chat,
         proxy_mode=recording.proxy_mode,
         source_job_id=recording.id,

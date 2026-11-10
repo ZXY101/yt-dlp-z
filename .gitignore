@@ -11,6 +11,8 @@ htmlcov/
 # Node
 node_modules/
 frontend/dist/
+extension/dist/
+extension/*.zip
 playwright-report/
 test-results/
 .playwright/

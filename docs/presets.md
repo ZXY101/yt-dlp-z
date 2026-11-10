@@ -35,8 +35,8 @@ videos, "Audio only" for playlists, and "Live streams" for live streams.
   ([Proxies](proxies.md))
 - **Live chat**: save a finished stream's chat, and maybe a scrolling overlay made from it
   ([Live chat](live-chat.md))
-- **Sub-folders, file name, media-server files**: a folder per channel (with
-  or without season folders), names like `[20261103] Title` or
+- **Sub-folders, file name, folder per video, media-server files**: a folder per
+  channel (with or without season folders), each video in a folder of its own, names like `[20261103] Title` or
   `Channel - S2026E1103 - Title`, thumbnails and `.nfo` files
   ([Folders and media servers](media-server.md))
 

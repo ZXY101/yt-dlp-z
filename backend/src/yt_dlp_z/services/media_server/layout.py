@@ -10,6 +10,10 @@ Three independent choices per preset or download:
   count;
 - media files: a .jpg thumbnail and .nfo next to each video, and the channel's tvshow.nfo
   and artwork, for Jellyfin, Plex and Kodi.
+
+On top of the folders, a video folder can hold each video with the files saved beside it
+(.nfo, thumbnail, subtitles, live chat), named like the video: "Channel/[20261103] Title/
+[20261103] Title.mkv". The channel's tvshow.nfo and artwork stay in the channel folder.
 """
 
 from yt_dlp_z.db.models.job import Job
@@ -35,6 +39,7 @@ FILE_NAMES: dict[FileNaming, str] = {
     "dated_id": f"[{DATE}] %(title).190B [%(id)s].%(ext)s",
     "episode": f"{CHANNEL} - S{YEAR}E%(air_date>%m%d|0000)s - %(title).150B [%(id)s].%(ext)s",
 }
+EXT = ".%(ext)s"
 # What yt-dlp names files when no template is given.
 YTDLP_DEFAULT_NAME = "%(title)s [%(id)s].%(ext)s"
 
@@ -48,12 +53,25 @@ def _user_template(job: Job) -> str | None:
     return template if isinstance(template, str) and template else None
 
 
+def has_layout(job: Job) -> bool:
+    return job.folders is not None or job.file_name is not None or job.video_folder
+
+
+def in_own_folder(name: str) -> str:
+    """ "[x] Title.%(ext)s" → "[x] Title/[x] Title.%(ext)s"; any folders before it are kept."""
+    head, slash, file_template = name.rpartition("/")
+    folder = file_template.removesuffix(EXT)
+    return f"{head}{slash}{folder}/{file_template}"
+
+
 def output_template(job: Job) -> str | None:
     """The file name template the job's files get: the layout's, or the user's own."""
     user = _user_template(job)
-    if job.folders is None and job.file_name is None:
+    if not has_layout(job):
         return user
     name = FILE_NAMES[job.file_name] if job.file_name else (user or YTDLP_DEFAULT_NAME)
+    if job.video_folder:
+        name = in_own_folder(name)
     return f"{FOLDERS[job.folders]}/{name}" if job.folders else name
 
 
@@ -61,9 +79,9 @@ def job_media_args(job: Job) -> list[str]:
     """Options yt-dlp-z adds for the layout. They come after the user's own, so this
     file name template wins over theirs."""
     args: list[str] = []
-    if job.folders is not None or job.file_name is not None or job.media_files:
+    if has_layout(job) or job.media_files:
         args += AIR_DATE_ARGS
-    if job.folders is not None or job.file_name is not None:
+    if has_layout(job):
         args += ["--output", output_template(job) or YTDLP_DEFAULT_NAME]
     if job.media_files:
         args += [

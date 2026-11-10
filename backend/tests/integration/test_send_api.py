@@ -87,3 +87,45 @@ def test_a_link_checked_just_before_is_not_checked_again(
     assert setup_client.post("/api/media/probe", json={"url": url}).status_code == 200
     assert send(setup_client, url)[0] == 201
     assert calls == [url]
+
+
+def jobs_for(client: TestClient, url: str, **extra: object) -> list[dict[str, Any]]:
+    response = client.post("/api/jobs/for-link", json={"url": url, **extra})
+    assert response.status_code == 200
+    jobs: list[dict[str, Any]] = response.json()["jobs"]
+    return jobs
+
+
+def test_a_links_jobs_are_found_however_it_is_written(setup_client: TestClient) -> None:
+    _, sent = send(setup_client, "https://www.youtube.com/watch?v=abc")
+    found = jobs_for(setup_client, "https://youtu.be/abc?si=share")
+    assert [job["id"] for job in found] == [sent["job"]["id"]]
+    assert found[0]["title"] == "Fake video abc"
+    assert "filepath" not in found[0]
+    assert "options" not in found[0]
+    assert jobs_for(setup_client, "https://www.youtube.com/watch?v=other") == []
+
+
+def test_a_video_and_its_playlist_have_separate_jobs(setup_client: TestClient) -> None:
+    url = "https://www.youtube.com/watch?v=abc&list=PLtest"
+    _, whole = send(setup_client, url, whole_playlist=True)
+    assert jobs_for(setup_client, url) == []
+    found = jobs_for(setup_client, url, whole_playlist=True)
+    assert [job["id"] for job in found] == [whole["job"]["id"]]
+
+
+def test_sending_the_same_link_twice_queues_it_once(setup_client: TestClient) -> None:
+    _, first = send(setup_client, "https://www.youtube.com/watch?v=abc")
+    status, again = send(setup_client, "https://youtu.be/abc?si=share")
+    assert status == 201
+    assert again["existing"] is True
+    assert again["job"]["id"] == first["job"]["id"]
+    assert len(setup_client.get("/api/jobs").json()) == 1
+
+
+def test_another_preset_is_another_download(setup_client: TestClient) -> None:
+    audio = preset_named(setup_client, "Audio", options={"--extract-audio": True})
+    _, first = send(setup_client, "https://www.youtube.com/watch?v=abc")
+    _, other = send(setup_client, "https://www.youtube.com/watch?v=abc", preset_id=audio["id"])
+    assert other["existing"] is False
+    assert other["job"]["id"] != first["job"]["id"]

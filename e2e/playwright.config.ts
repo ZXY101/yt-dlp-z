@@ -25,10 +25,12 @@ export default defineConfig({
   projects: [
     {
       name: "desktop",
-      testIgnore: /env-password/,
+      testIgnore: [/env-password/, /extension/],
       use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 800 } },
     },
-    { name: "mobile", testIgnore: /env-password/, use: { ...devices["Pixel 7"] } },
+    { name: "mobile", testIgnore: [/env-password/, /extension/], use: { ...devices["Pixel 7"] } },
+    // Loads the built browser extension into its own Chromium (see fixtures/extension.ts).
+    { name: "extension", testMatch: /extension/ },
     {
       name: "env-password",
       testMatch: /env-password/,

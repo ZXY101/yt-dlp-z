@@ -11,8 +11,8 @@ token**. It's shown once, so copy it then. yt-dlp-z stores only a hash of it.
 
 - **Full access:** everything the web app can do, including deleting downloaded files,
   except create, list or revoke tokens. Agents and the MCP server need this.
-- **Send links only:** list presets, check a link and download it with a preset. Nothing
-  else: no queue, settings, files, MCP or live updates. Use it for tokens kept in less
+- **Send links only:** list presets, check a link, download it with a preset and see that
+  link's progress. Nothing else: no queue, settings, files, MCP or live updates. Use it for tokens kept in less
   trusted places, such as a browser extension or a phone shortcut.
 
 Revoking a token takes effect immediately. Changing the admin password does not revoke
@@ -122,7 +122,18 @@ curl -H "Authorization: Bearer $YTDLPZ_TOKEN" -H "Content-Type: application/json
 | `preset_id`      | A preset's id from `GET /api/presets`. Empty: the default for that kind.                                                   |
 | `whole_playlist` | Required for a playlist or channel. For a video opened from a playlist, downloads the playlist instead of the video alone. |
 
-The response holds the new download (`job`) and the name of the preset used (`preset`).
+The response holds the download (`job`) and the name of the preset used (`preset`). If the
+same link with the same settings is already queued, running or downloaded, nothing new is
+queued: `job` is that download and `existing` is `true`. Another preset, a retry after a
+failure, or a download whose file is gone queues a new one.
+
+### A link's downloads
+
+`POST /api/jobs/for-link` with `{"url": …, "whole_playlist": false}` returns the newest
+downloads of that link (`jobs`, newest first, at most 5), with their status and progress but
+not their files or settings. Links match however they're written (`watch?v=`, `youtu.be`,
+`/shorts/`, tracking parameters). Send-only tokens may call it; the browser extension uses it
+to show a download that's already running.
 
 ## Troubleshooting
 

@@ -128,6 +128,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change Password
+         * @description Sets a new admin password and signs out every other session; this browser stays
+         *     signed in. Needs a browser session: an API token can't change the password.
+         */
+        post: operations["change_password_api_auth_password_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/logout": {
         parameters: {
             query?: never;
@@ -601,9 +622,34 @@ export interface paths {
          * @description Downloads a link with a preset, or records it if it's a live or upcoming stream.
          *
          *     Applies the preset on the server as the download form does, so a client only sends the
-         *     link. The only way a send-only token can start a download.
+         *     link. The only way a send-only token can start a download. If the same link with the same
+         *     settings is already queued, running or downloaded, returns that job (existing: true).
          */
         post: operations["send_link_api_jobs_send_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/for-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Jobs For Link
+         * @description The newest jobs for a link, with their progress, so a client can show a download that is
+         *     already running instead of starting another.
+         *
+         *     Matches the same video, playlist or page however the link is written (tracking
+         *     parameters, youtu.be, shorts). Looks at the most recent 500 jobs.
+         */
+        post: operations["jobs_for_link_api_jobs_for_link_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1002,6 +1048,11 @@ export interface components {
              */
             media_files: boolean;
             /**
+             * Video Folder
+             * @default false
+             */
+            video_folder: boolean;
+            /**
              * Proxy Mode
              * @default off
              * @enum {string}
@@ -1046,6 +1097,8 @@ export interface components {
             file_name: ("title_id" | "dated" | "dated_id" | "episode") | null;
             /** Media Files */
             media_files: boolean;
+            /** Video Folder */
+            video_folder: boolean;
             live_chat: components["schemas"]["LiveChatSettings"] | null;
             /** Chat Status */
             chat_status: ("capturing" | "fetching" | "saved" | "overlay" | "none" | "failed" | "stopped") | null;
@@ -1104,6 +1157,53 @@ export interface components {
         KeepIn: {
             /** Keep */
             keep: boolean;
+        };
+        /**
+         * LinkJob
+         * @description A job's progress, without its files or settings: send-only tokens can read this.
+         */
+        LinkJob: {
+            /** Id */
+            id: number;
+            status: components["schemas"]["JobStatus"];
+            kind: components["schemas"]["JobKind"];
+            /** Title */
+            title: string | null;
+            /** Progress */
+            progress: number | null;
+            /** Downloaded Bytes */
+            downloaded_bytes: number | null;
+            /** Total Bytes */
+            total_bytes: number | null;
+            /** Speed */
+            speed: number | null;
+            /** Eta */
+            eta: number | null;
+            /** Part */
+            part: number | null;
+            /** Scheduled At */
+            scheduled_at: string | null;
+            /** Error */
+            error: string | null;
+            /** Created At */
+            created_at: string | null;
+            /** Finished At */
+            finished_at: string | null;
+        };
+        /** LinkJobs */
+        LinkJobs: {
+            /** Jobs */
+            jobs: components["schemas"]["LinkJob"][];
+        };
+        /** LinkJobsRequest */
+        LinkJobsRequest: {
+            /** Url */
+            url: string;
+            /**
+             * Whole Playlist
+             * @default false
+             */
+            whole_playlist: boolean;
         };
         /**
          * LiveChatSettings
@@ -1347,6 +1447,13 @@ export interface components {
              */
             fixed_share: number;
         };
+        /** PasswordChange */
+        PasswordChange: {
+            /** Current Password */
+            current_password: string;
+            /** New Password */
+            new_password: string;
+        };
         /** PotProviderIn */
         PotProviderIn: {
             /** Url */
@@ -1405,6 +1512,11 @@ export interface components {
              */
             media_files: boolean;
             /**
+             * Video Folder
+             * @default false
+             */
+            video_folder: boolean;
+            /**
              * Proxy Mode
              * @default off
              * @enum {string}
@@ -1453,6 +1565,11 @@ export interface components {
              * @default false
              */
             media_files: boolean;
+            /**
+             * Video Folder
+             * @default false
+             */
+            video_folder: boolean;
             /**
              * Proxy Mode
              * @default off
@@ -1600,6 +1717,11 @@ export interface components {
             job: components["schemas"]["JobOut"];
             /** Preset */
             preset: string | null;
+            /**
+             * Existing
+             * @default false
+             */
+            existing: boolean;
         };
         /** SetupRequest */
         SetupRequest: {
@@ -2103,6 +2225,37 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_password_api_auth_password_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChange"];
             };
         };
         responses: {
@@ -3207,6 +3360,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SentLink"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    jobs_for_link_api_jobs_for_link_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LinkJobsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LinkJobs"];
                 };
             };
             /** @description Validation Error */

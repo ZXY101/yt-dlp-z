@@ -123,3 +123,14 @@ def test_the_download_folder_itself_is_left_alone(tmp_path: Path) -> None:
     delete_job_files(make_job(tmp_path, [video]))
     assert not video.exists()
     assert show.exists()
+
+
+def test_a_video_folder_goes_with_its_video(tmp_path: Path) -> None:
+    channel = tmp_path / "Channel"
+    video, *_ = touch(channel / "Ep [a1]", "Ep [a1].mp4", "Ep [a1].nfo", "Ep [a1].live_chat.json")
+    (other,) = touch(channel / "Ep [b2]", "Ep [b2].mp4")
+    show = touch(channel, "tvshow.nfo", "poster.jpg")
+    assert delete_job_files(make_job(tmp_path, [video])) == 3
+    assert not (channel / "Ep [a1]").exists()
+    assert other.exists()
+    assert all(path.exists() for path in show)

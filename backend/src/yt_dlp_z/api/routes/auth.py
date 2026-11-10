@@ -1,11 +1,17 @@
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 
-from yt_dlp_z.api.deps import Db, State, is_authenticated
+from yt_dlp_z.api.deps import Db, State, is_authenticated, require_browser_session
 from yt_dlp_z.api.session_cookie import clear_session_cookie, set_session_cookie
 from yt_dlp_z.core.config import AuthMode
-from yt_dlp_z.schemas.auth import MIN_PASSWORD_LENGTH, AuthStatus, LoginRequest, SetupRequest
+from yt_dlp_z.schemas.auth import (
+    MIN_PASSWORD_LENGTH,
+    AuthStatus,
+    LoginRequest,
+    PasswordChange,
+    SetupRequest,
+)
 from yt_dlp_z.services import auth_service
 from yt_dlp_z.services.paths import InvalidPathError, prepare_download_dir
 
@@ -36,6 +42,26 @@ async def setup(body: SetupRequest, request: Request, state: State, db: Db) -> R
 @router.post("/login", status_code=status.HTTP_204_NO_CONTENT)
 async def login(body: LoginRequest, request: Request, state: State, db: Db) -> Response:
     await _verify_password(body.password, request, state, db)
+    return await _signed_in_response(request, state, db)
+
+
+@router.post(
+    "/password",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_browser_session)],
+)
+async def change_password(body: PasswordChange, request: Request, state: State, db: Db) -> Response:
+    """Sets a new admin password and signs out every other session; this browser stays
+    signed in. Needs a browser session: an API token can't change the password."""
+    if state.settings.auth_mode is AuthMode.NONE:
+        raise HTTPException(status.HTTP_409_CONFLICT, "This server runs without a password.")
+    if state.settings.admin_password is not None:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "The password is set by YTDLPZ_ADMIN_PASSWORD. Change it there and restart.",
+        )
+    await _verify_password(body.current_password, request, state, db)
+    await auth_service.change_password(db, body.new_password)
     return await _signed_in_response(request, state, db)
 
 

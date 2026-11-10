@@ -27,6 +27,9 @@ def test_a_send_token_can_list_presets_check_and_send(setup_client: TestClient) 
     assert probed.status_code == 200
     sent = setup_client.post("/api/jobs/send", json={"url": VIDEO}, headers=headers)
     assert sent.status_code == 201
+    found = setup_client.post("/api/jobs/for-link", json={"url": VIDEO}, headers=headers)
+    assert found.status_code == 200
+    assert [job["id"] for job in found.json()["jobs"]] == [sent.json()["job"]["id"]]
 
 
 @pytest.mark.parametrize(

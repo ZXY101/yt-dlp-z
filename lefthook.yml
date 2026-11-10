@@ -24,6 +24,10 @@ pre-commit:
       root: "frontend/"
       glob: "*.{ts,tsx}"
       run: npx --no -- tsc -b
+    extension-types:
+      root: "extension/"
+      glob: "*.{ts,mjs}"
+      run: npx --no -- tsc -p .
     e2e-types:
       root: "e2e/"
       glob: "*.ts"
@@ -38,6 +42,9 @@ pre-push:
     frontend-tests:
       root: "frontend/"
       run: npm run test:coverage
+    extension-tests:
+      root: "extension/"
+      run: npm test
 
 commit-msg:
   commands:

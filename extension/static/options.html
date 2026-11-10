@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>yt-dlp-z settings</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="options/main.js"></script>
+  </head>
+  <body class="page">
+    <header class="brand">
+      <img src="icons/icon-48.png" alt="" width="32" height="32" />
+      <h1>Connect to your yt-dlp-z server</h1>
+    </header>
+    <p class="muted">
+      The extension sends links to your own yt-dlp-z server, which does the downloading. Nothing is
+      downloaded in the browser.
+    </p>
+    <form id="connection" class="stack" novalidate>
+      <label class="field">
+        <span>Server address</span>
+        <input
+          id="address"
+          name="address"
+          type="text"
+          inputmode="url"
+          autocomplete="url"
+          spellcheck="false"
+          placeholder="http://192.168.1.5:9742"
+          required
+        />
+      </label>
+      <label class="field">
+        <span>API token</span>
+        <input id="token" name="token" type="password" autocomplete="off" spellcheck="false" />
+        <small class="muted">
+          Make one in yt-dlp-z under
+          <a id="tokens-link" href="#" target="_blank" rel="noreferrer">Settings → API tokens</a>.
+          Choose “Send links only”. Leave empty if your server runs without a login.
+        </small>
+      </label>
+      <details id="headers-section">
+        <summary>Extra headers (for login proxies)</summary>
+        <label class="field">
+          <span>One “Name: value” per line</span>
+          <textarea
+            id="headers"
+            name="headers"
+            rows="3"
+            spellcheck="false"
+            placeholder="CF-Access-Client-Id: …"
+          ></textarea>
+          <small class="muted">
+            Sent with every request, for proxies that accept a fixed credential (Cloudflare Access
+            service tokens, basic auth). Stored on this device like the token.
+          </small>
+        </label>
+      </details>
+      <div class="row">
+        <button id="save" type="submit" class="primary">Test and save</button>
+        <span id="status" role="status" aria-live="polite"></span>
+      </div>
+      <ul id="results" class="results"></ul>
+    </form>
+    <section class="stack section">
+      <h2>Faster checks</h2>
+      <label class="check">
+        <input id="check-ahead" type="checkbox" />
+        <span>
+          Check links ahead on video pages
+          <small class="muted">
+            Sends each video page you stay on for a few seconds to your server, so the toolbar
+            button shows its details at once. Asks to read the address of your tabs. Off by default.
+          </small>
+        </span>
+      </label>
+    </section>
+  </body>
+</html>

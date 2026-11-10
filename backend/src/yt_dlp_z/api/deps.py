@@ -35,6 +35,7 @@ SEND_SCOPE_ROUTES = frozenset(
         ("GET", "/api/presets"),
         ("POST", "/api/media/probe"),
         ("POST", "/api/jobs/send"),
+        ("POST", "/api/jobs/for-link"),
     }
 )
 

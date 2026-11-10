@@ -43,6 +43,8 @@ class JobCreate(BaseModel):
     folders: FolderLayout | None = None
     file_name: FileNaming | None = None
     media_files: bool = False
+    # Each video's files in a folder of their own.
+    video_folder: bool = False
     # Whether and how to pick a proxy from the pool when the download starts.
     proxy_mode: ProxyMode = "off"
     # Save the chat of a finished stream, and maybe build an overlay from it.
@@ -69,6 +71,7 @@ class JobOut(BaseModel):
     folders: FolderLayout | None
     file_name: FileNaming | None
     media_files: bool
+    video_folder: bool
     live_chat: LiveChatSettings | None
     chat_status: ChatStatus | None
     cookie_id: int | None

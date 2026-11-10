@@ -37,6 +37,9 @@ function extrasOf(preset: Preset) {
   if (preset.folders) {
     parts.push("in channel folders");
   }
+  if (preset.video_folder) {
+    parts.push("a folder per video");
+  }
   if (preset.media_files) {
     parts.push("for media servers");
   }

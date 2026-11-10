@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "yt-dlp-z",
+  "short_name": "yt-dlp-z",
+  "version": "0.1.0",
+  "description": "Send the page or a link to your own yt-dlp-z server, which downloads or records it.",
+  "homepage_url": "https://github.com/ZXY101/yt-dlp-z",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Send to yt-dlp-z",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png"
+    }
+  },
+  "background": {
+    "service_worker": "background/main.js",
+    "scripts": ["background/main.js"],
+    "type": "module"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "permissions": ["activeTab", "contextMenus", "notifications", "storage"],
+  "optional_permissions": ["tabs"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "yt-dlp-z@zxy101.github.io",
+      "strict_min_version": "140.0",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    },
+    "gecko_android": {
+      "strict_min_version": "142.0"
+    }
+  }
+}

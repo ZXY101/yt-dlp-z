@@ -4,9 +4,12 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 
 from tests.conftest import TEST_PASSWORD, MakeClient
+from yt_dlp_z.api.session_cookie import SESSION_COOKIE
 from yt_dlp_z.api.state import AppState
 from yt_dlp_z.core.config import AuthMode
 from yt_dlp_z.services.auth_service import change_password
+
+ENV_PASSWORD = "env-password-123"  # noqa: S105  (test fixture)
 
 
 def test_status_before_setup(client: TestClient) -> None:
@@ -81,3 +84,47 @@ def test_auth_mode_none_needs_no_password(make_client: MakeClient, tmp_path: Pat
 def test_login_fails_when_no_password_exists(make_client: MakeClient) -> None:
     client = make_client(auth_mode=AuthMode.NONE)
     assert client.post("/api/auth/login", json={"password": "anything"}).status_code == 401
+
+
+def change_in_ui(client: TestClient, current: str, new: str) -> int:
+    body = {"current_password": current, "new_password": new}
+    return client.post("/api/auth/password", json=body).status_code
+
+
+def test_the_password_can_be_changed_from_the_browser(
+    setup_client: TestClient, make_client: MakeClient
+) -> None:
+    other_device = make_client()
+    other_device.cookies.set(SESSION_COOKIE, setup_client.cookies[SESSION_COOKIE])
+    assert other_device.get("/api/auth/status").json()["authenticated"] is True
+    assert change_in_ui(setup_client, TEST_PASSWORD, "brand-new-password") == 204
+    # This browser stays signed in with a fresh cookie; the other device is signed out.
+    assert setup_client.get("/api/auth/status").json()["authenticated"] is True
+    assert other_device.get("/api/auth/status").json()["authenticated"] is False
+    setup_client.post("/api/auth/logout")
+    assert setup_client.post("/api/auth/login", json={"password": TEST_PASSWORD}).status_code == 401
+    login = setup_client.post("/api/auth/login", json={"password": "brand-new-password"})
+    assert login.status_code == 204
+
+
+def test_changing_the_password_needs_the_current_one(setup_client: TestClient) -> None:
+    assert change_in_ui(setup_client, "wrong-password", "brand-new-password") == 401
+    assert change_in_ui(setup_client, TEST_PASSWORD, "short") == 422
+
+
+def test_an_api_token_cannot_change_the_password(setup_client: TestClient) -> None:
+    created = setup_client.post("/api/tokens", json={"name": "agent"}).json()
+    setup_client.post("/api/auth/logout")
+    body = {"current_password": TEST_PASSWORD, "new_password": "brand-new-password"}
+    headers = {"Authorization": f"Bearer {created['token']}"}
+    response = setup_client.post("/api/auth/password", json=body, headers=headers)
+    assert response.status_code == 401
+
+
+def test_a_password_from_the_environment_is_changed_there(
+    make_client: MakeClient, tmp_path: Path
+) -> None:
+    client = make_client(admin_password=ENV_PASSWORD)
+    setup = {"password": ENV_PASSWORD, "download_dir": str(tmp_path / "d")}
+    assert client.post("/api/auth/setup", json=setup).status_code == 204
+    assert change_in_ui(client, ENV_PASSWORD, "brand-new-password") == 409
