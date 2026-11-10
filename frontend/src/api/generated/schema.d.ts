@@ -370,7 +370,7 @@ export interface paths {
         /**
          * Probe
          * @description Asks yt-dlp what the link is, so the form can catch bad links and offer the right
-         *     choices (playlist, recording) before anything is queued.
+         *     choices (playlist, recording) before anything is queued. Recent answers are reused.
          */
         post: operations["probe_api_media_probe_post"];
         delete?: never;
