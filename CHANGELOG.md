@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.6](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.5...yt-dlp-z-v0.1.6) (2026-11-10)
+
+
+### Features
+
+* **backend:** add send-only API tokens and a send-a-link endpoint ([cae6226](https://github.com/ZXY101/yt-dlp-z/commit/cae6226b764977f3918577ff483e1af0b3a74639))
+* **frontend:** choose full or send-only access for new API tokens ([946094c](https://github.com/ZXY101/yt-dlp-z/commit/946094cdd1e45f96c3cf99867e76a7cb8ff1ad9f))
+* send-only API tokens and a send-a-link endpoint ([5506819](https://github.com/ZXY101/yt-dlp-z/commit/550681935721b3a04b92176baa3bea01525f2d26))
+
 ## [0.1.5](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.4...yt-dlp-z-v0.1.5) (2026-11-06)
 
 
