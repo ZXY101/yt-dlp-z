@@ -1,5 +1,6 @@
 import { ext } from "../lib/browser.ts";
-import { guessLink, isSendable } from "../lib/link-guess.ts";
+import { isSendable } from "../lib/link-guess.ts";
+import { guessPage } from "../lib/page-guess.ts";
 import { askProbe, askRefreshPresets, askSend } from "../lib/messages.ts";
 import {
   loadConnection,
@@ -27,6 +28,9 @@ let state: PopupState;
 let tabId: number | null = null;
 let checking = false;
 let sending = false;
+// The server's check said this link can't be downloaded (unavailable, unsupported…): sending
+// would fail the same way, so Download waits for a check that passes.
+let checkRejected = false;
 // Each check gets a number, so a slow answer to an older question is ignored.
 let latestCheck = 0;
 
@@ -34,6 +38,7 @@ function render(): void {
   showState(state, checking);
   showJob(currentJob(state));
   if (sending) showSending();
+  else if (checkRejected) view.go.disabled = true;
 }
 
 function handleJobs(jobs: LinkJob[]): void {
@@ -54,6 +59,7 @@ async function runCheck(): Promise<void> {
   if (!isSendable(state.guess)) return;
   const check = ++latestCheck;
   checking = true;
+  checkRejected = false;
   state.info = null;
   render();
   refreshJobs(state, handleJobs).catch(console.error);
@@ -61,7 +67,10 @@ async function runCheck(): Promise<void> {
   if (check !== latestCheck) return;
   checking = false;
   if (reply.ok) state.info = reply.value;
-  else showProblem(reply.problem, reply.message, handleFix);
+  else {
+    checkRejected = reply.problem === "rejected";
+    showProblem(reply.problem, reply.message, handleFix);
+  }
   render();
 }
 
@@ -140,12 +149,14 @@ async function activePageTab(): Promise<chrome.tabs.Tab | undefined> {
   return candidates.find((candidate) => !candidate.url?.startsWith(own));
 }
 
-async function initialState(url: string): Promise<PopupState> {
+async function initialState(tab: chrome.tabs.Tab | undefined, serverAddress: string) {
+  const url = tab?.url ?? "";
   const [presets, presetId] = await Promise.all([loadPresets(), loadLastPresetId()]);
   const known = presets.some((preset) => preset.id === presetId);
-  const guess = guessLink(url);
+  const guess = guessPage(url, { serverAddress, title: tab?.title });
   const base = { url, guess, info: null, wholePlaylist: false, jobs: [], anotherCopy: false };
-  return { ...base, presets, presetId: known ? presetId : null };
+  const initial: PopupState = { ...base, presets, presetId: known ? presetId : null };
+  return initial;
 }
 
 function listen(): void {
@@ -164,7 +175,7 @@ async function start(): Promise<void> {
   }
   showQueueLink(connection.address);
   const tab = await activePageTab();
-  state = await initialState(tab?.url ?? "");
+  state = await initialState(tab, connection.address);
   tabId = tab?.id ?? null;
   view.link.hidden = false;
   if (tab) showTab(tab);

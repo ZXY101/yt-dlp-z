@@ -114,6 +114,29 @@ test.describe("browser extension", () => {
     await expect(popup.getByRole("button", { name: "Download" })).toBeHidden();
   });
 
+  test("the popup knows the user's own server", async ({ extension, request, baseURL }) => {
+    await connect(extension, baseURL!, await makeSendToken(request));
+    const popup = await openPopup(extension, `${baseURL}/queue`);
+    await expect(popup.getByText("This is your yt-dlp-z server")).toBeVisible();
+    await expect(popup.getByRole("button", { name: "Download" })).toBeHidden();
+  });
+
+  test("a failed check explains itself, with the details folded away", async ({
+    extension,
+    request,
+    baseURL,
+  }) => {
+    await connect(extension, baseURL!, await makeSendToken(request));
+    const popup = await openPopup(extension, "https://www.youtube.com/watch?v=brokenext");
+    await expect(popup.getByText("Video unavailable", { exact: true })).toBeVisible();
+    await expect(popup.getByText(/Check the page still plays/)).toBeVisible();
+    await expect(popup.getByRole("button", { name: "Download" })).toBeDisabled();
+    const details = popup.getByText("This video is unavailable", { exact: false });
+    await expect(details).toBeHidden();
+    await popup.getByText("Details").click();
+    await expect(details).toBeVisible();
+  });
+
   test("the popup can send a whole playlist instead", async ({ extension, request, baseURL }) => {
     await connect(extension, baseURL!, await makeSendToken(request));
     const popup = await openPopup(extension, VIDEO_IN_PLAYLIST);

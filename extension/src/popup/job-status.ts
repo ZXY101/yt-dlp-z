@@ -1,4 +1,5 @@
 // How a link's existing job reads in the popup. Pure functions, tested without a browser.
+import { explainError } from "../lib/error-help.ts";
 import type { LinkJob } from "../lib/types.ts";
 
 const ACTIVE = new Set(["scheduled", "queued", "running"]);
@@ -76,7 +77,7 @@ const VIEWS: Record<LinkJob["status"], (job: LinkJob) => JobView> = {
   }),
   failed: (job) => ({
     status: "Last try failed",
-    detail: friendlyError(job.error ?? ""),
+    detail: explainError(job.error ?? "").title,
     fraction: null,
   }),
   cancelled: (job) => ({
@@ -88,14 +89,4 @@ const VIEWS: Record<LinkJob["status"], (job: LinkJob) => JobView> = {
 
 export function describeJob(job: LinkJob): JobView {
   return VIEWS[job.status](job);
-}
-
-const MAX_ERROR_LENGTH = 180;
-
-// yt-dlp's errors can run to several lines with the whole link in them.
-export function friendlyError(message: string): string {
-  const text = message.replace(/^ERROR:\s*/i, "").trim();
-  if (/unsupported url/i.test(text)) return "yt-dlp doesn't support this page.";
-  if (text.length <= MAX_ERROR_LENGTH) return text;
-  return `${text.slice(0, MAX_ERROR_LENGTH).trimEnd()}…`;
 }

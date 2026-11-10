@@ -7,6 +7,10 @@ export type LinkGuess =
   | "unsupported"
   // Sites and pages that clearly hold no video (search, mail, YouTube's home feed).
   | "not-media"
+  // The user's own yt-dlp-z dashboard (see page-guess.ts).
+  | "own-server"
+  // localhost and the like: to the server that's itself, not this computer.
+  | "this-computer"
   | "unknown"
   | "video"
   | "video-in-playlist"
@@ -74,8 +78,10 @@ export function guessLink(address: string): LinkGuess {
 }
 
 // Guesses the server is never asked about: the popup says so at once.
+const NEVER_SENT = new Set<LinkGuess>(["unsupported", "not-media", "own-server", "this-computer"]);
+
 export function isSendable(guess: LinkGuess): boolean {
-  return guess !== "unsupported" && guess !== "not-media";
+  return !NEVER_SENT.has(guess);
 }
 
 // Guesses that are whole lists: the menu never sends these, the popup asks first.

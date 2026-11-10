@@ -1,6 +1,9 @@
 // Right-click menu: send a link or the page with the default preset, or with a chosen one.
 import { ext } from "../lib/browser.ts";
-import { guessLink, isSendable, isWholeList } from "../lib/link-guess.ts";
+import { isSendable, isWholeList } from "../lib/link-guess.ts";
+import { guessPage } from "../lib/page-guess.ts";
+import { loadConnection } from "../lib/settings.ts";
+import { helpFor } from "../lib/error-help.ts";
 import { asServerProblem } from "../lib/problems.ts";
 import type { Preset } from "../lib/types.ts";
 import { notify, showBadge } from "./feedback.ts";
@@ -71,24 +74,22 @@ function clickedUrl(info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab
   return info.linkUrl ?? info.pageUrl ?? tab?.url;
 }
 
-export async function handleMenuClick(
-  info: chrome.contextMenus.OnClickData,
-  tab?: chrome.tabs.Tab,
-): Promise<void> {
-  const url = clickedUrl(info, tab);
-  if (!url) return;
-  const menuItemId = String(info.menuItemId);
-  const wholePlaylist = menuItemId.startsWith(WHOLE_PLAYLIST);
-  const guess = guessLink(url);
-  if (!isSendable(guess)) {
-    await notify("Nothing to send", "There's nothing yt-dlp can download on this page.");
-    return;
-  }
+// Why a menu click won't be sent, or null when it will be.
+async function refusal(url: string, info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) {
+  const serverAddress = (await loadConnection())?.address ?? null;
+  // The tab's title only describes the page itself, not a link on it.
+  const title = info.linkUrl ? undefined : tab?.title;
+  const guess = guessPage(url, { serverAddress, title });
+  if (!isSendable(guess)) return ["Nothing to send", "There's nothing yt-dlp can download here."];
+  const wholePlaylist = String(info.menuItemId).startsWith(WHOLE_PLAYLIST);
   if (!wholePlaylist && isWholeList(guess)) {
-    await notify("Use the toolbar button", "Whole playlists and channels are sent from there.");
-    return;
+    return ["Use the toolbar button", "Whole playlists and channels are sent from there."];
   }
-  const tabId = tab?.id ?? null;
+  return null;
+}
+
+async function sendFromMenu(url: string, menuItemId: string, tabId: number | null) {
+  const wholePlaylist = menuItemId.startsWith(WHOLE_PLAYLIST);
   await showBadge(tabId, "busy");
   try {
     const sent = await send({ url, presetId: presetIdOf(menuItemId), wholePlaylist });
@@ -96,6 +97,22 @@ export async function handleMenuClick(
     await notify("Sent to yt-dlp-z", sent.job.title ?? url);
   } catch (error) {
     await showBadge(tabId, "failed");
-    await notify("Couldn't send to yt-dlp-z", forMenu(asServerProblem(error).message));
+    const problem = asServerProblem(error);
+    const help = helpFor(problem.problem, forMenu(problem.message));
+    await notify(`Couldn't send: ${help.title}`, help.tip ?? "");
   }
+}
+
+export async function handleMenuClick(
+  info: chrome.contextMenus.OnClickData,
+  tab?: chrome.tabs.Tab,
+): Promise<void> {
+  const url = clickedUrl(info, tab);
+  if (!url) return;
+  const refused = await refusal(url, info, tab);
+  if (refused) {
+    await notify(refused[0] ?? "", refused[1] ?? "");
+    return;
+  }
+  await sendFromMenu(url, String(info.menuItemId), tab?.id ?? null);
 }

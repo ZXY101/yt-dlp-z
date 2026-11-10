@@ -4,7 +4,8 @@ import type { Problem } from "../lib/problems.ts";
 import { needsSetup } from "../lib/problems.ts";
 import { isSendable } from "../lib/link-guess.ts";
 import type { LinkJob, MediaInfo, Preset } from "../lib/types.ts";
-import { describeJob, friendlyError } from "./job-status.ts";
+import { helpFor, type ErrorHelp } from "../lib/error-help.ts";
+import { describeJob } from "./job-status.ts";
 import {
   actionMode,
   buttonLabel,
@@ -113,13 +114,26 @@ export function showSending(): void {
   view.go.textContent = "Sending…";
 }
 
+function detailsToggle(details: string): HTMLDetailsElement {
+  const toggle = element("details", "error-details");
+  toggle.append(element("summary", "", "Details"), element("pre", "", details));
+  return toggle;
+}
+
+function errorBox(help: ErrorHelp): HTMLElement[] {
+  const parts: HTMLElement[] = [element("div", "error-title", help.title)];
+  if (help.tip) parts.push(element("div", "error-tip", help.tip));
+  if (help.details) parts.push(detailsToggle(help.details));
+  return parts;
+}
+
 export function showProblem(problem: Problem, text: string, onFix: (setup: boolean) => void) {
   const setup = needsSetup(problem);
   const fix = element("button", "link-button", setup ? "Open settings" : "Try again");
   fix.type = "button";
   fix.addEventListener("click", () => onFix(setup));
-  view.message.className = "message error";
-  view.message.replaceChildren(element("span", "", friendlyError(text)), " ", fix);
+  view.message.className = "message error-box";
+  view.message.replaceChildren(...errorBox(helpFor(problem, text)), fix);
 }
 
 export function showNote(text: string): void {

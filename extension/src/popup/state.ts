@@ -86,6 +86,8 @@ function firstTimeLabel(state: PopupState): string {
 const GUESS_LABELS: Record<LinkGuess, string> = {
   unsupported: "Browser pages can't be sent",
   "not-media": "Nothing to download on this page",
+  "own-server": "This is your yt-dlp-z server",
+  "this-computer": "Addresses like localhost would point at the server itself",
   unknown: "Link",
   video: "Video",
   "video-in-playlist": "Video in a playlist",

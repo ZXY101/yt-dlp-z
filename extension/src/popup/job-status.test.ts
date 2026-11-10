@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { LinkJob } from "../lib/types.ts";
-import { describeJob, formatBytes, friendlyError, isActive } from "./job-status.ts";
+import { describeJob, formatBytes, isActive } from "./job-status.ts";
 
 function job(overrides: Partial<LinkJob>): LinkJob {
   return {
@@ -52,18 +52,6 @@ describe("isActive", () => {
     expect(isActive(job({ status: "scheduled" }))).toBe(true);
     expect(isActive(job({ status: "completed" }))).toBe(false);
     expect(isActive(null)).toBe(false);
-  });
-});
-
-describe("friendlyError", () => {
-  it("shortens yt-dlp's unsupported-link error", () => {
-    expect(friendlyError("ERROR: Unsupported URL: https://example.org/a/very/long/link")).toBe(
-      "yt-dlp doesn't support this page.",
-    );
-  });
-
-  it("cuts very long errors", () => {
-    expect(friendlyError("x".repeat(500))).toHaveLength(181);
   });
 });
 
