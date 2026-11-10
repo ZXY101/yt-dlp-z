@@ -4,7 +4,7 @@ import { loadPresets } from "../lib/settings.ts";
 import { startCheckingAhead } from "./check-ahead.ts";
 import { showBadge } from "./feedback.ts";
 import { buildMenus, handleMenuClick, hasMenus } from "./menus.ts";
-import { probe, refreshPresets, send } from "./requests.ts";
+import { jobs, probe, refreshPresets, send } from "./requests.ts";
 
 async function sendFromPopup(message: Extract<Message, { type: "send" }>) {
   await showBadge(message.tabId, "busy");
@@ -26,6 +26,7 @@ async function refreshPresetsAndMenus(): Promise<null> {
 function run(message: Message): Promise<unknown> {
   if (message.type === "probe") return probe(message.request);
   if (message.type === "send") return sendFromPopup(message);
+  if (message.type === "jobs") return jobs(message.request);
   return refreshPresetsAndMenus();
 }
 

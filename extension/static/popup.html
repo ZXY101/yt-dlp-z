@@ -8,6 +8,13 @@
     <script type="module" src="popup/main.js"></script>
   </head>
   <body class="popup">
+    <header class="popup-header">
+      <span class="popup-brand">
+        <img src="icons/icon-16.png" alt="" width="16" height="16" />
+        yt-dlp-z
+      </span>
+      <a id="queue-link" href="#" target="_blank" rel="noreferrer" hidden>Queue ↗</a>
+    </header>
     <section id="setup" class="stack" hidden>
       <p>Connect the extension to your yt-dlp-z server first.</p>
       <button id="open-setup" type="button" class="primary">Set up</button>
@@ -21,15 +28,22 @@
         </div>
       </div>
       <img id="thumbnail" class="thumbnail" alt="" hidden />
-      <div id="scope" class="segmented" role="group" aria-label="What to download" hidden>
-        <button type="button" data-whole="false" aria-pressed="true">This video</button>
-        <button type="button" data-whole="true" aria-pressed="false">Whole playlist</button>
+      <section id="job" class="job" aria-live="polite" hidden>
+        <div id="job-status" class="job-status"></div>
+        <progress id="job-bar" max="1"></progress>
+        <div id="job-detail" class="muted"></div>
+      </section>
+      <div id="choices" class="stack">
+        <div id="scope" class="segmented" role="group" aria-label="What to download" hidden>
+          <button type="button" data-whole="false" aria-pressed="true">This video</button>
+          <button type="button" data-whole="true" aria-pressed="false">Whole playlist</button>
+        </div>
+        <label class="field">
+          <span>Preset</span>
+          <select id="preset"></select>
+        </label>
+        <button id="go" type="button" class="primary">Download</button>
       </div>
-      <label class="field">
-        <span>Preset</span>
-        <select id="preset"></select>
-      </label>
-      <button id="go" type="button" class="primary">Download</button>
       <div id="message" class="message" role="status" aria-live="polite"></div>
     </section>
   </body>

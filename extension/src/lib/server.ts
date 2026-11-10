@@ -1,7 +1,7 @@
 import { mayBeUpgradedToHttps } from "./address.ts";
 import { ServerProblem } from "./problems.ts";
 import type { Connection } from "./settings.ts";
-import type { Health, MediaInfo, Preset, SentLink } from "./types.ts";
+import type { Health, LinkJob, MediaInfo, Preset, SentLink } from "./types.ts";
 import { isAtLeast, MIN_SERVER_VERSION } from "./version.ts";
 
 const QUICK_TIMEOUT_MS = 15_000;
@@ -149,4 +149,27 @@ export function sendLink(connection: Connection, request: SendRequest): Promise<
     body,
     timeoutMs: PROBE_TIMEOUT_MS,
   });
+}
+
+export interface LinkJobsRequest {
+  url: string;
+  wholePlaylist: boolean;
+}
+
+// Servers before 0.1.7 don't have this route: no jobs is the safe answer for them.
+export async function jobsForLink(
+  connection: Connection,
+  request: LinkJobsRequest,
+): Promise<LinkJob[]> {
+  const body = { url: request.url, whole_playlist: request.wholePlaylist };
+  try {
+    const found = await call<{ jobs: LinkJob[] }>(connection, "/api/jobs/for-link", {
+      method: "POST",
+      body,
+    });
+    return found.jobs;
+  } catch (error) {
+    if (error instanceof ServerProblem && error.problem === "too-old") return [];
+    throw error;
+  }
 }

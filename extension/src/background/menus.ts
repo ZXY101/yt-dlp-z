@@ -1,6 +1,6 @@
 // Right-click menu: send a link or the page with the default preset, or with a chosen one.
 import { ext } from "../lib/browser.ts";
-import { guessLink, isWholeList } from "../lib/link-guess.ts";
+import { guessLink, isSendable, isWholeList } from "../lib/link-guess.ts";
 import { asServerProblem } from "../lib/problems.ts";
 import type { Preset } from "../lib/types.ts";
 import { notify, showBadge } from "./feedback.ts";
@@ -79,7 +79,12 @@ export async function handleMenuClick(
   if (!url) return;
   const menuItemId = String(info.menuItemId);
   const wholePlaylist = menuItemId.startsWith(WHOLE_PLAYLIST);
-  if (!wholePlaylist && isWholeList(guessLink(url))) {
+  const guess = guessLink(url);
+  if (!isSendable(guess)) {
+    await notify("Nothing to send", "There's nothing yt-dlp can download on this page.");
+    return;
+  }
+  if (!wholePlaylist && isWholeList(guess)) {
     await notify("Use the toolbar button", "Whole playlists and channels are sent from there.");
     return;
   }

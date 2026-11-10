@@ -19,6 +19,7 @@ function popup(overrides: Partial<PopupState> = {}): PopupState {
     wholePlaylist: false,
     presetId: null,
     presets: [members],
+    jobs: [],
     ...overrides,
   };
 }
@@ -78,6 +79,14 @@ describe("buttonLabel", () => {
     ],
   ])("%#: %s", (state, label) => {
     expect(buttonLabel(state)).toBe(label);
+  });
+});
+
+describe("buttonLabel with a job", () => {
+  it("offers to download again once a job exists", () => {
+    const done = { id: 1, status: "completed", kind: "download" } as PopupState["jobs"][number];
+    expect(buttonLabel(popup({ jobs: [done] }))).toBe("Download again");
+    expect(buttonLabel(popup({ jobs: [{ ...done, status: "failed" }] }))).toBe("Download");
   });
 });
 

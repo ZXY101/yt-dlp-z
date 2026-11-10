@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { guessLink, isVideoPage, isWholeList } from "./link-guess.ts";
+import { guessLink, isSendable, isVideoPage, isWholeList } from "./link-guess.ts";
 
 describe("guessLink", () => {
   it.each([
@@ -16,7 +16,12 @@ describe("guessLink", () => {
     ["https://youtu.be/abc", "video"],
     ["https://youtu.be/abc?list=PL1", "video-in-playlist"],
     ["https://vimeo.com/123456", "video"],
-    ["https://www.youtube.com/feed/subscriptions", "unknown"],
+    ["https://www.youtube.com/feed/subscriptions", "not-media"],
+    ["https://www.youtube.com/", "not-media"],
+    ["https://www.youtube.com/results?search_query=x", "not-media"],
+    ["https://www.google.com/search?q=x", "not-media"],
+    ["https://github.com/yt-dlp/yt-dlp", "not-media"],
+    ["https://www.youtube.com/gaming", "unknown"],
     ["https://example.org/video.mp4", "unknown"],
     ["chrome://extensions", "unsupported"],
     ["about:blank", "unsupported"],
@@ -46,5 +51,13 @@ describe("isVideoPage", () => {
     expect(isVideoPage("https://www.youtube.com/@someone")).toBe(false);
     expect(isVideoPage("https://example.org/")).toBe(false);
     expect(isVideoPage("chrome://newtab")).toBe(false);
+  });
+});
+
+describe("isSendable", () => {
+  it("is false only for pages the server is never asked about", () => {
+    expect(isSendable("unsupported")).toBe(false);
+    expect(isSendable("not-media")).toBe(false);
+    expect(isSendable("unknown")).toBe(true);
   });
 });

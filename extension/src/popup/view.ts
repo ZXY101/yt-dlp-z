@@ -2,13 +2,21 @@
 import { byId, element } from "../lib/dom.ts";
 import type { Problem } from "../lib/problems.ts";
 import { needsSetup } from "../lib/problems.ts";
-import type { MediaInfo, Preset } from "../lib/types.ts";
+import { isSendable } from "../lib/link-guess.ts";
+import type { LinkJob, MediaInfo, Preset } from "../lib/types.ts";
+import { describeJob, friendlyError } from "./job-status.ts";
 import { buttonLabel, describeInfo, guessLabel, presetLabel, type PopupState } from "./state.ts";
 
 export const view = {
   setup: byId("setup"),
   openSetup: byId<HTMLButtonElement>("open-setup"),
   link: byId("link"),
+  queueLink: byId<HTMLAnchorElement>("queue-link"),
+  job: byId("job"),
+  jobStatus: byId("job-status"),
+  jobBar: byId<HTMLProgressElement>("job-bar"),
+  jobDetail: byId("job-detail"),
+  choices: byId("choices"),
   favicon: byId<HTMLImageElement>("favicon"),
   title: byId("title"),
   kind: byId("kind"),
@@ -44,12 +52,32 @@ function showInfo(info: MediaInfo): void {
   }
 }
 
+export function showQueueLink(address: string): void {
+  view.queueLink.href = `${address}/queue`;
+  view.queueLink.hidden = false;
+}
+
+export function showJob(job: LinkJob | null): void {
+  view.job.hidden = job === null;
+  if (!job) return;
+  const { status, detail, fraction } = describeJob(job);
+  view.jobStatus.textContent = status;
+  view.jobDetail.textContent = detail;
+  view.jobBar.hidden = fraction === null;
+  // A progress element without a value shows as busy.
+  if (fraction === undefined || fraction === null) view.jobBar.removeAttribute("value");
+  else view.jobBar.value = fraction;
+}
+
+function kindText(state: PopupState, checking: boolean): string {
+  const label = guessLabel(state.guess);
+  return checking ? `${label} · checking…` : label;
+}
+
 export function showState(state: PopupState, checking: boolean): void {
   if (state.info) showInfo(state.info);
-  else
-    view.kind.textContent = checking
-      ? `${guessLabel(state.guess)} · checking…`
-      : guessLabel(state.guess);
+  else view.kind.textContent = kindText(state, checking);
+  view.choices.hidden = !isSendable(state.guess);
   view.scope.hidden = state.guess !== "video-in-playlist";
   for (const button of view.scope.querySelectorAll("button")) {
     button.setAttribute(
@@ -58,7 +86,6 @@ export function showState(state: PopupState, checking: boolean): void {
     );
   }
   view.go.textContent = buttonLabel(state);
-  view.go.disabled = state.guess === "unsupported";
 }
 
 export function showProblem(problem: Problem, text: string, onFix: (setup: boolean) => void) {
@@ -67,16 +94,12 @@ export function showProblem(problem: Problem, text: string, onFix: (setup: boole
   fix.type = "button";
   fix.addEventListener("click", () => onFix(setup));
   view.message.className = "message error";
-  view.message.replaceChildren(element("span", "", text), " ", fix);
+  view.message.replaceChildren(element("span", "", friendlyError(text)), " ", fix);
 }
 
-export function showSent(title: string, queueUrl: string): void {
-  const link = element("a", "", "Open queue");
-  link.href = queueUrl;
-  link.target = "_blank";
-  link.rel = "noreferrer";
+export function showNote(text: string): void {
   view.message.className = "message ok";
-  view.message.replaceChildren(element("span", "", `✓ Sent: ${title}`), " ", link);
+  view.message.replaceChildren(element("span", "", text));
 }
 
 export function clearMessage(): void {

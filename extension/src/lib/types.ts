@@ -24,9 +24,32 @@ export interface MediaInfo {
   members_only: boolean;
 }
 
+type JobStatus = "scheduled" | "queued" | "running" | "completed" | "failed" | "cancelled";
+
+// A job's progress as POST /api/jobs/for-link returns it (server 0.1.7+).
+export interface LinkJob {
+  id: number;
+  status: JobStatus;
+  kind: "download" | "live";
+  title: string | null;
+  // Percent, 0–100.
+  progress: number | null;
+  downloaded_bytes: number | null;
+  total_bytes: number | null;
+  speed: number | null;
+  eta: number | null;
+  part: number | null;
+  scheduled_at: string | null;
+  error: string | null;
+  created_at: string;
+  finished_at: string | null;
+}
+
 export interface SentLink {
-  job: { id: number; title: string | null; kind: string };
+  job: LinkJob;
   preset: string | null;
+  // Server 0.1.7+: the same link with the same settings was already queued or downloaded.
+  existing?: boolean;
 }
 
 export interface Health {

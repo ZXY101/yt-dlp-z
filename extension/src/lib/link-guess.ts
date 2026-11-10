@@ -3,11 +3,38 @@
 // here are "unknown" until the check answers.
 
 export type LinkGuess =
-  "unsupported" | "unknown" | "video" | "video-in-playlist" | "playlist" | "channel";
+  // Browser and extension pages: not web addresses at all.
+  | "unsupported"
+  // Sites and pages that clearly hold no video (search, mail, YouTube's home feed).
+  | "not-media"
+  | "unknown"
+  | "video"
+  | "video-in-playlist"
+  | "playlist"
+  | "channel";
 
 const YOUTUBE_HOSTS = new Set(["youtube.com", "m.youtube.com", "music.youtube.com"]);
 const CHANNEL_PATH = /^\/(@[^/]+|channel\/[^/]+|c\/[^/]+|user\/[^/]+)(\/|$)/;
 const VIDEO_PATH = /^\/(shorts|live|embed)\/[^/]+/;
+// YouTube pages that list or manage things rather than show one video, playlist or channel.
+const YOUTUBE_NON_MEDIA = /^\/($|feed|results|account|premium|reporthistory|upload|signin|logout)/;
+// Whole sites yt-dlp has nothing to download from. Kept short and obvious on purpose:
+// yt-dlp's generic extractor finds embedded videos on most other pages.
+const NON_MEDIA_HOSTS = new Set([
+  "google.com",
+  "bing.com",
+  "duckduckgo.com",
+  "mail.google.com",
+  "docs.google.com",
+  "calendar.google.com",
+  "github.com",
+  "gitlab.com",
+  "stackoverflow.com",
+  "claude.ai",
+  "chatgpt.com",
+  "chromewebstore.google.com",
+  "addons.mozilla.org",
+]);
 
 function youtubeGuess(url: URL): LinkGuess {
   const params = url.searchParams;
@@ -17,6 +44,7 @@ function youtubeGuess(url: URL): LinkGuess {
   if (url.pathname === "/playlist" && params.has("list")) return "playlist";
   if (VIDEO_PATH.test(url.pathname)) return "video";
   if (CHANNEL_PATH.test(url.pathname)) return "channel";
+  if (YOUTUBE_NON_MEDIA.test(url.pathname)) return "not-media";
   return "unknown";
 }
 
@@ -41,7 +69,13 @@ export function guessLink(address: string): LinkGuess {
   if (YOUTUBE_HOSTS.has(host)) return youtubeGuess(url);
   if (host === "youtu.be") return shortLinkGuess(url);
   if (host === "vimeo.com" && /^\/\d+/.test(url.pathname)) return "video";
+  if (NON_MEDIA_HOSTS.has(host)) return "not-media";
   return "unknown";
+}
+
+// Guesses the server is never asked about: the popup says so at once.
+export function isSendable(guess: LinkGuess): boolean {
+  return guess !== "unsupported" && guess !== "not-media";
 }
 
 // Guesses that are whole lists: the menu never sends these, the popup asks first.

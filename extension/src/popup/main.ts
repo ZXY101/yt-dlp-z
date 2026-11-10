@@ -1,37 +1,43 @@
 import { ext } from "../lib/browser.ts";
-import { guessLink } from "../lib/link-guess.ts";
+import { guessLink, isSendable } from "../lib/link-guess.ts";
 import { askProbe, askRefreshPresets, askSend } from "../lib/messages.ts";
 import {
   loadConnection,
   loadLastPresetId,
   loadPresets,
   saveLastPresetId,
-  type Connection,
 } from "../lib/settings.ts";
-import type { Preset } from "../lib/types.ts";
-import { probeRequestFor, sendRequestFor, type PopupState } from "./state.ts";
+import type { LinkJob, Preset, SentLink } from "../lib/types.ts";
+import { refreshJobs } from "./jobs.ts";
+import { currentJob, probeRequestFor, sendRequestFor, type PopupState } from "./state.ts";
 import {
   clearMessage,
+  showJob,
+  showNote,
   showPresets,
   showProblem,
-  showSent,
+  showQueueLink,
   showState,
   showTab,
   view,
 } from "./view.ts";
 
-const CLOSE_AFTER_MS = 2000;
-
 let state: PopupState;
 let tabId: number | null = null;
 let checking = false;
-let sent = false;
+let sending = false;
 // Each check gets a number, so a slow answer to an older question is ignored.
 let latestCheck = 0;
 
 function render(): void {
   showState(state, checking);
-  if (sent) view.go.disabled = true;
+  showJob(currentJob(state));
+  view.go.disabled = sending;
+}
+
+function handleJobs(jobs: LinkJob[]): void {
+  state.jobs = jobs;
+  render();
 }
 
 function handleFix(setup: boolean): void {
@@ -44,11 +50,12 @@ function handleFix(setup: boolean): void {
 }
 
 async function runCheck(): Promise<void> {
-  if (state.guess === "unsupported") return;
+  if (!isSendable(state.guess)) return;
   const check = ++latestCheck;
   checking = true;
   state.info = null;
   render();
+  refreshJobs(state, handleJobs).catch(console.error);
   const reply = await askProbe(probeRequestFor(state));
   if (check !== latestCheck) return;
   checking = false;
@@ -57,29 +64,28 @@ async function runCheck(): Promise<void> {
   render();
 }
 
-function closeSoon(): void {
-  let timer = setTimeout(() => window.close(), CLOSE_AFTER_MS);
-  document.body.addEventListener("mouseenter", () => clearTimeout(timer));
-  document.body.addEventListener("mouseleave", () => {
-    timer = setTimeout(() => window.close(), CLOSE_AFTER_MS);
-  });
+function sentNote(sent: SentLink): string {
+  if (!sent.existing) return `✓ Sent: ${sent.job.title ?? state.url}`;
+  if (sent.job.status === "completed") return "Already downloaded with these settings.";
+  return "Already in the queue with these settings.";
 }
 
-async function handleGo(connection: Connection): Promise<void> {
+async function handleGo(): Promise<void> {
   clearMessage();
-  view.go.disabled = true;
+  sending = true;
   view.go.textContent = "Sending…";
-  const reply = await askSend(sendRequestFor(state), tabId);
   render();
+  const reply = await askSend(sendRequestFor(state), tabId);
+  sending = false;
   if (!reply.ok) {
+    render();
     showProblem(reply.problem, reply.message, handleFix);
     return;
   }
-  const title = reply.value.job.title ?? state.info?.title ?? state.url;
-  sent = true;
+  state.jobs = [reply.value.job, ...state.jobs.filter((job) => job.id !== reply.value.job.id)];
   render();
-  showSent(title, `${connection.address}/queue`);
-  closeSoon();
+  showNote(sentNote(reply.value));
+  refreshJobs(state, handleJobs).catch(console.error);
 }
 
 function handlePresetChange(): void {
@@ -94,6 +100,7 @@ function handleScopeClick(event: MouseEvent): void {
   const button = (event.target as HTMLElement).closest("button");
   if (!button) return;
   state.wholePlaylist = button.dataset.whole === "true";
+  state.jobs = [];
   runCheck().catch(console.error);
 }
 
@@ -122,32 +129,36 @@ async function activePageTab(): Promise<chrome.tabs.Tab | undefined> {
   return candidates.find((candidate) => !candidate.url?.startsWith(own));
 }
 
+async function initialState(url: string): Promise<PopupState> {
+  const [presets, presetId] = await Promise.all([loadPresets(), loadLastPresetId()]);
+  const known = presets.some((preset) => preset.id === presetId);
+  const guess = guessLink(url);
+  const base = { url, guess, info: null, wholePlaylist: false, jobs: [] };
+  return { ...base, presets, presetId: known ? presetId : null };
+}
+
+function listen(): void {
+  view.go.addEventListener("click", () => handleGo().catch(console.error));
+  view.preset.addEventListener("change", handlePresetChange);
+  view.scope.addEventListener("click", handleScopeClick);
+  followPresetChanges();
+}
+
 async function start(): Promise<void> {
   const connection = await loadConnection();
   if (!connection) {
     showSetup();
     return;
   }
+  showQueueLink(connection.address);
   const tab = await activePageTab();
-  const url = tab?.url ?? "";
-  const [presets, presetId] = await Promise.all([loadPresets(), loadLastPresetId()]);
-  const known = presets.some((preset) => preset.id === presetId);
-  state = {
-    url,
-    guess: guessLink(url),
-    info: null,
-    wholePlaylist: false,
-    presets,
-    presetId: known ? presetId : null,
-  };
+  state = await initialState(tab?.url ?? "");
   tabId = tab?.id ?? null;
   view.link.hidden = false;
   if (tab) showTab(tab);
-  showPresets(presets, state.presetId);
-  view.go.addEventListener("click", () => handleGo(connection).catch(console.error));
-  view.preset.addEventListener("change", handlePresetChange);
-  view.scope.addEventListener("click", handleScopeClick);
-  followPresetChanges();
+  showPresets(state.presets, state.presetId);
+  listen();
+  render();
   runCheck().catch(console.error);
   askRefreshPresets().catch(console.error);
 }

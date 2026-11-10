@@ -1,13 +1,15 @@
 import { ServerProblem } from "../lib/problems.ts";
 import {
   getPresets,
+  jobsForLink,
+  type LinkJobsRequest,
   probeLink,
   sendLink,
   type ProbeRequest,
   type SendRequest,
 } from "../lib/server.ts";
 import { loadConnection, savePresets, type Connection } from "../lib/settings.ts";
-import type { MediaInfo, Preset, SentLink } from "../lib/types.ts";
+import type { LinkJob, MediaInfo, Preset, SentLink } from "../lib/types.ts";
 
 async function requireConnection(): Promise<Connection> {
   const connection = await loadConnection();
@@ -42,4 +44,8 @@ export async function refreshPresets(): Promise<Preset[]> {
   const presets = await getPresets(await requireConnection());
   await savePresets(presets);
   return presets;
+}
+
+export async function jobs(request: LinkJobsRequest): Promise<LinkJob[]> {
+  return jobsForLink(await requireConnection(), request);
 }

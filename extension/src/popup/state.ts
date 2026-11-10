@@ -1,8 +1,8 @@
 // What the popup shows and sends, worked out from the link, the check and the user's choices.
 // Pure functions, so the rules can be tested without a browser.
 import { isWholeList, type LinkGuess } from "../lib/link-guess.ts";
-import type { ProbeRequest, SendRequest } from "../lib/server.ts";
-import type { MediaInfo, Preset } from "../lib/types.ts";
+import type { LinkJobsRequest, ProbeRequest, SendRequest } from "../lib/server.ts";
+import type { LinkJob, MediaInfo, Preset } from "../lib/types.ts";
 
 export interface PopupState {
   url: string;
@@ -13,6 +13,18 @@ export interface PopupState {
   wholePlaylist: boolean;
   presetId: number | null;
   presets: Preset[];
+  // The link's jobs on the server, newest first (empty on servers before 0.1.7).
+  jobs: LinkJob[];
+}
+
+// The job the popup shows: the newest one for this link, if any.
+export function currentJob(state: PopupState): LinkJob | null {
+  return state.jobs[0] ?? null;
+}
+
+function hasUsableJob(state: PopupState): boolean {
+  const job = currentJob(state);
+  return job !== null && job.status !== "failed" && job.status !== "cancelled";
 }
 
 function chosenPreset(state: PopupState): Preset | undefined {
@@ -34,11 +46,23 @@ export function probeRequestFor(state: PopupState): ProbeRequest {
   };
 }
 
+export function jobsRequestFor(state: PopupState): LinkJobsRequest {
+  return { url: state.url, wholePlaylist: isList(state) };
+}
+
 export function sendRequestFor(state: PopupState): SendRequest {
   return { url: state.url, presetId: state.presetId, wholePlaylist: isList(state) };
 }
 
+function againLabel(state: PopupState): string {
+  return currentJob(state)?.kind === "live" ? "Record again" : "Download again";
+}
+
 export function buttonLabel(state: PopupState): string {
+  return hasUsableJob(state) ? againLabel(state) : firstTimeLabel(state);
+}
+
+function firstTimeLabel(state: PopupState): string {
   if (state.info?.kind === "live") return "Record";
   if (state.info?.kind === "upcoming") return "Schedule recording";
   if (!isList(state)) return "Download";
@@ -47,7 +71,8 @@ export function buttonLabel(state: PopupState): string {
 }
 
 const GUESS_LABELS: Record<LinkGuess, string> = {
-  unsupported: "This page can't be sent",
+  unsupported: "Browser pages can't be sent",
+  "not-media": "Nothing to download on this page",
   unknown: "Link",
   video: "Video",
   "video-in-playlist": "Video in a playlist",

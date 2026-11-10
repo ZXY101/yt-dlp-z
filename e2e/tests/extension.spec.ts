@@ -47,19 +47,55 @@ test.describe("browser extension", () => {
     await expect(popup.getByRole("button", { name: "Set up" })).toBeVisible();
   });
 
-  test("the popup checks a video and sends it", async ({ extension, request, baseURL }) => {
+  test("the popup checks a video, sends it and shows its progress", async ({
+    extension,
+    request,
+    baseURL,
+  }) => {
     await connect(extension, baseURL!, await makeSendToken(request));
     const popup = await openPopup(extension, VIDEO);
+    await expect(popup.getByRole("link", { name: "Queue ↗" })).toHaveAttribute(
+      "href",
+      `${baseURL}/queue`,
+    );
     await expect(popup.getByText("Video · 5:00 · Fake channel")).toBeVisible();
     await expect(popup.getByText("Fake video extvideo")).toBeVisible();
     await popup.getByRole("button", { name: "Download" }).click();
     await expect(popup.getByText("✓ Sent: Fake video extvideo")).toBeVisible();
-    await expect(popup.getByRole("link", { name: "Open queue" })).toHaveAttribute(
-      "href",
-      `${baseURL}/queue`,
-    );
+    // The fake download takes a quarter of a second.
+    await expect(popup.getByText("Downloaded ✓")).toBeVisible();
     const jobs = await (await request.get("/api/jobs")).json();
     expect(JSON.stringify(jobs)).toContain("watch?v=extvideo");
+  });
+
+  test("the popup shows a link's earlier download and doesn't queue it twice", async ({
+    extension,
+    request,
+    baseURL,
+  }) => {
+    await connect(extension, baseURL!, await makeSendToken(request));
+    const first = await openPopup(extension, VIDEO);
+    await first.getByRole("button", { name: "Download" }).click();
+    await expect(first.getByText("Downloaded ✓")).toBeVisible();
+    await first.close();
+
+    // The same video, written another way.
+    const again = await openPopup(extension, "https://youtu.be/extvideo?si=share");
+    await expect(again.getByText("Downloaded ✓")).toBeVisible();
+    await again.getByRole("button", { name: "Download again" }).click();
+    await expect(again.getByText("Already downloaded with these settings.")).toBeVisible();
+    expect(await (await request.get("/api/jobs")).json()).toHaveLength(1);
+  });
+
+  test("the popup says at once when a page has nothing to download", async ({
+    extension,
+    request,
+    baseURL,
+  }) => {
+    await connect(extension, baseURL!, await makeSendToken(request));
+    const popup = await openPopup(extension, "https://www.google.com/search?q=cats");
+    await expect(popup.getByText("Nothing to download on this page")).toBeVisible();
+    await expect(popup.getByRole("button", { name: "Download" })).toBeHidden();
   });
 
   test("the popup can send a whole playlist instead", async ({ extension, request, baseURL }) => {
