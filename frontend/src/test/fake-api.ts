@@ -47,6 +47,14 @@ const authRoutes: Route[] = [
       return noContent();
     },
   },
+  {
+    method: "POST",
+    path: /^\/api\/auth\/password$/,
+    handle: (_server, { body }) =>
+      body.current_password === FAKE_PASSWORD
+        ? noContent()
+        : json({ detail: "Incorrect password" }, 401),
+  },
 ];
 
 const routes = [

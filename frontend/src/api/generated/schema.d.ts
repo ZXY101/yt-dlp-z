@@ -128,6 +128,27 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/auth/password": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /**
+     * Change Password
+     * @description Sets a new admin password and signs out every other session; this browser stays
+     *     signed in. Needs a browser session: an API token can't change the password.
+     */
+    post: operations["change_password_api_auth_password_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/auth/logout": {
     parameters: {
       query?: never;
@@ -1427,6 +1448,13 @@ export interface components {
        */
       fixed_share: number;
     };
+    /** PasswordChange */
+    PasswordChange: {
+      /** Current Password */
+      current_password: string;
+      /** New Password */
+      new_password: string;
+    };
     /** PotProviderIn */
     PotProviderIn: {
       /** Url */
@@ -2198,6 +2226,37 @@ export interface operations {
     requestBody: {
       content: {
         "application/json": components["schemas"]["LoginRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  change_password_api_auth_password_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["PasswordChange"];
       };
     };
     responses: {

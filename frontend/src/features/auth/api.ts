@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api, unwrap } from "@/api/client";
-import type { LoginRequest, SetupRequest } from "@/features/auth/types";
+import type { LoginRequest, PasswordChange, SetupRequest } from "@/features/auth/types";
 
 const AUTH_STATUS_KEY = ["auth", "status"] as const;
 
@@ -32,4 +32,10 @@ export function useLogin() {
 
 export function useLogout() {
   return useAuthMutation(() => unwrap(api.POST("/api/auth/logout")));
+}
+
+export function useChangePassword() {
+  return useAuthMutation((body: PasswordChange) =>
+    unwrap(api.POST("/api/auth/password", { body })),
+  );
 }

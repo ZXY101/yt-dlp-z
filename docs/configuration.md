@@ -86,7 +86,9 @@ yt-dlp-z reset-password     # set a new admin password and sign out every sessio
 yt-dlp-z openapi            # print the API schema as JSON
 ```
 
-In Docker: `docker exec -it yt-dlp-z yt-dlp-z reset-password`.
+In Docker: `docker exec -it yt-dlp-z yt-dlp-z reset-password`. If you still know the
+password, change it under **Settings → Password** instead; that signs out every other
+browser and device and keeps you signed in.
 
 ## Volumes (Docker)
 

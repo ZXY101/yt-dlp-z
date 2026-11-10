@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/page-header";
 import { SuccessMessage } from "@/components/success-message";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { PasswordSection } from "@/features/auth";
 import { ProxiesSection } from "@/features/proxies";
 import { useAppSettings, useSaveAppSettings } from "@/features/settings/api";
 import { type LimitField, useLimitField } from "@/hooks/use-limit-field";
@@ -155,6 +156,7 @@ export function SettingsPage() {
       <YtdlpSection />
       <PotSection />
       <TokensSection />
+      <PasswordSection />
     </>
   );
 }
