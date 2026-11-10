@@ -62,6 +62,7 @@ describe("API conversion", () => {
       folders: "season" as const,
       fileName: "episode" as const,
       mediaFiles: true,
+      videoFolder: true,
       proxyMode: "sticky" as const,
       liveChat: { ...CHAT_OFF, mode: "overlay" as const, max_on_screen: 20 },
     };
@@ -74,6 +75,7 @@ describe("API conversion", () => {
       folders: "season",
       file_name: "episode",
       media_files: true,
+      video_folder: true,
       proxy_mode: "sticky",
       live_chat: settings.liveChat,
     });
@@ -86,6 +88,7 @@ describe("API conversion", () => {
       folders: null,
       fileName: null,
       mediaFiles: false,
+      videoFolder: false,
       proxyMode: "off",
       liveChat: CHAT_OFF,
     });

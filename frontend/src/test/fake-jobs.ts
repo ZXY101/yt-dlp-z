@@ -19,6 +19,7 @@ export function makeJob(overrides: Partial<Job> = {}): Job {
     folders: null,
     file_name: null,
     media_files: false,
+    video_folder: false,
     live_chat: null,
     chat_status: null,
     cookie_id: null,
@@ -75,15 +76,22 @@ function recordingFields(recording: JobCreate["recording"]): Partial<Job> {
   };
 }
 
+function layoutFields(body: Record<string, unknown>): Partial<Job> {
+  return {
+    folders: (body.folders as Job["folders"] | undefined) ?? null,
+    file_name: (body.file_name as Job["file_name"] | undefined) ?? null,
+    media_files: (body.media_files as boolean | undefined) ?? false,
+    video_folder: (body.video_folder as boolean | undefined) ?? false,
+  };
+}
+
 function settingsFields(body: Record<string, unknown>): Partial<Job> {
   return {
     options: (body.options as JobOptions | undefined) ?? {},
     extra_args: String(body.extra_args ?? ""),
     output_dir: (body.output_dir as string | null) ?? "/downloads",
     cookie_id: (body.cookie_id as number | null | undefined) ?? null,
-    folders: (body.folders as Job["folders"] | undefined) ?? null,
-    file_name: (body.file_name as Job["file_name"] | undefined) ?? null,
-    media_files: (body.media_files as boolean | undefined) ?? false,
+    ...layoutFields(body),
     proxy_mode: (body.proxy_mode as Job["proxy_mode"] | undefined) ?? "off",
     live_chat: (body.live_chat as Job["live_chat"] | undefined) ?? null,
   };

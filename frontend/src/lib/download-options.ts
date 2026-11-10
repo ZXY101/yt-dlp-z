@@ -20,6 +20,8 @@ export interface DownloadSettings {
   folders: FolderLayout | null;
   fileName: FileNaming | null;
   mediaFiles: boolean;
+  /** Each video's files in a folder of their own. */
+  videoFolder: boolean;
   proxyMode: ProxyMode;
   liveChat: LiveChatSettings;
 }
@@ -32,6 +34,7 @@ export const DEFAULT_SETTINGS: DownloadSettings = {
   folders: null,
   fileName: null,
   mediaFiles: false,
+  videoFolder: false,
   proxyMode: "off",
   liveChat: CHAT_OFF,
 };
@@ -116,8 +119,18 @@ interface ApiDownloadSettings {
   folders?: FolderLayout | null;
   file_name?: FileNaming | null;
   media_files?: boolean;
+  video_folder?: boolean;
   proxy_mode?: ProxyMode;
   live_chat?: LiveChatSettings | null;
+}
+
+function layoutFromApi(source: ApiDownloadSettings) {
+  return {
+    folders: source.folders ?? null,
+    fileName: source.file_name ?? null,
+    mediaFiles: source.media_files ?? false,
+    videoFolder: source.video_folder ?? false,
+  };
 }
 
 export function settingsFromApi(source: ApiDownloadSettings): DownloadSettings {
@@ -126,9 +139,7 @@ export function settingsFromApi(source: ApiDownloadSettings): DownloadSettings {
     extraArgs: source.extra_args ?? "",
     outputDir: source.output_dir ?? "",
     cookieId: source.cookie_id ?? null,
-    folders: source.folders ?? null,
-    fileName: source.file_name ?? null,
-    mediaFiles: source.media_files ?? false,
+    ...layoutFromApi(source),
     proxyMode: source.proxy_mode ?? "off",
     liveChat: source.live_chat ?? CHAT_OFF,
   };
@@ -148,6 +159,7 @@ export function settingsForApi(settings: DownloadSettings) {
     folders: settings.folders,
     file_name: settings.fileName,
     media_files: settings.mediaFiles,
+    video_folder: settings.videoFolder,
     proxy_mode: settings.proxyMode,
     live_chat: settings.liveChat.mode === "off" ? null : settings.liveChat,
   };

@@ -16,7 +16,7 @@ const NAME_CHOICES = [
   { value: "episode", label: "Channel - S2026E1103 - Title [id]" },
 ];
 
-type Layout = Pick<DownloadSettings, "folders" | "fileName" | "mediaFiles">;
+type Layout = Pick<DownloadSettings, "folders" | "fileName" | "mediaFiles" | "videoFolder">;
 
 interface LayoutFieldsProps {
   value: Layout;
@@ -35,6 +35,12 @@ export function LayoutFields({ value, onChange }: LayoutFieldsProps) {
         onValueChange={(choice) =>
           onChange({ ...value, folders: choice ? (choice as FolderLayout) : null })
         }
+      />
+      <CheckboxField
+        label="A folder per video"
+        description="Each video in its own folder with its thumbnail, .nfo, subtitles and chat, named like the video. The channel's artwork stays in the channel folder."
+        checked={value.videoFolder}
+        onCheckedChange={(videoFolder) => onChange({ ...value, videoFolder })}
       />
       <SelectField
         label="File name"

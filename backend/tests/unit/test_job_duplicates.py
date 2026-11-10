@@ -19,6 +19,7 @@ def job(**fields: Any) -> Job:
         "folders": None,
         "file_name": None,
         "media_files": False,
+        "video_folder": False,
         "cookie_id": None,
         "filepath": None,
     }

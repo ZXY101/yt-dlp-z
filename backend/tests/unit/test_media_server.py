@@ -32,7 +32,14 @@ EPISODE_LAYOUT = {"folders": "channel", "file_name": "episode", "media_files": T
 
 def layout_job(**fields: object) -> Job:
     return Job(
-        **{"options": {}, "folders": None, "file_name": None, "media_files": False, **fields}
+        **{
+            "options": {},
+            "folders": None,
+            "file_name": None,
+            "media_files": False,
+            "video_folder": False,
+            **fields,
+        }
     )
 
 
@@ -99,7 +106,7 @@ def test_season_layout_writes_episode_and_show_nfo(tmp_path: Path) -> None:
     video = tmp_path / "Vivi Ch." / "Season 2026" / "episode [abc123].mp4"
     video.parent.mkdir(parents=True)
     video.write_bytes(b"video")
-    write_nfo_files({**INFO, "filepath": str(video)}, "season", tmp_path)
+    write_nfo_files({**INFO, "filepath": str(video)}, ("season", False), tmp_path)
 
     episode = read(video.with_suffix(".nfo"))
     assert episode["title"] == "Morning <stream> & chat"
@@ -118,7 +125,7 @@ def test_the_nfo_uses_the_air_date(tmp_path: Path) -> None:
     video.parent.mkdir(parents=True)
     video.write_bytes(b"video")
     info = {**INFO, "upload_date": "20261016", "air_date": "20261103", "filepath": str(video)}
-    write_nfo_files(info, "channel", tmp_path)
+    write_nfo_files(info, ("channel", False), tmp_path)
 
     episode = read(video.with_suffix(".nfo"))
     assert (episode["season"], episode["episode"], episode["aired"]) == (
@@ -135,7 +142,7 @@ def test_flat_layout_and_existing_show_nfo(tmp_path: Path) -> None:
     (show_dir / "tvshow.nfo").write_text("edited by hand")
     video = show_dir / "clip.mkv"
     info = {"id": "z", "uploader": "Uploader", "upload_date": "bad", "filepath": str(video)}
-    write_nfo_files(info, "channel", tmp_path)
+    write_nfo_files(info, ("channel", False), tmp_path)
 
     episode = read(show_dir / "clip.nfo")
     assert episode["showtitle"] == "Uploader"
@@ -147,13 +154,40 @@ def test_flat_layout_and_existing_show_nfo(tmp_path: Path) -> None:
 def test_files_outside_the_download_folder_are_left_alone(tmp_path: Path) -> None:
     outside = tmp_path / "elsewhere" / "video.mp4"
     outside.parent.mkdir()
-    write_nfo_files({**INFO, "filepath": str(outside)}, "channel", tmp_path / "downloads")
-    write_nfo_files({**INFO}, "channel", tmp_path)
+    write_nfo_files({**INFO, "filepath": str(outside)}, ("channel", False), tmp_path / "downloads")
+    write_nfo_files({**INFO}, ("channel", False), tmp_path)
     assert list(tmp_path.rglob("*.nfo")) == []
 
 
 def test_a_file_at_the_top_gets_no_show_nfo(tmp_path: Path) -> None:
     video = tmp_path / "video.mp4"
-    write_nfo_files({**INFO, "filepath": str(video)}, "channel", tmp_path)
+    write_nfo_files({**INFO, "filepath": str(video)}, ("channel", False), tmp_path)
     assert (tmp_path / "video.nfo").exists()
     assert not (tmp_path / "tvshow.nfo").exists()
+
+
+def test_a_video_folder_holds_each_video_with_its_files() -> None:
+    channel = "%(channel,uploader|Unknown channel)s"
+    dated = "[%(air_date|00000000)s] %(title).200B"
+    job = layout_job(folders="channel", file_name="dated", video_folder=True)
+    assert output_template(job) == f"{channel}/{dated}/{dated}.%(ext)s"
+    alone = layout_job(video_folder=True)
+    assert output_template(alone) == "%(title)s [%(id)s]/%(title)s [%(id)s].%(ext)s"
+
+
+def test_a_recordings_parts_share_its_video_folder() -> None:
+    job = layout_job(folders="channel", file_name="title_id", video_folder=True)
+    args = part_args(job, 2)
+    template = args[args.index("--output") + 1]
+    assert template.endswith("%(title).200B [%(id)s]/%(title).200B [%(id)s] (part 2).%(ext)s")
+
+
+def test_the_show_nfo_sits_above_the_video_folders(tmp_path: Path) -> None:
+    video = tmp_path / "Vivi Ch." / "Season 2026" / "episode [abc123]" / "episode [abc123].mp4"
+    video.parent.mkdir(parents=True)
+    video.write_bytes(b"video")
+    show_dir = write_nfo_files({**INFO, "filepath": str(video)}, ("season", True), tmp_path)
+    assert show_dir == (tmp_path / "Vivi Ch.").resolve()
+    assert video.with_suffix(".nfo").exists()
+    assert (tmp_path / "Vivi Ch." / "tvshow.nfo").exists()
+    assert not (video.parent / "tvshow.nfo").exists()

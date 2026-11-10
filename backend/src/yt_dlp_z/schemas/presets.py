@@ -30,6 +30,8 @@ class PresetIn(BaseModel):
     folders: FolderLayout | None = None
     file_name: FileNaming | None = None
     media_files: bool = False
+    # Each video's files (video, .nfo, thumbnail, subtitles, chat) in a folder of their own.
+    video_folder: bool = False
     proxy_mode: ProxyMode = "off"
     live_chat: LiveChatSettings | None = None
     kind: PresetKind = "any"

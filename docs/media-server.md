@@ -1,7 +1,7 @@
 # Folders, file names and media servers
 
 yt-dlp-z can save downloads in a folder per channel, with the file names you
-pick, and add the thumbnails and `.nfo` metadata media servers read. Three
+pick, and add the thumbnails and `.nfo` metadata media servers read. Four
 settings, per [preset](presets.md) or per download, each independent of the
 others:
 
@@ -9,6 +9,7 @@ others:
 | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | **Sub-folders**        | none · `Channel/` · `Channel/Season 2026/`                                                                                          |
 | **File name**          | yt-dlp default or your template · `Title [id]` · `[20261103] Title` · `[20261103] Title [id]` · `Channel - S2026E1103 - Title [id]` |
+| **A folder per video** | off · each video in a folder of its own, with the files saved beside it                                                             |
 | **Media-server files** | off · thumbnail + `.nfo` per video, `tvshow.nfo` + artwork per channel                                                              |
 
 A chosen file name replaces the file name template. With only a sub-folder
@@ -41,6 +42,35 @@ Or `Channel/` for the same without season folders.
   episodes sort by date.
 - Media-server files add
   `--write-thumbnail --convert-thumbnails jpg --embed-metadata`.
+
+## A folder per video
+
+A video can leave several files beside it: the thumbnail and `.nfo`, subtitles,
+a stream's live chat (`.live_chat.json`) and its overlay (`.ass`). With **A folder
+per video** each video gets a folder named like the file, so a channel folder
+holds one folder per video instead of five files each:
+
+```
+Channel Name/
+├── tvshow.nfo
+├── poster.jpg
+├── fanart.jpg
+├── banner.jpg
+└── [20261104] Video title/
+    ├── [20261104] Video title.mkv
+    ├── [20261104] Video title.nfo
+    ├── [20261104] Video title.jpg
+    ├── [20261104] Video title.ass
+    └── [20261104] Video title.live_chat.json
+```
+
+- The channel's `tvshow.nfo` and artwork stay in the channel folder, where
+  media servers look for them. With season folders, video folders go inside
+  `Season 2026/`.
+- Every part of a long recording goes into the same folder.
+- Deleting a video's files from the queue removes its folder too.
+- Turning it on changes where new downloads go; files already downloaded stay
+  where they are.
 
 ## For a plain archive
 

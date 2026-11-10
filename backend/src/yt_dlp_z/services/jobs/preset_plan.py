@@ -22,6 +22,7 @@ PRESET_JOB_FIELDS = (
     "cookie_id",
     "folders",
     "file_name",
+    "video_folder",
     "media_files",
     "live_chat",
     "proxy_mode",

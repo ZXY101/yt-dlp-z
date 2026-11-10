@@ -10,12 +10,25 @@ from yt_dlp_z.db.models.job import Job, JobKind, JobStatus
 from yt_dlp_z.services.jobs.link_key import job_link_key
 
 # What decides the file a job writes, besides the link.
-SAME_FILE_FIELDS = ("options", "extra_args", "folders", "file_name", "media_files", "cookie_id")
+SAME_FILE_FIELDS = (
+    "options",
+    "extra_args",
+    "folders",
+    "file_name",
+    "media_files",
+    "video_folder",
+    "cookie_id",
+)
 RETRIED_STATUSES = {JobStatus.FAILED, JobStatus.CANCELLED}
 
 
 def _planned_value(planned: dict[str, Any], field: str) -> Any:
-    defaults: dict[str, Any] = {"options": {}, "extra_args": "", "media_files": False}
+    defaults: dict[str, Any] = {
+        "options": {},
+        "extra_args": "",
+        "media_files": False,
+        "video_folder": False,
+    }
     return planned.get(field, defaults.get(field))
 
 

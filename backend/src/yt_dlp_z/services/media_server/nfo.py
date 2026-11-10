@@ -69,8 +69,14 @@ def show_nfo(info: dict[str, Any]) -> ET.Element:
     return root
 
 
+def show_folder(video: Path, folders: FolderLayout | None, video_folder: bool) -> Path:
+    """The channel folder above a video: past its own folder and its season folder."""
+    levels = (1 if folders == "season" else 0) + (1 if video_folder else 0)
+    return video.parents[levels]
+
+
 def write_nfo_files(
-    info: dict[str, Any], folders: FolderLayout | None, download_dir: Path
+    info: dict[str, Any], layout: tuple[FolderLayout | None, bool], download_dir: Path
 ) -> Path | None:
     """The episode's .nfo next to its file, and the channel's tvshow.nfo once.
     Files outside the download folder are left alone. Returns the channel folder, if it
@@ -82,7 +88,8 @@ def write_nfo_files(
     if not video.is_relative_to(download_dir.resolve()):
         return None
     _write(video.with_suffix(".nfo"), episode_nfo(info))
-    show_dir = video.parent.parent if folders == "season" else video.parent
+    folders, video_folder = layout
+    show_dir = show_folder(video, folders, video_folder)
     show_file = show_dir / SHOW_NFO
     inside = show_dir != download_dir.resolve() and show_dir.is_relative_to(download_dir.resolve())
     if not inside:
