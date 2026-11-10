@@ -39,7 +39,7 @@
       "id": "yt-dlp-z@zxy101.github.io",
       "strict_min_version": "140.0",
       "data_collection_permissions": {
-        "required": ["browsingActivity"]
+        "required": ["none"]
       }
     },
     "gecko_android": {
