@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "yt-dlp-z",
   "short_name": "yt-dlp-z",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Send the page or a link to your own yt-dlp-z server, which downloads or records it.",
   "homepage_url": "https://github.com/ZXY101/yt-dlp-z",
   "icons": {
