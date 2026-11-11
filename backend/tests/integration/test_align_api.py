@@ -47,6 +47,7 @@ def test_finds_offsets_and_deletes_the_audio(setup_client: TestClient, tmp_path:
     assert offsets[link("align-30")] == pytest.approx(30.0, abs=0.01)
     assert offsets[link("align-120")] == pytest.approx(-60.0, abs=0.01)
     assert body["confidence"][link("align-30")] >= 0.5
+    assert [stream["stage"] for stream in body["streams"]] == ["ready"] * 3
     assert list(align_dir(tmp_path).iterdir()) == []
 
 
@@ -79,6 +80,11 @@ def test_one_alignment_at_a_time_and_delete_stops_it(
     body = setup_client.get(f"/api/align/{running}").json()
     assert body["state"] == "downloading"
     assert 0 < body["progress"] < 0.9
+    slow, quick = body["streams"]
+    assert slow["url"] == link("align-slow")
+    assert slow["stage"] == "downloading"
+    assert 0 < slow["downloaded"] < 1
+    assert quick["stage"] in {"converting", "ready"}
     busy = setup_client.post("/api/align", json={"urls": [link("a"), link("b")]})
     assert busy.status_code == 409
     assert setup_client.delete(f"/api/align/{running}").status_code == 204

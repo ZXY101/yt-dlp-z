@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, field_validator
 
 from yt_dlp_z.schemas.common import WebUrl
-from yt_dlp_z.services.align.job import AlignState
+from yt_dlp_z.services.align.job import AlignState, StreamStage
 
 
 class AlignRequest(BaseModel):
@@ -23,11 +23,21 @@ class AlignCreated(BaseModel):
     id: str
 
 
+class AlignStreamStatus(BaseModel):
+    url: str
+    # downloading → converting → ready.
+    stage: StreamStage
+    # Download progress (0 to 1).
+    downloaded: float
+
+
 class AlignStatus(BaseModel):
     id: str
     state: AlignState
     # 0 to 1 over the whole job.
     progress: float
+    # Each link's part, in the order they were sent, while it's being fetched.
+    streams: list[AlignStreamStatus]
     # Per link, seconds by which its content is later than the first link's (the first is
     # 0). Add it to a moment in the first recording to find it in this one. null when no
     # reliable match was found (they don't overlap, or the audio is too different).

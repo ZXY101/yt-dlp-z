@@ -15,15 +15,30 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
-from yt_dlp_z.services.align.fetch import FetchError, FetchRequest, Tools, fetch_audio
-from yt_dlp_z.services.align.job import AlignBusyError, AlignJob, AlignState
+from yt_dlp_z.services.align.fetch import (
+    FetchError,
+    FetchHooks,
+    FetchRequest,
+    Tools,
+    fetch_audio,
+)
+from yt_dlp_z.services.align.job import (
+    AlignBusyError,
+    AlignJob,
+    AlignState,
+    StreamProgress,
+    StreamStage,
+)
 from yt_dlp_z.services.align.matching import match_pair
 from yt_dlp_z.services.cookies.store import cookie_path, working_copy
 
 logger = logging.getLogger(__name__)
 
 IDLE_SECONDS = 3600
-SWEEP_SECONDS = 60
+# A running job nobody checks on is abandoned (clients poll every few seconds): stop it then,
+# rather than keep downloading for nobody.
+RUNNING_IDLE_SECONDS = 60
+SWEEP_SECONDS = 15
 # Finished results kept for clients to read; the oldest go first.
 MAX_KEPT = 20
 # Below this share of agreeing windows an offset is reported as not found.
@@ -64,7 +79,7 @@ class AlignManager:
         self._drop_oldest_finished()
         job_id = secrets.token_urlsafe(16)
         job = AlignJob(id=job_id, urls=urls, last_seen=self._config.clock())
-        job.downloads = [0.0] * len(urls)
+        job.streams = [StreamProgress(url) for url in urls]
         job.task = asyncio.create_task(self._run(job, cookie_id))
         self._jobs[job_id] = job
         return job
@@ -87,10 +102,12 @@ class AlignManager:
         return True
 
     async def sweep(self) -> None:
-        """Drops jobs nobody has asked about for IDLE_SECONDS (a closed browser)."""
-        oldest = self._config.clock() - IDLE_SECONDS
+        """Drops jobs nobody has asked about (a closed browser): running ones after
+        RUNNING_IDLE_SECONDS, finished results after IDLE_SECONDS."""
+        now = self._config.clock()
         for job in list(self._jobs.values()):
-            if job.last_seen < oldest:
+            limit = RUNNING_IDLE_SECONDS if job.running else IDLE_SECONDS
+            if job.last_seen < now - limit:
                 await self.delete(job.id)
 
     async def _sweep_forever(self) -> None:
@@ -125,13 +142,19 @@ class AlignManager:
 
     async def _fetch_all(self, job: AlignJob, workdir: Path, cookie_id: int | None) -> list[Path]:
         async def fetch(index: int, url: str) -> Path:
+            stream = job.streams[index]
+
             async def on_progress(progress: float) -> None:
-                job.downloads[index] = progress
+                stream.downloaded = progress
+
+            def on_converting() -> None:
+                stream.stage = StreamStage.CONVERTING
 
             with self._cookies(cookie_id, f"align-{job.id}-{index}") as cookies:
                 request = FetchRequest(url, workdir, f"audio-{index}", cookies)
-                path = await fetch_audio(self._config.tools, request, on_progress)
-            job.downloads[index] = 1.0
+                hooks = FetchHooks(on_progress, on_converting)
+                path = await fetch_audio(self._config.tools, request, hooks)
+            stream.stage = StreamStage.READY
             return path
 
         return list(await asyncio.gather(*(fetch(i, url) for i, url in enumerate(job.urls))))

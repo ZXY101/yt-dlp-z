@@ -7,8 +7,13 @@ import pytest
 from tests.conftest import FAKE_FFMPEG, FAKE_YTDLP
 from yt_dlp_z.services.align import manager as manager_module
 from yt_dlp_z.services.align.fetch import Tools
-from yt_dlp_z.services.align.job import AlignJob, AlignState
-from yt_dlp_z.services.align.manager import IDLE_SECONDS, AlignConfig, AlignManager
+from yt_dlp_z.services.align.job import AlignJob, AlignState, StreamStage
+from yt_dlp_z.services.align.manager import (
+    IDLE_SECONDS,
+    RUNNING_IDLE_SECONDS,
+    AlignConfig,
+    AlignManager,
+)
 
 TOOLS = Tools(ytdlp=[sys.executable, str(FAKE_YTDLP)], ffmpeg=[sys.executable, str(FAKE_FFMPEG)])
 URLS = ["https://www.youtube.com/watch?v=align-60", "https://www.youtube.com/watch?v=align-30"]
@@ -46,6 +51,37 @@ async def test_results_are_dropped_after_an_hour_without_a_check(tmp_path: Path)
     clock.now += IDLE_SECONDS + 1
     await manager.sweep()
     assert manager.get(job.id) is None
+    await manager.stop()
+
+
+async def test_an_abandoned_running_job_is_stopped_after_a_minute(tmp_path: Path) -> None:
+    clock = Clock()
+    manager = make_manager(tmp_path, clock)
+    job = manager.create(["https://x.test/align-slow", URLS[1]], None)
+    await asyncio.sleep(0.3)
+    clock.now += RUNNING_IDLE_SECONDS - 1
+    await manager.sweep()
+    assert manager.get(job.id) is job
+    clock.now += RUNNING_IDLE_SECONDS + 1
+    await manager.sweep()
+    assert manager.get(job.id) is None
+    assert job.task is not None
+    assert job.task.cancelled()
+    await manager.stop()
+
+
+async def test_each_link_reports_its_stage(tmp_path: Path) -> None:
+    manager = make_manager(tmp_path, Clock())
+    job = manager.create(["https://x.test/align-slow", URLS[1]], None)
+    for _ in range(100):
+        await asyncio.sleep(0.05)
+        if job.streams[1].stage is StreamStage.READY:
+            break
+    slow, quick = job.streams
+    assert quick.stage is StreamStage.READY
+    assert slow.stage is StreamStage.DOWNLOADING
+    assert 0 < slow.downloaded < 1
+    assert 0.45 < job.progress < 0.9
     await manager.stop()
 
 

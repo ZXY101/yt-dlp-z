@@ -950,6 +950,8 @@ export interface components {
             state: components["schemas"]["AlignState"];
             /** Progress */
             progress: number;
+            /** Streams */
+            streams: components["schemas"]["AlignStreamStatus"][];
             /** Offsets */
             offsets: {
                 [key: string]: number | null;
@@ -960,6 +962,14 @@ export interface components {
             };
             /** Error */
             error: string | null;
+        };
+        /** AlignStreamStatus */
+        AlignStreamStatus: {
+            /** Url */
+            url: string;
+            stage: components["schemas"]["StreamStage"];
+            /** Downloaded */
+            downloaded: number;
         };
         /** ApiTokenCreate */
         ApiTokenCreate: {
@@ -1815,6 +1825,11 @@ export interface components {
             /** Download Dir */
             download_dir: string;
         };
+        /**
+         * StreamStage
+         * @enum {string}
+         */
+        StreamStage: "downloading" | "converting" | "ready";
         /** SubscriptionCreate */
         SubscriptionCreate: {
             /** Preset Id */

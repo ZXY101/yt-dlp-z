@@ -16,6 +16,9 @@ MAX_SECONDS = 12 * 3600
 # Live streams would never finish downloading, and very long videos cost too much.
 MATCH_FILTER = f"!is_live & duration <= {MAX_SECONDS}"
 NOT_PASSING_HINT = "does not pass filter"
+# The smallest audio-only format over plain HTTPS. On YouTube, plain "worstaudio" can pick an
+# HLS (m3u8) stream fetched in many small pieces: about 3x slower for the same size.
+AUDIO_FORMAT = "worstaudio[protocol=https]/worstaudio/worst"
 
 
 class FetchError(Exception):
@@ -28,6 +31,13 @@ class FetchRequest:
     workdir: Path
     name: str
     cookies: Path | None = None
+
+
+@dataclass(frozen=True)
+class FetchHooks:
+    on_progress: Callable[[float], Awaitable[None]]
+    # The download is done and ffmpeg starts converting it.
+    on_converting: Callable[[], None]
 
 
 @dataclass(frozen=True)
@@ -46,7 +56,7 @@ def download_command(ytdlp: list[str], request: FetchRequest) -> list[str]:
         "never",
         "--no-playlist",
         "--format",
-        "worstaudio/worst",
+        AUDIO_FORMAT,
         "--match-filter",
         MATCH_FILTER,
         "--progress",
@@ -139,11 +149,10 @@ async def _decode(ffmpeg: list[str], source: Path, target: Path) -> None:
         raise FetchError(f"ffmpeg couldn't read the audio: {detail[-1] if detail else 'failed'}")
 
 
-async def fetch_audio(
-    tools: Tools, request: FetchRequest, on_progress: Callable[[float], Awaitable[None]]
-) -> Path:
+async def fetch_audio(tools: Tools, request: FetchRequest, hooks: FetchHooks) -> Path:
     """Returns the PCM file. The downloaded file is gone afterwards, even on errors."""
-    downloaded = await _download(tools.ytdlp, request, on_progress)
+    downloaded = await _download(tools.ytdlp, request, hooks.on_progress)
+    hooks.on_converting()
     target = request.workdir / f"{request.name}.pcm"
     try:
         await _decode(tools.ffmpeg, downloaded, target)

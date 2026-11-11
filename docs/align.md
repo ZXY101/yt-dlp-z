@@ -10,9 +10,10 @@ It's an API only; there is nothing for it in the web UI.
 
 ## How it works
 
-1. yt-dlp downloads the smallest audio-only format of each link (about
-   50 kbit/s, roughly 110 MB for 5 hours) into `<config>/align/`, outside your
-   download folders. Cookies work as for downloads.
+1. yt-dlp downloads the smallest audio-only format of each link over plain
+   HTTPS (about 50 kbit/s, roughly 110 MB for 5 hours) into `<config>/align/`,
+   outside your download folders. Cookies work as for downloads. The links are
+   fetched at the same time.
 2. ffmpeg turns each into 2 kHz mono and the download is deleted.
 3. The server compares loudness over time across the whole overlap to find
    the offset, then checks it on twelve one-minute pieces spread over the
@@ -21,7 +22,8 @@ It's an API only; there is nothing for it in the web UI.
    goes through different codecs and mixes.
 4. The audio is deleted as soon as the job finishes or fails. Only the
    result stays, in memory, until you delete it or nobody has asked for it
-   for an hour.
+   for an hour. A job still running that nobody has checked on for a minute
+   is stopped and its audio deleted (the client went away).
 
 Limits:
 
@@ -31,7 +33,8 @@ Limits:
 - Recordings must overlap by at least a minute.
 - Proxies from the [proxy pool](proxies.md) are not used.
 
-Expect about a minute or two per pair, mostly for the downloads.
+Expect well under a minute for a pair of two-hour streams: about 20 s to
+download, 15 s to convert and a second to compare.
 
 ## The API
 
@@ -56,6 +59,10 @@ optional `cookie_id` (see [Cookies](cookies.md)). Answers `202` with
   "id": "…",
   "state": "done",
   "progress": 1.0,
+  "streams": [
+    { "url": "https://www.youtube.com/watch?v=AAA", "stage": "ready", "downloaded": 1.0 },
+    { "url": "https://www.youtube.com/watch?v=BBB", "stage": "ready", "downloaded": 1.0 }
+  ],
   "offsets": {
     "https://www.youtube.com/watch?v=AAA": 0.0,
     "https://www.youtube.com/watch?v=BBB": 83.42
@@ -70,7 +77,10 @@ optional `cookie_id` (see [Cookies](cookies.md)). Answers `202` with
 
 - `state`: `downloading`, `analysing`, `done` or `failed` (then `error` says
   why).
-- `progress`: 0 to 1.
+- `progress`: 0 to 1 over the whole job.
+- `streams`: each link's part, in the order sent: `stage` is `downloading`,
+  `converting` or `ready`, and `downloaded` the download's progress (0 to 1).
+  Show these so a long download doesn't look stuck.
 - `offsets`: seconds by which each recording's content is later than the
   first's. Here something said 10 minutes into AAA is said 10:00 + 83.42 s
   into BBB. `null` means no reliable match: the recordings don't overlap, or
@@ -80,9 +90,9 @@ optional `cookie_id` (see [Cookies](cookies.md)). Answers `202` with
   streamers wanders by about that much), so fine-tune it on the client if you
   need more.
 
-Poll every few seconds. A result nobody asks for during an hour is dropped
-(and a running job is stopped), so a client that disappears leaves nothing
-behind.
+Poll every few seconds. A running job nobody asks about for a minute is
+stopped, and a finished result nobody asks for during an hour is dropped, so a
+client that disappears leaves nothing behind.
 
 ### Delete: `DELETE /api/align/{id}`
 

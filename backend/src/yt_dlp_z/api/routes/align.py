@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from yt_dlp_z.api.deps import Db, State, require_auth
 from yt_dlp_z.api.validation import check_cookie_id
-from yt_dlp_z.schemas.align import AlignCreated, AlignRequest, AlignStatus
+from yt_dlp_z.schemas.align import AlignCreated, AlignRequest, AlignStatus, AlignStreamStatus
 from yt_dlp_z.services.align.job import AlignBusyError, AlignJob
 
 router = APIRouter(prefix="/api/align", tags=["align"], dependencies=[Depends(require_auth)])
@@ -15,6 +15,12 @@ def _status(job: AlignJob) -> AlignStatus:
         id=job.id,
         state=job.state,
         progress=round(job.progress, 3),
+        streams=[
+            AlignStreamStatus(
+                url=stream.url, stage=stream.stage, downloaded=round(stream.downloaded, 3)
+            )
+            for stream in job.streams
+        ],
         offsets=dict(job.offsets),
         confidence=dict(job.confidence),
         error=job.error,
