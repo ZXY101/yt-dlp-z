@@ -253,6 +253,7 @@ reverse proxies, updating, backups and running it as a service.
 | [Notifications](docs/notifications.md)           | ntfy setup and events                                              |
 | [Browser extension](docs/browser-extension.md)   | Send the page or a link from Chrome or Firefox                     |
 | [API tokens and MCP](docs/mcp.md)                | Let scripts and AI agents use yt-dlp-z                             |
+| [Aligning recordings](docs/align.md)             | API: how far apart recordings of one event are, from their audio   |
 | [yt-dlp and PO tokens](docs/ytdlp.md)            | In-app updates, nightly builds, PO tokens, blocked options         |
 | [Configuration reference](docs/configuration.md) | Environment variables, command line, volumes, security notes       |
 | [Troubleshooting](docs/troubleshooting.md)       | Bot checks, 403 errors, members-only videos, recordings, FAQ       |

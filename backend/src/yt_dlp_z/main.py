@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from yt_dlp_z.api.routes import (
+    align,
     api_tokens,
     app_settings,
     auth,
@@ -33,6 +34,8 @@ from yt_dlp_z.db.engine import create_engine, create_session_factory
 from yt_dlp_z.db.migrate import upgrade_to_head
 from yt_dlp_z.mcp_server.endpoint import mount_mcp
 from yt_dlp_z.schemas.ytdlp import YtdlpPreferences
+from yt_dlp_z.services.align.fetch import Tools
+from yt_dlp_z.services.align.manager import AlignConfig, AlignManager
 from yt_dlp_z.services.app_settings import (
     get_max_concurrent_downloads,
     get_max_concurrent_recordings,
@@ -66,9 +69,11 @@ async def _start_services(state: AppState) -> None:
     state.update_checker.start()
     await state.pot.start()
     state.retention.start()
+    state.align.start()
 
 
 async def _stop_services(state: AppState) -> None:
+    await state.align.stop()
     await state.retention.stop()
     await state.pot.stop()
     await state.update_checker.stop()
@@ -77,6 +82,13 @@ async def _stop_services(state: AppState) -> None:
     await state.live.stop()
     await state.jobs.stop()
     await state.notifier.stop()
+
+
+def _align_manager(settings: Settings) -> AlignManager:
+    tools = Tools(ytdlp=settings.ytdlp_command, ffmpeg=settings.ffmpeg_command)
+    # Absolute, because yt-dlp reports the saved file's absolute path.
+    root = settings.align_dir.resolve()
+    return AlignManager(AlignConfig(root=root, config_dir=settings.config_dir, tools=tools))
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -135,6 +147,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             notifier=notifier,
             pot=pot_provider,
             retention=RetentionSweeper(job_context),
+            align=_align_manager(settings),
         )
         if settings.admin_password and settings.auth_mode is AuthMode.PASSWORD:
             async with session_factory() as session:
@@ -149,6 +162,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(title="yt-dlp-z", lifespan=lifespan)
     app.include_router(health.router)
     for module in (
+        align,
         api_tokens,
         app_settings,
         auth,

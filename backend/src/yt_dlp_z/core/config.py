@@ -48,6 +48,8 @@ class Settings(BaseSettings):
         "-m",
         "yt_dlp_z.services.proxies.check_script",
     ]
+    # Command that runs ffmpeg for link alignment (/api/align). Tests swap in a stub.
+    ffmpeg_command: list[str] = ["ffmpeg"]
     # Channel feed polled for new uploads. {channel_id} is replaced. Tests point it elsewhere.
     youtube_feed_url: str = "https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
     # Enables /api/test/* endpoints used by the E2E suite. Never set in production.
@@ -65,6 +67,11 @@ class Settings(BaseSettings):
     def plugins_dir(self) -> Path:
         """yt-dlp plugins the app installs (the PO token plugin)."""
         return self.config_dir / "plugins"
+
+    @property
+    def align_dir(self) -> Path:
+        """Temporary audio for link alignment, wiped at every start and stop."""
+        return self.config_dir / "align"
 
     @property
     def secret_key_path(self) -> Path:

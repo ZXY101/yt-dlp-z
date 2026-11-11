@@ -21,6 +21,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/align": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Alignment
+         * @description Finds how far apart 2 to 4 recordings of the same event are, from their audio, in the
+         *     background. The server downloads a small audio-only copy of each, compares them and
+         *     deletes them again; nothing is kept. One alignment runs at a time.
+         */
+        post: operations["start_alignment_api_align_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/align/{align_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Alignment
+         * @description The alignment's progress and, once done, the offsets. Results are dropped after an
+         *     hour without a check.
+         */
+        get: operations["get_alignment_api_align__align_id__get"];
+        put?: never;
+        post?: never;
+        /**
+         * Delete Alignment
+         * @description Stops the alignment if it's running and deletes its audio and result.
+         */
+        delete: operations["delete_alignment_api_align__align_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tokens": {
         parameters: {
             query?: never;
@@ -876,6 +923,44 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AlignCreated */
+        AlignCreated: {
+            /** Id */
+            id: string;
+        };
+        /**
+         * AlignRequest
+         * @description Recordings of the same event (collab streams) to line up against the first one.
+         */
+        AlignRequest: {
+            /** Urls */
+            urls: string[];
+            /** Cookie Id */
+            cookie_id?: number | null;
+        };
+        /**
+         * AlignState
+         * @enum {string}
+         */
+        AlignState: "downloading" | "analysing" | "done" | "failed";
+        /** AlignStatus */
+        AlignStatus: {
+            /** Id */
+            id: string;
+            state: components["schemas"]["AlignState"];
+            /** Progress */
+            progress: number;
+            /** Offsets */
+            offsets: {
+                [key: string]: number | null;
+            };
+            /** Confidence */
+            confidence: {
+                [key: string]: number;
+            };
+            /** Error */
+            error: string | null;
+        };
         /** ApiTokenCreate */
         ApiTokenCreate: {
             /** Name */
@@ -2025,6 +2110,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
+    start_alignment_api_align_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AlignRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlignCreated"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_alignment_api_align__align_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                align_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlignStatus"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_alignment_api_align__align_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                align_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
