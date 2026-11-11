@@ -1,28 +1,36 @@
 import { ext } from "../lib/browser.ts";
 import { byId } from "../lib/dom.ts";
-import { loadCheckAhead, saveCheckAhead, TABS_PERMISSION } from "../lib/settings.ts";
+import {
+  checkAheadRequest,
+  loadCheckAhead,
+  type Permissions,
+  saveCheckAhead,
+} from "../lib/settings.ts";
 
 const toggle = byId<HTMLInputElement>("check-ahead");
 
-async function handleChange(): Promise<void> {
+async function handleChange(wanted: Permissions): Promise<void> {
   if (!toggle.checked) {
     await saveCheckAhead(false);
-    await ext.permissions.remove(TABS_PERMISSION);
+    await ext.permissions.remove(wanted);
     return;
   }
-  // The browser asks the user; the change event still counts as their action.
-  const granted = await ext.permissions.request(TABS_PERMISSION);
+  // Called before any other await, so the browser still counts the click as the user's
+  // action and shows its prompt (tabs and, on Firefox, sending browsing activity).
+  const granted = await ext.permissions.request(wanted);
   toggle.checked = granted;
   await saveCheckAhead(granted);
 }
 
 export async function setUpCheckAhead(): Promise<void> {
-  const [wanted, granted] = await Promise.all([
+  // Worked out up front: an await before permissions.request() would lose the user's click.
+  const wanted = await checkAheadRequest();
+  const [enabled, granted] = await Promise.all([
     loadCheckAhead(),
-    ext.permissions.contains(TABS_PERMISSION),
+    ext.permissions.contains(wanted),
   ]);
-  toggle.checked = wanted && granted;
+  toggle.checked = enabled && granted;
   toggle.addEventListener("change", () => {
-    handleChange().catch(console.error);
+    handleChange(wanted).catch(console.error);
   });
 }
