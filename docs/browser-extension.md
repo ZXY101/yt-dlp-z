@@ -88,9 +88,11 @@ when you stay on a video page for about three seconds, the extension asks your s
 check it, and the popup later reads the answer from the server's cache.
 
 It's off by default because it sends the address of every video page you stay on to your
-server, and it needs permission to read the address of your tabs, which the browser asks
-for when you switch it on. Only the active tab is checked, one page at a time, and pages
-you leave within three seconds are skipped. Switching it off gives the permission back.
+server without a click. Switching it on asks the browser for permission to read the address
+of your tabs and, in Firefox, for your consent to send browsing activity (Firefox's name for
+page addresses; they go only to your own server). Only the active tab is checked, one page at
+a time, and pages you leave within three seconds are skipped. Switching it off gives both
+back.
 
 ## Phones
 
@@ -113,8 +115,11 @@ target (Share → yt-dlp-z) is planned.
 | Notifications                   | Say whether a right-click send worked.                       |
 | Storage                         | Keep the address, token and presets on this device.          |
 | Tabs (optional)                 | Only for **Check links ahead**, asked when you switch it on. |
+| Browsing activity (optional)    | Firefox only, for **Check links ahead**, asked with Tabs.    |
 
-The extension has no content scripts, so it can't read or change the pages you visit.
+The extension has no content scripts, so it can't read or change the pages you visit. Firefox
+shows "no data collection" at install: sending the page you click is the extension's job, and
+the one feature that sends pages without a click asks first.
 See the [privacy policy](browser-extension-privacy.md).
 
 ## Troubleshooting
