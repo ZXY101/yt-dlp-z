@@ -53,8 +53,27 @@ export async function saveLastPresetId(lastPresetId: number | null): Promise<voi
   await ext.storage.local.set({ lastPresetId });
 }
 
-// The optional permission "check links ahead" needs, to see tab addresses.
-export const TABS_PERMISSION: chrome.permissions.Permissions = { permissions: ["tabs"] };
+// Firefox 140+ (Android 142+) also has data collection permissions, which @types/chrome lacks.
+export interface Permissions extends chrome.permissions.Permissions {
+  data_collection?: string[];
+}
+
+// Firefox's built-in data consent is there when getAll() reports a data_collection list.
+export function hasDataConsent(granted: Permissions): boolean {
+  return Array.isArray(granted.data_collection);
+}
+
+// What "check links ahead" needs: "tabs" to see tab addresses and, where the browser has data
+// consent, "browsingActivity", because it sends the pages you stay on to your server without
+// a click. The manifest lists both as optional, so nothing is asked at install.
+export function checkAheadPermissions(dataConsent: boolean): Permissions {
+  const tabs: Permissions = { permissions: ["tabs"] };
+  return dataConsent ? { ...tabs, data_collection: ["browsingActivity"] } : tabs;
+}
+
+export async function checkAheadRequest(): Promise<Permissions> {
+  return checkAheadPermissions(hasDataConsent(await ext.permissions.getAll()));
+}
 
 // Off unless the user switches it on: it sends every video page they open to their server.
 export async function loadCheckAhead(): Promise<boolean> {

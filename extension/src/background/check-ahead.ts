@@ -1,10 +1,15 @@
 // "Check links ahead": after a few seconds on a video page, ask the server to check it, so the
 // popup answers from the server's cache at once. Opt-in, and needs the optional "tabs"
-// permission to see tab addresses.
+// permission to see tab addresses plus, on Firefox, consent to send browsing activity.
 import { ext } from "../lib/browser.ts";
 import { guessLink, isVideoPage } from "../lib/link-guess.ts";
 import type { ProbeRequest } from "../lib/server.ts";
-import { loadCheckAhead, loadLastPresetId, loadPresets, TABS_PERMISSION } from "../lib/settings.ts";
+import {
+  checkAheadRequest,
+  loadCheckAhead,
+  loadLastPresetId,
+  loadPresets,
+} from "../lib/settings.ts";
 import { probe } from "./requests.ts";
 
 const DELAY_MS = 3000;
@@ -13,7 +18,7 @@ let timer: ReturnType<typeof setTimeout> | undefined;
 let running = false;
 
 async function isEnabled(): Promise<boolean> {
-  return (await loadCheckAhead()) && (await ext.permissions.contains(TABS_PERMISSION));
+  return (await loadCheckAhead()) && (await ext.permissions.contains(await checkAheadRequest()));
 }
 
 // The same request the popup makes when it opens, so it finds this check in the cache.

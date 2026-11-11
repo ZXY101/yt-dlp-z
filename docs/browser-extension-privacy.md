@@ -1,6 +1,6 @@
 # Privacy policy: yt-dlp-z browser extension
 
-_Last updated: 2026-11-10_
+_Last updated: 2026-11-11_
 
 The yt-dlp-z browser extension is a companion for a yt-dlp-z server that **you** run. It has
 no servers of its own, no analytics and no tracking.
@@ -23,7 +23,9 @@ Only to the server address you entered:
 - the address of the page or link when you click the toolbar button or a right-click item,
   so your server can check it and download or record it;
 - with **Check links ahead** switched on (off by default): the address of each video page you
-  stay on for about three seconds, so your server can check it ahead of time;
+  stay on for about three seconds, so your server can check it ahead of time. Switching it on
+  asks for your consent first (in Firefox, the browser's own "browsing activity" prompt), and
+  switching it off withdraws it;
 - your token and extra headers, with every request, so your server knows it's you.
 
 Nothing is sent to the extension's authors or to any third party. The extension doesn't read
