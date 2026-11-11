@@ -5,10 +5,9 @@ import numpy as np
 from numpy.typing import NDArray
 
 Signal = NDArray[np.floating]
-# Partial whitening (PHAT-beta). Full PHAT (1.0) is sharpest on raw audio but noisy on
-# loudness envelopes, which carry little detail per value.
+# Partial whitening (PHAT-beta): sharpens the peak without the noise full PHAT (1.0)
+# gives on loudness envelopes, which carry little detail per value.
 ENVELOPE_WEIGHT = 0.7
-AUDIO_WEIGHT = 1.0
 EPSILON = 1e-12
 
 

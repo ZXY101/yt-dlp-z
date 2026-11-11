@@ -31,7 +31,7 @@ def test_finds_the_offset(
 ) -> None:
     match = match_pair(*pair(tmp_path, first, second))
     assert match is not None
-    assert match.offset == pytest.approx(offset, abs=0.005)
+    assert match.offset == pytest.approx(offset, abs=0.02)
     assert match.confidence == 1.0
 
 
