@@ -39,6 +39,9 @@ video as an ended stream, or as not a stream for ...plainvideo... URLs.
 waiting for the stream and, like real yt-dlp, treat SIGINT as "check again" (only SIGTERM
 stops them). ...gaps... recordings save the file but exit with yt-dlp's "Did not get any
 data blocks" error, like a stream whose last fragments are gone when it ends.
+With --match-filter (alignment downloads) ...live... and ...toolong... ids are skipped, like
+videos the filter refuses. A --format starting with worstaudio (alignment) saves the video id
+as the file's content, which the fake ffmpeg (fake_ffmpeg.py) turns into audio.
 """
 
 import json
@@ -405,6 +408,9 @@ def main() -> int:
     if any("blocked" in proxy for proxy in values_of(args, "--proxy")):
         emit(f"ERROR: [youtube] {video_id}: Sign in to confirm you're not a bot")
         return 1
+    if "--match-filter" in args and ("live" in video_id or "toolong" in video_id):
+        emit(f"[download] {title} does not pass filter ({values_of(args, '--match-filter')[0]})")
+        return 0
     if "stubborn" in url:
         signal.signal(signal.SIGTERM, signal.SIG_IGN)
     steps, delay = (600, 0.1) if "slow" in url or "stubborn" in url else (5, 0.05)
@@ -425,7 +431,8 @@ def main() -> int:
 
     target = home / output_name(args, title, video_id)
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_bytes(b"fake video")
+    audio_only = any(f.startswith("worstaudio") for f in values_of(args, "--format"))
+    target.write_bytes(video_id.encode() if audio_only else b"fake video")
     if "--write-thumbnail" in args:
         target.with_suffix(".jpg").write_bytes(b"fake thumbnail")
     emit(PROGRESS + json.dumps({"status": "finished", "downloaded_bytes": TOTAL_BYTES}))

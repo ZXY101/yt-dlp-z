@@ -9,7 +9,7 @@ command-line flags. Flags win over environment variables.
 | ---------------------------------- | --------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | `YTDLPZ_HOST`                      | `127.0.0.1`                 | `0.0.0.0`              | Address to listen on                                                                                                |
 | `YTDLPZ_PORT`                      | `9742`                      | `9742`                 | Port to listen on                                                                                                   |
-| `YTDLPZ_CONFIG_DIR`                | your user data folder¹      | `/config`              | Database, secret key, job logs and uploaded cookies                                                                 |
+| `YTDLPZ_CONFIG_DIR`                | your user data folder¹      | `/config`              | Database, secret key, job logs, uploaded cookies and temporary [alignment](align.md) audio                          |
 | `YTDLPZ_DEFAULT_DOWNLOAD_DIR`      | `~/Downloads/yt-dlp-z`      | `/downloads`           | Suggested download folder in first-run setup                                                                        |
 | `YTDLPZ_AUTH_MODE`                 | `password`                  | `password`             | `password`, or `none` to turn off login. **Only use `none` behind a proxy that handles login.**                     |
 | `YTDLPZ_ADMIN_PASSWORD`            | unset                       | unset                  | Sets the admin password up front (see below)                                                                        |
@@ -22,6 +22,7 @@ command-line flags. Flags win over environment variables.
 | `YTDLPZ_YTDLP_COMMAND`             | the bundled yt-dlp          | the bundled yt-dlp     | Command that runs yt-dlp, as a JSON list (mainly for tests)                                                         |
 | `YTDLPZ_YTDLP_PIP_COMMAND`         | the app's own pip           | the app's own pip      | pip used for yt-dlp updates, as a JSON list (only for tests)                                                        |
 | `YTDLPZ_PROXY_CHECK_COMMAND`       | the app's own check         | the app's own check    | Runs a proxy's Test, reading the address on stdin, as a JSON list (only for tests)                                  |
+| `YTDLPZ_FFMPEG_COMMAND`            | `["ffmpeg"]`                | `["ffmpeg"]`           | Command that runs ffmpeg for [alignment](align.md), as a JSON list (mainly for tests)                               |
 | `YTDLPZ_YOUTUBE_FEED_URL`          | YouTube's channel feed      | YouTube's channel feed | Feed polled for new uploads; `{channel_id}` is filled in (only for tests)                                           |
 | `YTDLPZ_FRONTEND_DIST`             | `frontend/dist` in the repo | `/app/frontend`        | Folder with the built web UI                                                                                        |
 
