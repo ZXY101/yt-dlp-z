@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.9](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.8...yt-dlp-z-v0.1.9) (2026-11-11)
+
+
+### Features
+
+* **backend:** align API for recordings of the same event ([b96326e](https://github.com/ZXY101/yt-dlp-z/commit/b96326e77ab4015fe98765902dae3afea8c13872))
+* **backend:** align API for recordings of the same event ([f879ee3](https://github.com/ZXY101/yt-dlp-z/commit/f879ee3e0f61a10f9117bd8435c2469ce182a3d8))
+* **backend:** faster align downloads, per-link stages, stop abandoned jobs ([a26a121](https://github.com/ZXY101/yt-dlp-z/commit/a26a121122be9cd0e8124a72ab7cfb523f0cc8e8))
+
+
+### Bug Fixes
+
+* **backend:** check align offsets on loudness, not waveforms ([2356324](https://github.com/ZXY101/yt-dlp-z/commit/2356324ed60370d5d84a5a7aeeb7dd848abd3b63))
+
 ## [0.1.8](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.7...yt-dlp-z-v0.1.8) (2026-11-11)
 
 
