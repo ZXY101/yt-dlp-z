@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.7...yt-dlp-z-v0.1.8) (2026-11-11)
+
+
+### Features
+
+* **extension:** browsing-activity consent for check links ahead ([4d930e3](https://github.com/ZXY101/yt-dlp-z/commit/4d930e3c68b89661dadf5fe96acf8554b228cd49))
+
 ## [0.1.7](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.6...yt-dlp-z-v0.1.7) (2026-11-10)
 
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1](https://github.com/ZXY101/yt-dlp-z/compare/extension-v0.1.0...extension-v0.1.1) (2026-11-11)
+
+
+### Features
+
+* **extension:** ask Firefox's browsing-activity consent for check links ahead ([5500dae](https://github.com/ZXY101/yt-dlp-z/commit/5500dae618b85d48a571c3afa07e4f14d7ec348a))
+* **extension:** browsing-activity consent for check links ahead ([4d930e3](https://github.com/ZXY101/yt-dlp-z/commit/4d930e3c68b89661dadf5fe96acf8554b228cd49))
+
 ## 0.1.0 (2026-11-10)
 
 
