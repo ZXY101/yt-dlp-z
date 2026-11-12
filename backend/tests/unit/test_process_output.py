@@ -1,4 +1,7 @@
 import asyncio
+import contextlib
+import os
+import sys
 from pathlib import Path
 
 from yt_dlp_z.services.jobs.process import ProcessHooks, run_ytdlp
@@ -26,3 +29,28 @@ def test_carriage_returns_end_lines_too(tmp_path: Path) -> None:
     sizes = [update.downloaded_bytes for update in updates if isinstance(update, ProgressUpdate)]
     assert sizes == [1024, 2048]
     assert (tmp_path / "job.log").read_text() == "done\n"
+
+
+async def test_cancelling_after_the_output_ends_still_stops_ytdlp(tmp_path: Path) -> None:
+    """Cancelled while waiting for yt-dlp to exit (its output already closed), e.g. because
+    another align link failed: the process must still be stopped, not left unreaped."""
+    started: list[asyncio.subprocess.Process] = []
+
+    async def ignore(_update: Update) -> None:
+        return None
+
+    closes_output_then_lingers = "import os, time; os.close(1); os.close(2); time.sleep(30)"
+    hooks = ProcessHooks(on_update=ignore, on_start=started.append)
+    command = [sys.executable, "-c", closes_output_then_lingers]
+    task = asyncio.create_task(run_ytdlp(command, tmp_path / "log.txt", hooks))
+    await asyncio.sleep(1)
+    task.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await task
+    process = started[0]
+    assert process.returncode is not None
+    try:
+        os.kill(process.pid, 0)
+    except ProcessLookupError:
+        return
+    raise AssertionError("yt-dlp is still running")
