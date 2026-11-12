@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.10](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.9...yt-dlp-z-v0.1.10) (2026-11-12)
+
+
+### Bug Fixes
+
+* **backend:** stop the other align downloads when one link fails ([ab967f9](https://github.com/ZXY101/yt-dlp-z/commit/ab967f9b6969c743c47dc2d607204bc784c59172))
+
+
+### Performance Improvements
+
+* **backend:** convert align audio while it downloads ([06fd266](https://github.com/ZXY101/yt-dlp-z/commit/06fd266740adb22294fb20628a53aefa18158a86))
+* **backend:** convert align audio while it downloads ([dbfefd2](https://github.com/ZXY101/yt-dlp-z/commit/dbfefd22cf306590b0cb29664e1267bf57e141bf))
+
 ## [0.1.9](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.8...yt-dlp-z-v0.1.9) (2026-11-11)
 
 
