@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Stand-in for ffmpeg's alignment decode (backend services/align/fetch.py).
 
-Reads the input file, which the fake yt-dlp fills with the video id, and writes 10 minutes
+Reads its input (pipe:0, which the fake yt-dlp fills with the video id) and writes 10 minutes
 of raw 16-bit PCM at 2 kHz for it:
   ...align-<N>...  speech-like audio of one shared event, starting N seconds into it, so
                    align-60 and align-30 are 30 s apart (the second is 30 s later)
   ...unrelated...  audio of a different event (no match)
-  ...nodecode...   fails like an unreadable file
+  ...nodecode...   fails like unreadable input
+  (no input)       fails like real ffmpeg on an empty pipe
 Never touches the network.
 """
 
@@ -35,10 +36,11 @@ def event(seed: int) -> np.ndarray:
 
 def main() -> int:
     args = sys.argv[1:]
-    source = Path(args[args.index("-i") + 1])
+    source = args[args.index("-i") + 1]
     target = Path(args[-1])
-    video_id = source.read_text(encoding="utf-8", errors="replace")
-    if "nodecode" in video_id:
+    data = sys.stdin.buffer.read() if source == "pipe:0" else Path(source).read_bytes()
+    video_id = data.decode(errors="replace")
+    if not data or "nodecode" in video_id:
         print(f"{source}: Invalid data found when processing input", file=sys.stderr)
         return 1
     start_match = re.search(r"align-(\d+)", video_id)

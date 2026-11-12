@@ -11,10 +11,11 @@ It's an API only; there is nothing for it in the web UI.
 ## How it works
 
 1. yt-dlp downloads the smallest audio-only format of each link over plain
-   HTTPS (about 50 kbit/s, roughly 110 MB for 5 hours) into `<config>/align/`,
-   outside your download folders. Cookies work as for downloads. The links are
-   fetched at the same time.
-2. ffmpeg turns each into 2 kHz mono and the download is deleted.
+   HTTPS (about 50 kbit/s, roughly 110 MB for 5 hours). Cookies work as for
+   downloads. The links are fetched at the same time.
+2. The download goes straight into ffmpeg, which turns it into 2 kHz mono as
+   it arrives, so the downloaded file never touches disk. Only the 2 kHz audio
+   is kept, in `<config>/align/`, outside your download folders.
 3. The server compares loudness over time across the whole overlap to find
    the offset, then checks it on twelve one-minute pieces spread over the
    overlap. The share of pieces that match is the confidence. Loudness is used
@@ -34,7 +35,8 @@ Limits:
 - Proxies from the [proxy pool](proxies.md) are not used.
 
 Expect well under a minute for a pair of two-hour streams: about 20 s to
-download, 15 s to convert and a second to compare.
+download and convert, and a second to compare. If YouTube refuses a link
+(HTTP 403, which happens now and then), that link is tried once more.
 
 ## The API
 
@@ -79,7 +81,8 @@ optional `cookie_id` (see [Cookies](cookies.md)). Answers `202` with
   why).
 - `progress`: 0 to 1 over the whole job.
 - `streams`: each link's part, in the order sent: `stage` is `downloading`,
-  `converting` or `ready`, and `downloaded` the download's progress (0 to 1).
+  `converting` (ffmpeg finishing the last of the audio after the download) or
+  `ready`, and `downloaded` the download's progress (0 to 1).
   Show these so a long download doesn't look stuck.
 - `offsets`: seconds by which each recording's content is later than the
   first's. Here something said 10 minutes into AAA is said 10:00 + 83.42 s

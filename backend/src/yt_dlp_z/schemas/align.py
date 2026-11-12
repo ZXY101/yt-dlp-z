@@ -25,7 +25,7 @@ class AlignCreated(BaseModel):
 
 class AlignStreamStatus(BaseModel):
     url: str
-    # downloading → converting → ready.
+    # downloading → converting (ffmpeg finishing after the download) → ready.
     stage: StreamStage
     # Download progress (0 to 1).
     downloaded: float

@@ -40,8 +40,10 @@ waiting for the stream and, like real yt-dlp, treat SIGINT as "check again" (onl
 stops them). ...gaps... recordings save the file but exit with yt-dlp's "Did not get any
 data blocks" error, like a stream whose last fragments are gone when it ends.
 With --match-filter (alignment downloads) ...live... and ...toolong... ids are skipped, like
-videos the filter refuses. A --format starting with worstaudio (alignment) saves the video id
-as the file's content, which the fake ffmpeg (fake_ffmpeg.py) turns into audio.
+videos the filter refuses. A --format starting with worstaudio (alignment) sends the video id
+as the download, which the fake ffmpeg (fake_ffmpeg.py) turns into audio. With --output -
+(alignment pipes the download into ffmpeg) the download goes to stdout and every message to
+stderr, like real yt-dlp.
 """
 
 import json
@@ -72,8 +74,13 @@ def values_of(args: list[str], flag: str) -> list[str]:
     return [args[i + 1] for i, arg in enumerate(args[:-1]) if arg == flag]
 
 
+class Out:
+    # Real yt-dlp writes its messages to stderr when the download goes to stdout.
+    messages = sys.stdout
+
+
 def emit(line: str) -> None:
-    print(line, flush=True)
+    print(line, file=Out.messages, flush=True)
 
 
 def simulate(url: str, title: str) -> int:
@@ -387,6 +394,16 @@ def replace_in_title(args: list[str], title: str) -> str:
     return title
 
 
+def send_to_stdout(args: list[str], video_id: str) -> int:
+    """--output -: the download goes down the pipe (alignment's ffmpeg reads it)."""
+    audio_only = any(f.startswith("worstaudio") for f in values_of(args, "--format"))
+    sys.stdout.buffer.write(video_id.encode() if audio_only else b"fake video")
+    sys.stdout.buffer.flush()
+    emit(PROGRESS + json.dumps({"status": "finished", "downloaded_bytes": TOTAL_BYTES}))
+    emit("[fake] done")
+    return 0
+
+
 def main() -> int:
     args = sys.argv[1:]
     url = args[args.index("--") + 1]
@@ -396,9 +413,13 @@ def main() -> int:
     title = replace_in_title(args, f"Fake video {video_id}")
     if "--simulate" in args:
         return simulate(url, title)
+    to_stdout = values_of(args, "--output") == ["-"]
+    if to_stdout:
+        Out.messages = sys.stderr
     emit("[fake] args: " + " ".join(args[: args.index("--")]))
     report_cookies(args)
-    home = Path(next(v for v in values_of(args, "--paths") if v.startswith("home:"))[5:])
+    homes = [v[5:] for v in values_of(args, "--paths") if v.startswith("home:")]
+    home = Path(homes[0] if homes else ".")
 
     if "--skip-download" in args and "--write-subs" in args:
         return save_chat(url, home, output_name(args, title, video_id).replace("%%", "%"))
@@ -429,6 +450,8 @@ def main() -> int:
         emit_progress(TOTAL_BYTES * step // steps, steps - step, args)
         time.sleep(delay)
 
+    if to_stdout:
+        return send_to_stdout(args, video_id)
     target = home / output_name(args, title, video_id)
     target.parent.mkdir(parents=True, exist_ok=True)
     audio_only = any(f.startswith("worstaudio") for f in values_of(args, "--format"))
