@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.11](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.10...yt-dlp-z-v0.1.11) (2026-11-12)
+
+
+### Bug Fixes
+
+* **backend:** stop yt-dlp when cancelled while it exits ([c9b9a0d](https://github.com/ZXY101/yt-dlp-z/commit/c9b9a0d80b3b6ab148e6d4aaaa7ca6363f348159))
+* **backend:** stop yt-dlp when cancelled while it exits ([898cd79](https://github.com/ZXY101/yt-dlp-z/commit/898cd79e880bc1939242b595cfb9b2bfab4188e2))
+
 ## [0.1.10](https://github.com/ZXY101/yt-dlp-z/compare/yt-dlp-z-v0.1.9...yt-dlp-z-v0.1.10) (2026-11-12)
 
 
