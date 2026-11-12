@@ -112,3 +112,29 @@ async def test_only_the_newest_finished_results_are_kept(
         jobs.append(job)
     assert [manager.get(job.id) is not None for job in jobs] == [False, True, True]
     await manager.stop()
+
+
+def processes_for(video_id: str) -> list[int]:
+    """Running processes whose command line mentions `video_id` (Linux /proc)."""
+    found = []
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            command = (entry / "cmdline").read_bytes()
+        except OSError:
+            continue
+        if video_id.encode() in command:
+            found.append(int(entry.name))
+    return found
+
+
+async def test_a_failing_link_stops_the_other_downloads(tmp_path: Path) -> None:
+    manager = make_manager(tmp_path, Clock())
+    job = manager.create(
+        ["https://www.youtube.com/watch?v=align-slow-sibling", "https://x.test/fail1"], None
+    )
+    await finish(job)
+    assert job.state is AlignState.FAILED
+    assert processes_for("align-slow-sibling") == []
+    await manager.stop()
