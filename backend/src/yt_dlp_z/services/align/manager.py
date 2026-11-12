@@ -157,7 +157,15 @@ class AlignManager:
             stream.stage = StreamStage.READY
             return path
 
-        return list(await asyncio.gather(*(fetch(i, url) for i, url in enumerate(job.urls))))
+        tasks = [asyncio.create_task(fetch(i, url)) for i, url in enumerate(job.urls)]
+        try:
+            return list(await asyncio.gather(*tasks))
+        except BaseException:
+            # One link failed (or the job was stopped): the others' downloads are no use.
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            raise
 
     @contextlib.contextmanager
     def _cookies(self, cookie_id: int | None, owner: str) -> Iterator[Path | None]:

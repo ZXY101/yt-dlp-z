@@ -86,7 +86,6 @@ async def _stop_services(state: AppState) -> None:
 
 def _align_manager(settings: Settings) -> AlignManager:
     tools = Tools(ytdlp=settings.ytdlp_command, ffmpeg=settings.ffmpeg_command)
-    # Absolute, because yt-dlp reports the saved file's absolute path.
     root = settings.align_dir.resolve()
     return AlignManager(AlignConfig(root=root, config_dir=settings.config_dir, tools=tools))
 

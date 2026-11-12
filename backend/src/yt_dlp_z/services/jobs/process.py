@@ -37,13 +37,18 @@ class ProcessResult:
     links_expired: bool = False
 
 
-async def run_ytdlp(command: list[str], log_path: Path, hooks: ProcessHooks) -> ProcessResult:
-    """Runs yt-dlp, streaming marker lines to on_update and everything else to the log."""
+async def run_ytdlp(
+    command: list[str], log_path: Path, hooks: ProcessHooks, media: int | None = None
+) -> ProcessResult:
+    """Runs yt-dlp, streaming marker lines to on_update and everything else to the log.
+
+    `media`: a file descriptor for the download itself (`--output -`). yt-dlp then writes its
+    messages to stderr, so they're read from there."""
     log_path.parent.mkdir(parents=True, exist_ok=True)
     process = await asyncio.create_subprocess_exec(
         *command,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.STDOUT,
+        stdout=asyncio.subprocess.PIPE if media is None else media,
+        stderr=asyncio.subprocess.STDOUT if media is None else asyncio.subprocess.PIPE,
         env={**os.environ, "PYTHONUNBUFFERED": "1"},
         # Own process group, so stopping it also stops ffmpeg and other children.
         start_new_session=True,
@@ -85,11 +90,12 @@ async def _stream_output(
 ) -> _Output:
     """Sends marker lines to on_update, logs everything else; returns what the log showed."""
     output = _Output()
-    stdout = process.stdout
-    if stdout is None:  # pragma: no cover  (always set with stdout=PIPE)
+    # Messages come on stdout, or on stderr while stdout carries the download.
+    messages = process.stdout or process.stderr
+    if messages is None:  # pragma: no cover  (one of them is always a pipe)
         raise RuntimeError("yt-dlp output is not available")
     with log_path.open("a", encoding="utf-8") as log:
-        async for raw_line in _lines(stdout):
+        async for raw_line in _lines(messages):
             line = raw_line.decode(errors="replace")
             update = parse_line(line)
             if update is not None:
