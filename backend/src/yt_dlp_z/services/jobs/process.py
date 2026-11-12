@@ -56,12 +56,12 @@ async def run_ytdlp(
     hooks.on_start(process)
     try:
         output = await _stream_output(process, log_path, hooks.on_update)
+        returncode = await process.wait()
     except asyncio.CancelledError:
-        # The app is shutting down. yt-dlp runs in its own session, so without this
-        # it would keep downloading after the app exits.
+        # The app is shutting down (or the caller gave up). yt-dlp runs in its own session,
+        # so without this it would keep running, or be left unreaped, after we stop waiting.
         await stop_process(process, graceful=hooks.graceful)
         raise
-    returncode = await process.wait()
     return ProcessResult(returncode, output.last_error, output.links_expired)
 
 
