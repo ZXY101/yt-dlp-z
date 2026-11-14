@@ -10,15 +10,15 @@ link twice need **0.1.7**. Older servers get a message saying what to update.
 
 ## Install
 
-Store listings are on the way. Until then:
-
-- **Chrome and other Chromium browsers:** download `yt-dlp-z-extension-<version>.zip` from
-  the [releases page](https://github.com/ZXY101/yt-dlp-z/releases) and unzip it. Open
+- **Firefox (desktop and Android):** install it from
+  [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/yt-dlp-z/). Firefox
+  keeps it up to date.
+- **Chrome and other Chromium browsers:** a Chrome Web Store listing is on the way. Until
+  then, download `yt-dlp-z-extension-<version>.zip` from the
+  [releases page](https://github.com/ZXY101/yt-dlp-z/releases) and unzip it. Open
   `chrome://extensions`, switch on **Developer mode**, click **Load unpacked** and pick the
-  unzipped folder.
-- **Firefox:** open `about:debugging#/runtime/this-firefox`, click **Load Temporary
-  Add-on** and pick `manifest.json` in the unzipped folder. Firefox removes temporary
-  add-ons when it closes, until the signed version is on Firefox Add-ons.
+  unzipped folder. Unpacked extensions don't update themselves: repeat this for a new
+  version.
 
 To build it yourself, see [extension/README.md](../extension/README.md).
 

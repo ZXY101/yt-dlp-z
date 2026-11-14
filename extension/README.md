@@ -8,6 +8,10 @@ the published files are the readable compiler output.
 Needs a yt-dlp-z server 0.1.6 or newer and an API token made under Settings → API tokens
 with “Send links only”.
 
+Install: [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/yt-dlp-z/)
+(desktop and Android). Chrome: load the release zip unpacked, see
+[docs/browser-extension.md](../docs/browser-extension.md#install).
+
 ## Development
 
 From the repo root:
