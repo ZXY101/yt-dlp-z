@@ -41,7 +41,9 @@ puts a web app in front of it that you run on your own server, NAS or PC:
 - When that channel goes live, the stream is recorded from the start, split into
   parts if it runs for days, and optionally replaced by the clean VOD later.
 - Send the page you're on from Chrome or Firefox with the
-  [browser extension](docs/browser-extension.md), and watch its progress from the toolbar.
+  [browser extension](docs/browser-extension.md)
+  ([Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/yt-dlp-z/)), and watch
+  its progress from the toolbar.
 - Ask an AI agent to do any of it: the built-in [MCP server](docs/mcp.md) lets agents
   such as Claude Code start downloads and change settings.
 
@@ -119,7 +121,8 @@ adds them.
 - **Media-server files** for Jellyfin, Plex and Kodi: episode and show `.nfo` files,
   thumbnails, channel poster, fanart and banner.
 - **Browser extension** for Chrome and Firefox (also Firefox for Android): send the page or
-  a right-clicked link with a preset, using a token that can only send links.
+  a right-clicked link with a preset, using a token that can only send links. Firefox:
+  [install from Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/yt-dlp-z/).
 - **Single admin password** (argon2, rate-limited sign-in), or hand login to
   your reverse proxy.
 - **One container** with two volumes, or run it directly with Python and Node.
