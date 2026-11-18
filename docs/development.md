@@ -76,4 +76,6 @@ Both backend and frontend fail below 80% test coverage.
 `feat(frontend): add download queue page`. release-please builds the changelog
 and releases from them. The browser extension is released on its own: commits that only
 touch `extension/` go into `extension/CHANGELOG.md` and `extension-v*` tags, and its
-release gets a zip of the build.
+release gets a zip of the build. The same workflow submits that build to Firefox Add-ons
+(`web-ext sign --channel=listed`) using the `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` repository
+secrets (the API keys from the AMO Developer Hub). Mozilla's review can take a few days.
