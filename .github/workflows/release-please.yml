@@ -64,6 +64,17 @@ jobs:
         run: |
           (cd extension/dist && zip -r "../yt-dlp-z-extension-$VERSION.zip" .)
           gh release upload "$TAG" "extension/yt-dlp-z-extension-$VERSION.zip"
+      # Submits the version for Mozilla's review and returns without waiting (review can take
+      # days). No source-code upload: the add-on is plain tsc output, not bundled or minified.
+      # Install scripts are skipped, as npm's allowScripts does for our own dependencies.
+      - name: Publish to addons.mozilla.org
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
+          WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          npm_config_ignore_scripts: "true"
+        run: >-
+          npx --yes web-ext@10.8.0 sign --channel=listed --approval-timeout=0
+          --source-dir=extension/dist --artifacts-dir="$RUNNER_TEMP/web-ext"
       # GitHub marks the newest release "Latest", which the README's release badge and
       # people looking for the server read; keep that on the server's newest release.
       - name: Keep the server release as Latest
